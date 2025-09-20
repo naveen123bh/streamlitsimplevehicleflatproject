@@ -1,6 +1,3 @@
-#requirements.txt - streamlit==1.38.0
-#pandas==2.2.2
-#openpyxl==3.1.5
 
 import streamlit as st
 import pandas as pd
