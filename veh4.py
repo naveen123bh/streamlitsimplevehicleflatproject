@@ -4,15 +4,6 @@
 
 import streamlit as st
 import pandas as pd
-import subprocess
-import sys
-
-# ===== Ensure openpyxl is installed =====
-try:
-    import openpyxl
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "openpyxl"])
-    import openpyxl
 
 st.title("Vehicle ↔ Flat Number Lookup Tool")
 
@@ -21,12 +12,19 @@ uploaded_file = st.file_uploader("Upload your Excel file (.xlsx)", type="xlsx")
 
 if uploaded_file is not None:
     try:
+        # ===== Load Excel =====
         df = pd.read_excel(uploaded_file)
         st.success("File loaded successfully!")
 
         # ===== Normalize columns =====
         df.columns = ["Vehicle", "FlatNumber"]
-        df["Vehicle"] = df["Vehicle"].astype(str).str.upper().str.strip().str.replace("O", "0")
+        df["Vehicle"] = (
+            df["Vehicle"]
+            .astype(str)
+            .str.upper()
+            .str.strip()
+            .str.replace("O", "0")  # replace letter O with zero
+        )
         df["FlatNumber"] = df["FlatNumber"].astype(str).str.strip()
 
         # ===== Helper function =====
