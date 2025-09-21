@@ -53,27 +53,22 @@ def normalize_flat_input(flat_number):
     """Normalize flat number for consistent lookup."""
     return str(flat_number).upper().strip()
 
-# ===== Lookup GUI =====
-lookup_type = st.radio("Choose lookup type", ["Vehicle → Flat", "Flat → Vehicle"])
+# ===== Unified Lookup GUI =====
+user_input = st.text_input("Enter Vehicle Number or Flat Number")
 
-if lookup_type == "Vehicle → Flat":
-    vehicle_number = st.text_input("Enter Vehicle Number")
-    if vehicle_number:
-        vehicle_number_norm = normalize_vehicle_input(vehicle_number)
-        rows = df[df["Vehicle"] == vehicle_number_norm]
-        if not rows.empty:
-            flats = ", ".join(rows["FlatNumber"].tolist())
-            st.success(f"Flat number(s) for vehicle {vehicle_number_norm}: {flats}")
+if user_input:
+    input_norm = user_input.strip().upper()
+    
+    # Check if input matches any Vehicle first
+    vehicle_rows = df[df["Vehicle"] == normalize_vehicle_input(input_norm)]
+    if not vehicle_rows.empty:
+        flats = ", ".join(vehicle_rows["FlatNumber"].tolist())
+        st.success(f"Flat number(s) for vehicle {input_norm}: {flats}")
+    else:
+        # Check if input matches any FlatNumber
+        flat_rows = df[df["FlatNumber"] == normalize_flat_input(input_norm)]
+        if not flat_rows.empty:
+            vehicles = ", ".join(flat_rows["Vehicle"].tolist())
+            st.success(f"Vehicle number(s) for flat {input_norm}: {vehicles}")
         else:
-            st.error(f"Vehicle number {vehicle_number_norm} not found")
-
-else:  # Flat → Vehicle
-    flat_number = st.text_input("Enter Flat Number")
-    if flat_number:
-        flat_number_norm = normalize_flat_input(flat_number)
-        rows = df[df["FlatNumber"] == flat_number_norm]
-        if not rows.empty:
-            vehicles = ", ".join(rows["Vehicle"].tolist())
-            st.success(f"Vehicle number(s) for flat {flat_number_norm}: {vehicles}")
-        else:
-            st.error(f"Flat number {flat_number_norm} not found")
+            st.error(f"No matching vehicle or flat number found for '{user_input}'")
