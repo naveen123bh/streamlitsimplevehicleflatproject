@@ -12,7 +12,6 @@ st.title("Vehicle ↔ Flat Number Lookup Tool")
 
 # ===== File setup =====
 default_file = "vehnew.xlsx"  # relative path, file is in the same folder as your script
-  # <-- put your Excel file path here
 
 # Check if file exists
 if not os.path.exists(default_file):
@@ -47,10 +46,12 @@ df["FlatNumber"] = df["FlatNumber"].astype(str).str.upper().str.strip()
 
 # ===== Helper functions =====
 def normalize_vehicle_input(vehicle_number):
-    return vehicle_number.upper().strip().replace("O", "0")
+    """Normalize vehicle number for case-insensitive lookup."""
+    return str(vehicle_number).upper().strip().replace("O", "0")
 
 def normalize_flat_input(flat_number):
-    return flat_number.upper().strip()
+    """Normalize flat number for consistent lookup."""
+    return str(flat_number).upper().strip()
 
 # ===== Lookup GUI =====
 lookup_type = st.radio("Choose lookup type", ["Vehicle → Flat", "Flat → Vehicle"])
