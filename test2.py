@@ -11,7 +11,8 @@ st.write("openpyxl version:", openpyxl.__version__)
 st.title("Vehicle ↔ Flat Number Lookup Tool")
 
 # ===== File setup =====
-default_file = "C:\\Users\\ABC\\Documents\\vehnew.xlsx"  # <-- put your Excel file path here
+default_file = "default_file = "vehnew.xlsx"  # relative path, file is in the same folder as your script
+"  # <-- put your Excel file path here
 
 # Check if file exists
 if not os.path.exists(default_file):
