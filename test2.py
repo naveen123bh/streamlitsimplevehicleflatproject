@@ -12,7 +12,7 @@ st.title("Vehicle ↔ Flat Number Lookup Tool")
 
 # ===== File setup =====
 default_file = "vehnew.xlsx"  # relative path, file is in the same folder as your script
-"  # <-- put your Excel file path here
+  # <-- put your Excel file path here
 
 # Check if file exists
 if not os.path.exists(default_file):
