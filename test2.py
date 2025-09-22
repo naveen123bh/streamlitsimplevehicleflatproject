@@ -52,6 +52,7 @@ if df.shape[1] < 2:
 # ===== Normalize dataframe =====
 df = df.iloc[:, :2]
 df.columns = ["Vehicle", "FlatNumber"]
+
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
@@ -70,15 +71,25 @@ for vehicle, flat in vehicle_flat_pairs.items():
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="Yahaa darj kare", max_chars=20)
 
-# ===== Button for result =====
+# ===== Button for result with green box style =====
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
+    # CSS style for green box
+    box_style = (
+        "padding: 20px; "
+        "border-radius: 10px; "
+        "background-color: #d4edda; "
+        "color: #155724; "
+        "font-size: 60px; "
+        "font-weight: bold;"
+    )
+
     # ----- Vehicle lookup -----
     if input_norm_vehicle in vehicle_flat_pairs:
         st.markdown(
-            f"<h2 style='color:red; font-size:50px;'>Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}</h2>",
+            f"<div style='{box_style}'>Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}</div>",
             unsafe_allow_html=True,
         )
 
@@ -86,14 +97,15 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
     elif input_norm_flat in flat_to_vehicles:
         matched_vehicles = flat_to_vehicles[input_norm_flat]
         st.markdown(
-            f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>",
+            f"<div style='{box_style}'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</div>",
             unsafe_allow_html=True,
         )
 
+    # ----- Not found message -----
     else:
         st.markdown(
-            "<h2 style='color:red; font-size:50px;'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। "
-            "शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।<br>"
-            "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>",
+            f"<div style='{box_style}'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। "
+            "..शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।<br>"
+            "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</div>",
             unsafe_allow_html=True,
         )
