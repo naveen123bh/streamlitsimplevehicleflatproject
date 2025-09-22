@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 import openpyxl
 import streamlit as st
 import pandas as pd
@@ -11,7 +12,7 @@ st.write("openpyxl version:", openpyxl.__version__)
 st.title("Vehicle ↔ Flat Number Lookup Tool")
 
 # ===== File setup =====
-default_file = "C:\\Users\\ABC\\Documents\\vehnew.xlsx"  # <-- put your Excel file path here
+default_file = "vehnew.xlsx"  # relative path, file is in the same folder as your script
 
 # Check if file exists
 if not os.path.exists(default_file):
@@ -34,44 +35,45 @@ if df.shape[1] < 2:
 df = df.iloc[:, :2]
 df.columns = ["Vehicle", "FlatNumber"]
 
-# ===== Normalize columns =====
-df["Vehicle"] = (
-    df["Vehicle"]
-    .astype(str)
-    .str.upper()
-    .str.strip()
-    .str.replace("O", "0")  # replace letter O with zero
-)
-df["FlatNumber"] = df["FlatNumber"].astype(str).str.upper().str.strip()
-
 # ===== Helper functions =====
 def normalize_vehicle_input(vehicle_number):
-    return vehicle_number.upper().strip().replace("O", "0")
+    """Normalize vehicle number for case-insensitive, space-free lookup."""
+    if pd.isna(vehicle_number):
+        return ""
+    text = str(vehicle_number).upper()
+    text = re.sub(r"\s+", "", text)   # remove spaces, tabs, newlines
+    text = text.replace("O", "0").replace("o", "0")  # replace O/o with 0
+    return text.strip()
 
 def normalize_flat_input(flat_number):
-    return flat_number.upper().strip()
+    """Normalize flat number for consistent lookup."""
+    if pd.isna(flat_number):
+        return ""
+    text = str(flat_number).upper()
+    text = re.sub(r"\s+", "", text)   # remove spaces, tabs, newlines
+    return text.strip()
 
-# ===== Lookup GUI =====
-lookup_type = st.radio("Choose lookup type", ["Vehicle → Flat", "Flat → Vehicle"])
+# ===== Normalize dataframe =====
+df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
+df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-if lookup_type == "Vehicle → Flat":
-    vehicle_number = st.text_input("Enter Vehicle Number")
-    if vehicle_number:
-        vehicle_number_norm = normalize_vehicle_input(vehicle_number)
-        rows = df[df["Vehicle"] == vehicle_number_norm]
-        if not rows.empty:
-            flats = ", ".join(rows["FlatNumber"].tolist())
-            st.success(f"Flat number(s) for vehicle {vehicle_number_norm}: {flats}")
+# ===== Unified Lookup GUI =====
+user_input = st.text_input("Enter Vehicle Number or Flat Number")
+
+if user_input:
+    input_norm_vehicle = normalize_vehicle_input(user_input)
+    input_norm_flat = normalize_flat_input(user_input)
+
+    # Check if input matches any Vehicle
+    vehicle_rows = df[df["Vehicle"] == input_norm_vehicle]
+    if not vehicle_rows.empty:
+        flats = ", ".join(vehicle_rows["FlatNumber"].tolist())
+        st.success(f"Flat number(s) for vehicle {input_norm_vehicle}: {flats}")
+    else:
+        # Check if input matches any FlatNumber
+        flat_rows = df[df["FlatNumber"] == input_norm_flat]
+        if not flat_rows.empty:
+            vehicles = ", ".join(flat_rows["Vehicle"].tolist())
+            st.success(f"Vehicle number(s) for flat {input_norm_flat}: {vehicles}")
         else:
-            st.error(f"Vehicle number {vehicle_number_norm} not found")
-
-else:  # Flat → Vehicle
-    flat_number = st.text_input("Enter Flat Number")
-    if flat_number:
-        flat_number_norm = normalize_flat_input(flat_number)
-        rows = df[df["FlatNumber"] == flat_number_norm]
-        if not rows.empty:
-            vehicles = ", ".join(rows["Vehicle"].tolist())
-            st.success(f"Vehicle number(s) for flat {flat_number_norm}: {vehicles}")
-        else:
-            st.error(f"Flat number {flat_number_norm} not found")
+            st.error(f"No matching vehicle or flat number found for '{user_input}'")
