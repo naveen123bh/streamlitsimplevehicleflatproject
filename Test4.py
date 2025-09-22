@@ -47,8 +47,12 @@ users = {
     "Sagar Bamne": "615283"
 }
 
+# ===== Session State Initialization =====
 if "logged_in_users" not in st.session_state:
-    st.session_state.logged_in_users = []  # list of logged-in users
+    st.session_state.logged_in_users = []
+
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
 
 # ===== Helper functions =====
 def get_log_file(gate):
@@ -123,32 +127,26 @@ def generate_summary(gate):
 # ===== Login Section =====
 st.markdown("<h1 style='color:blue; text-align:center;'>🚓 Rishabh Tower Vehicle Log</h1>", unsafe_allow_html=True)
 
-if len(st.session_state.logged_in_users) < 2:
+if st.session_state.current_user is None:
     st.markdown("### User Login 🔐")
-    # Show all users in the dropdown
     available_users = list(users.keys())
     selected_user = st.selectbox("Select your name", available_users)
-    password_input = st.text_input("Enter your 6-digit password", type="password", key="login_pass")
-    
-    login_success = False
+    password_input = st.text_input("Enter your 6-digit password", type="password")
+
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
             if len(st.session_state.logged_in_users) < 2:
                 st.session_state.logged_in_users.append(selected_user)
+                st.session_state.current_user = selected_user
                 st.success(f"Welcome {selected_user}! You are logged in.")
-                login_success = True
             else:
                 st.warning("⚠️ Maximum 2 users already logged in.")
         else:
             st.error("❌ Incorrect password. Access denied.")
-
-    # Rerun safely outside the button
-    if login_success:
-        st.experimental_rerun()
 else:
-    st.warning("⚠️ Maximum 2 users can be logged in at the same time.")
+    st.info(f"Logged in as: {st.session_state.current_user}")
 
-# Show current logged-in users
+# Show currently logged-in users
 if st.session_state.logged_in_users:
     st.info(f"Currently logged-in users: {', '.join(st.session_state.logged_in_users)}")
 
@@ -156,8 +154,9 @@ if st.session_state.logged_in_users:
 for user in st.session_state.logged_in_users.copy():
     if st.button(f"🚪 Log Out {user}"):
         st.session_state.logged_in_users.remove(user)
+        if st.session_state.current_user == user:
+            st.session_state.current_user = None
         st.success(f"{user} logged out successfully.")
-        st.experimental_rerun()
 
 # ===== Vehicle Logging Section (for Guards only) =====
 guard_users = ["Naveen Kumar","Rajeev Padwal","Suresh Sagare","Babban","Manoj","Rajaram","Sandeep Karekar"]
