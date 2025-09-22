@@ -88,18 +88,18 @@ if st.session_state.step is None:
         """
         <style>
         div[data-testid='stButton'] button[kind='primary'][key='in_btn'] {
-            background-color: green;
-            color: white;
-            font-size: 28px;
-            padding: 16px 32px;
-            border-radius: 15px;
+            background-color: green !important;
+            color: white !important;
+            font-size: 28px !important;
+            padding: 16px 32px !important;
+            border-radius: 15px !important;
         }
         div[data-testid='stButton'] button[kind='primary'][key='out_btn'] {
-            background-color: red;
-            color: white;
-            font-size: 28px;
-            padding: 16px 32px;
-            border-radius: 15px;
+            background-color: red !important;
+            color: white !important;
+            font-size: 28px !important;
+            padding: 16px 32px !important;
+            border-radius: 15px !important;
         }
         </style>
         """,
