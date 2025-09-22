@@ -1,6 +1,6 @@
-import sys
 import os
 import re
+import sys
 import openpyxl
 import streamlit as st
 import pandas as pd
@@ -16,19 +16,19 @@ default_file = "vehnew.xlsx"  # relative path, file is in the same folder as you
 
 # Check if file exists
 if not os.path.exists(default_file):
-    st.error(f"File not found: {default_file}")
+    st.error(f"फ़ाइल नहीं मिली: {default_file}")
     st.stop()
 
 try:
     df = pd.read_excel(default_file)
-    st.success(f"File '{default_file}' loaded successfully!")
+    st.success(f"फ़ाइल '{default_file}' सफलतापूर्वक लोड हुई!")
 except Exception as e:
-    st.error(f"Error reading file '{default_file}': {e}")
+    st.error(f"फ़ाइल पढ़ने में त्रुटि '{default_file}': {e}")
     st.stop()
 
 # ===== Handle column mismatch =====
 if df.shape[1] < 2:
-    st.error("Excel file must have at least 2 columns: Vehicle and FlatNumber")
+    st.error("Excel फ़ाइल में कम से कम 2 कॉलम होने चाहिए: Vehicle और FlatNumber")
     st.stop()
 
 # Keep only first two columns and rename
@@ -58,7 +58,7 @@ df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
 # ===== Unified Lookup GUI =====
-user_input = st.text_input("Enter Vehicle Number or Flat Number")
+user_input = st.text_input("Vehicle Number या Flat Number दर्ज करें")
 
 if user_input:
     input_norm_vehicle = normalize_vehicle_input(user_input)
@@ -68,12 +68,16 @@ if user_input:
     vehicle_rows = df[df["Vehicle"] == input_norm_vehicle]
     if not vehicle_rows.empty:
         flats = ", ".join(vehicle_rows["FlatNumber"].tolist())
-        st.success(f"Flat number(s) for vehicle {input_norm_vehicle}: {flats}")
+        st.success(f"Vehicle {input_norm_vehicle} का Flat number(s): {flats}")
     else:
         # Check if input matches any FlatNumber
         flat_rows = df[df["FlatNumber"] == input_norm_flat]
         if not flat_rows.empty:
             vehicles = ", ".join(flat_rows["Vehicle"].tolist())
-            st.success(f"Vehicle number(s) for flat {input_norm_flat}: {vehicles}")
+            st.success(f"Flat {input_norm_flat} का Vehicle number(s): {vehicles}")
         else:
-            st.error(f"No matching vehicle or flat number found for '{user_input}'")
+            # Updated friendly Hindi message for no match
+            st.warning(
+                "कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं। "
+                "कुछ दिनों के लिए प्रतीक्षा करें, वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..."
+            )
