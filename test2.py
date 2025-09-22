@@ -91,4 +91,4 @@ if st.session_state.step:
         st.session_state.vehicle_number = ""
         st.session_state.vehicle_type = ""
         st.session_state.flat_number = ""
-        st.session_state.step = None
+        st.session_state.step = None 
