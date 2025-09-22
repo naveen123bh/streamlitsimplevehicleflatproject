@@ -83,6 +83,7 @@ vehicle_flat_pairs = {
     "MH47BE1895": "F305", "GJ10CE2279": "F602", "MH01BF2532": "F101",
     "AQ7283": "F1103", "23BH1092B": "F104", "CP9561": "FRELIANCE",
     "MH01DB6179": "F504", "MH03EH6869": "F705",
+    # Added from NumberMHO1 list you provided:
     "MHO1BG4866":"F202","MHO1DK7850":"F1401","MHO1DT9906":"F506","MHO4KW271":"F301",
     "MHO1CW8883":"F1402","MH48AC1167":"F601","MHO1DP1190":"F302","MHO1CG9909":"F1404",
     "MH46AV426":"F603","MHO1DE4063":"F302","MHO1BG9909":"F1404","MHO1DK7402":"F606",
@@ -117,9 +118,9 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
 
     # Check vehicle dictionary first
     if input_norm_vehicle in vehicle_flat_pairs:
-        st.markdown(f"<h2 style='color:purple; font-size:50px;'>Flat number(s) for vehicle {input_norm_vehicle}: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:purple; font-size:50px;'>Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
     elif input_norm_flat in vehicle_flat_pairs.values():
         matched_vehicles = [v for v, f in vehicle_flat_pairs.items() if f == input_norm_flat]
-        st.markdown(f"<h2 style='color:red; font-size:50px;'>Vehicle number(s) for flat {input_norm_flat}: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
     else:
         st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
