@@ -1,6 +1,6 @@
 import os
-import sys
 import re
+import sys
 import openpyxl
 import streamlit as st
 import pandas as pd
@@ -12,58 +12,65 @@ st.write("openpyxl version:", openpyxl.__version__)
 # ===== App Heading =====
 st.markdown("<h1 style='color:blue; font-size:60px;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
 
-# ===== File setup =====
-default_file = "vehicle_flat_pairs.csv"
-
-if not os.path.exists(default_file):
-    st.error(f"File not found: {default_file}")
-    st.stop()
-
-try:
-    df = pd.read_csv(default_file)
-    st.success(f"File '{default_file}' loaded successfully!")
-except Exception as e:
-    st.error(f"Error reading file '{default_file}': {e}")
-    st.stop()
-
-if df.shape[1] < 2:
-    st.error("CSV file must have at least 2 columns: Vehicle, FlatNumber")
-    st.stop()
-
-df = df.iloc[:, :2]
-df.columns = ["Vehicle", "FlatNumber"]
-
-# ===== Normalization helpers =====
-def normalize_vehicle_input(vehicle_number: str) -> str:
+# ===== Helper functions =====
+def normalize_vehicle_input(vehicle_number):
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = re.sub(r"\\s+", "", text)
+    text = re.sub(r"\s+", "", text)
+    text = text.replace("O", "0")
     return text.strip()
 
-def normalize_flat_input(flat_number: str) -> str:
+def normalize_flat_input(flat_number):
     if pd.isna(flat_number):
         return ""
     text = str(flat_number).upper()
-    text = re.sub(r"\\s+", "", text)
+    text = re.sub(r"\s+", "", text)
     if text.isnumeric():
         text = "F" + text
     return text.strip()
 
+# ===== File setup =====
+raw_file = "vehicle_flat_pairs.csv"
+clean_file = "vehicle_flat_pairs_clean.csv"
+
+if not os.path.exists(raw_file):
+    st.error(f"File not found: {raw_file}")
+    st.stop()
+
+try:
+    df = pd.read_csv(raw_file)
+    st.success(f"File '{raw_file}' loaded successfully!")
+except Exception as e:
+    st.error(f"Error reading file '{raw_file}': {e}")
+    st.stop()
+
+if df.shape[1] < 2:
+    st.error("CSV file must have at least 2 columns: Vehicle and FlatNumber")
+    st.stop()
+
 # ===== Normalize dataframe =====
+df = df.iloc[:, :2]
+df.columns = ["Vehicle", "FlatNumber"]
+
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Build mappings =====
+# Save normalized clean file
+df.to_csv(clean_file, index=False)
+
+# ===== Build dictionaries =====
 vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
 
 flat_to_vehicles = {}
 for vehicle, flat in vehicle_flat_pairs.items():
-    flat_to_vehicles.setdefault(flat, []).append(vehicle)
+    if flat not in flat_to_vehicles:
+        flat_to_vehicles[flat] = []
+    flat_to_vehicles[flat].append(vehicle)
 
 # ===== Streamlit Input =====
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
-user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="Yahaa darj kare", max_chars=15)
+user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="Yahaa darj kare", max_chars=20)
 
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
@@ -76,7 +83,7 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
             unsafe_allow_html=True,
         )
 
-    # ----- Flat lookup: show all vehicles -----
+    # ----- Flat lookup -----
     elif input_norm_flat in flat_to_vehicles:
         matched_vehicles = flat_to_vehicles[input_norm_flat]
         st.markdown(
@@ -86,6 +93,8 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
 
     else:
         st.markdown(
-            "<h2 style='color:red; font-size:50px;'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।<br>..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>",
+            "<h2 style='color:red; font-size:50px;'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। "
+            "शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।<br>"
+            "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>",
             unsafe_allow_html=True,
         )
