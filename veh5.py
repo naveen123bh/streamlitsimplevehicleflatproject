@@ -83,7 +83,6 @@ vehicle_flat_pairs = {
     "MH47BE1895": "F305", "GJ10CE2279": "F602", "MH01BF2532": "F101",
     "AQ7283": "F1103", "23BH1092B": "F104", "CP9561": "FRELIANCE",
     "MH01DB6179": "F504", "MH03EH6869": "F705",
-    # Added manually from your pasted data:
     "MHO1BG4866":"F202","MHO1DK7850":"F1401","MHO1DT9906":"F506","MHO4KW271":"F301",
     "MHO1CW8883":"F1402","MH48AC1167":"F601","MHO1DP1190":"F302","MHO1CG9909":"F1404",
     "MH46AV426":"F603","MHO1DE4063":"F302","MHO1BG9909":"F1404","MHO1DK7402":"F606",
@@ -91,22 +90,20 @@ vehicle_flat_pairs = {
     "MHO1EF9192":"F1501","MHBRO1AS79":"F92","MHO1DP2491":"F302","MHO1DJ5133":"F904",
     "MHO5DY0011":"F803","MHO1BR0920":"F1202","MHO1CT3524":"F1104","MHO1MA391":"F806",
     "MHO1DR9783":"F705","MHO1DT7640":"F1105","MHO1CP8369":"F901","MHO2EK2721":"F806",
-    "MH46P7467":"F1203","MHO1DK5369":"F901","22BH6747E":"F1203","MHO1DB4743":"F1001",
-    "MH02BB8205":"F103","MH46X4215":"F1204","MHO1DB4868":"F1001","MH46P3291":"F204",
-    "MHGJ1ORJ58":"F65","MHO1DK8446":"F1001","MH46AZ1467":"F206","MH46Z5769":"F1302",
-    "MHO1BK3371":"F1004","MH02CB3463":"F305","MHO1DK8858":"F1303","MHO1CT9723":"F1101",
-    "MH46N9366":"F306","MHO4FP4440":"F1304","MH14EY4814":"F1103","MHO1EB8306":"F401",
-    "MHO1DE9438":"F1502","MHO1CS2772":"F1202","MH46P7524":"F403","MH46Z2847":"F1503",
-    "MHO1DE0713":"F1202","MH46AL6027":"F503","21BH3965A":"F1504"
+    "MH46P7467":"F1203","MHO1DK5369":"F901","23BH1092B":"F104","22BH6747E":"F1203",
+    "MHO1DB4743":"F1001","MH02BB8205":"F103","MH46X4215":"F1204","MHO1DB4868":"F1001",
+    "MH46P3291":"F204","MHGJ1ORJ58":"F65","MHO1DK8446":"F1001","MH46AZ1467":"F206",
+    "MH46Z5769":"F1302","MHO1BK3371":"F1004","MH02CB3463":"F305","MHO1DK8858":"F1303",
+    "MHO1CT9723":"F1101","MH46N9366":"F306","MHO4FP4440":"F1304","MH14EY4814":"F1103",
+    "MHO1EB8306":"F401","MHO1DE9438":"F1502","MHO1CS2772":"F1202","MH46P7524":"F403",
+    "MH46Z2847":"F1503","MHO1DE0713":"F1202","MH46AL6027":"F503","21BH3965A":"F1504"
 }
-
-vehicle_flat_pairs = {k.strip().upper(): v.strip().upper() for k, v in vehicle_flat_pairs.items()}
 
 # ===== Streamlit Input =====
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 
 user_input = st.text_input("", "", key="vehicle_flat_input",
-                           help="Vehicle या Flat Number डालें",
+                           placeholder="Yahaa दर्ज करे",
                            max_chars=15)
 
 # ===== Lookup Button =====
@@ -114,6 +111,7 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
+    # Check vehicle dictionary first
     if input_norm_vehicle in vehicle_flat_pairs:
         st.markdown(f"<h2 style='color:purple; font-size:50px;'>Flat number(s) for vehicle {input_norm_vehicle}: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
     elif input_norm_flat in vehicle_flat_pairs.values():
