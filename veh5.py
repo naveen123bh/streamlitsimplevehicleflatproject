@@ -8,10 +8,6 @@ import pandas as pd
 # ===== Heading =====
 st.markdown("<h1 style='text-align:center; color:#FF5733; font-size:70px;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
 
-# ===== Python version check =====
-st.write("Python version:", sys.version)
-st.write("openpyxl version:", openpyxl.__version__)
-
 # ===== App Title =====
 st.markdown("<h1 style='text-align:center; color:#1F618D; font-size:60px;'>Vehicle ↔ Flat Number App</h1>", unsafe_allow_html=True)
 
@@ -54,46 +50,9 @@ def normalize_flat_input(flat_number):
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Custom CSS for input, button, results =====
-st.markdown("""
-<style>
-/* Input box style */
-.big-input input {
-    font-size: 60px !important;
-    color: #D35400;
-    font-weight: bold;
-    text-align: center;
-    height: 80px;
-    border: 4px solid #1F618D;
-    border-radius: 15px;
-    background-color: #FCF3CF;
-}
-
-/* Button style */
-.big-button button {
-    font-size: 60px !important;
-    background-color: #28B463;
-    color: white;
-    font-weight: bold;
-    padding: 25px 50px;
-    border-radius: 15px;
-    width: 400px;
-    display: block;
-    margin: 30px auto;
-}
-
-/* Result messages style */
-.stSuccess, .stWarning, .stError {
-    font-size: 60px !important;
-    font-weight: bold;
-    text-align: center;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ===== Input box =====
-user_input = st.text_input("Vehicle या Flat Number डालें", "", key="user_input")
-st.markdown('<div class="big-input"></div>', unsafe_allow_html=True)
+# ===== Input =====
+st.markdown("<h1 style='text-align:center; color:#D35400; font-size:60px;'>Vehicle या Flat Number डालें</h1>", unsafe_allow_html=True)
+user_input = st.text_input("", "", key="user_input")
 
 # ===== Button =====
 if st.button("Result देखें", key="result_button"):
@@ -104,16 +63,13 @@ if st.button("Result देखें", key="result_button"):
         vehicle_rows = df[df["Vehicle"] == input_norm_vehicle]
         if not vehicle_rows.empty:
             flats = ", ".join(vehicle_rows["FlatNumber"].tolist())
-            st.success(f"Vehicle {input_norm_vehicle} का Flat number(s): {flats}")
+            st.markdown(f"<h1 style='text-align:center; color:#196F3D; font-size:60px;'>Vehicle {input_norm_vehicle} का Flat number(s): {flats}</h1>", unsafe_allow_html=True)
         else:
             flat_rows = df[df["FlatNumber"] == input_norm_flat]
             if not flat_rows.empty:
                 vehicles = ", ".join(flat_rows["Vehicle"].tolist())
-                st.success(f"Flat {input_norm_flat} का Vehicle number(s): {vehicles}")
+                st.markdown(f"<h1 style='text-align:center; color:#196F3D; font-size:60px;'>Flat {input_norm_flat} का Vehicle number(s): {vehicles}</h1>", unsafe_allow_html=True)
             else:
-                st.warning(
-                    "वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है।\n"
-                    "कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।"
-                )
+                st.markdown("<h1 style='text-align:center; color:#CB4335; font-size:60px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है।<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h1>", unsafe_allow_html=True)
     else:
-        st.error("कृपया Vehicle या Flat Number दर्ज करें।")
+        st.markdown("<h1 style='text-align:center; color:#CB4335; font-size:60px;'>कृपया Vehicle या Flat Number दर्ज करें।</h1>", unsafe_allow_html=True)
