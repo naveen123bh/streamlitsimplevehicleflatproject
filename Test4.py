@@ -125,15 +125,19 @@ st.markdown("<h1 style='color:blue; text-align:center;'>🚓 Rishabh Tower Vehic
 
 if len(st.session_state.logged_in_users) < 2:
     st.markdown("### User Login 🔐")
-    available_users = [u for u in users.keys() if u not in st.session_state.logged_in_users]
+    # Show all users in the dropdown
+    available_users = list(users.keys())
     selected_user = st.selectbox("Select your name", available_users)
     password_input = st.text_input("Enter your 6-digit password", type="password", key="login_pass")
     
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
-            st.session_state.logged_in_users.append(selected_user)
-            st.success(f"Welcome {selected_user}! You are logged in.")
-            st.experimental_rerun()
+            if len(st.session_state.logged_in_users) < 2:
+                st.session_state.logged_in_users.append(selected_user)
+                st.success(f"Welcome {selected_user}! You are logged in.")
+                st.experimental_rerun()
+            else:
+                st.warning("⚠️ Maximum 2 users already logged in.")
         else:
             st.error("❌ Incorrect password. Access denied.")
 else:
