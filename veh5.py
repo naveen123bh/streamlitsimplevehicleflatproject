@@ -103,7 +103,7 @@ vehicle_flat_pairs = {
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 
 user_input = st.text_input("", "", key="vehicle_flat_input",
-                           placeholder="Yahaa दर्ज करे",
+                           placeholder="Yahaa darj kare",
                            max_chars=15)
 
 # ===== Lookup Button =====
@@ -111,11 +111,15 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
+    # If user entered only numbers, add "F" prefix for flat lookup
+    if input_norm_flat.isnumeric():
+        input_norm_flat = f"F{input_norm_flat}"
+
     # Check vehicle dictionary first
     if input_norm_vehicle in vehicle_flat_pairs:
         st.markdown(f"<h2 style='color:purple; font-size:50px;'>Flat number(s) for vehicle {input_norm_vehicle}: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
     elif input_norm_flat in vehicle_flat_pairs.values():
         matched_vehicles = [v for v, f in vehicle_flat_pairs.items() if f == input_norm_flat]
-        st.markdown(f"<h2 style='color:purple; font-size:50px;'>Vehicle number(s) for flat {input_norm_flat}: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:red; font-size:50px;'>Vehicle number(s) for flat {input_norm_flat}: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
     else:
-        st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया प्रतीक्षा करें: developer इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
