@@ -79,10 +79,11 @@ def read_log(gate):
 def clear_log(gate):
     open(get_log_file(gate), "w").close()
 
+# ===== Generate Hindi Summary =====
 def generate_summary(gate):
     log_lines = read_log(gate)
     if not log_lines:
-        return "No data available."
+        return "कोई डेटा उपलब्ध नहीं है।"
 
     summary = {}
     for line in log_lines:
@@ -97,11 +98,12 @@ def generate_summary(gate):
         elif action == "OUT":
             summary[vehicle_type]["OUT"] += 1
 
+    # Create Hindi sentences
     summary_text = ""
     count = 1
     for vehicle, counts in summary.items():
         summary_text += (
-            f"**No.{count} → {vehicle}**: 🟢 IN = {counts['IN']} | 🔴 OUT = {counts['OUT']}\n\n"
+            f"**No.{count} → {vehicle}**: आज कुल 🟢 {counts['IN']} {vehicle} अंदर आई और 🔴 {counts['OUT']} {vehicle} बाहर गई।\n\n"
         )
         count += 1
     return summary_text
@@ -142,7 +144,7 @@ if st.button(f"📖 Show Logs Gate {gate}", use_container_width=True):
     else:
         st.info("No logs yet for this gate.")
 
-# Show Summary
+# Show Summary in Hindi
 if st.button(f"📊 Show Summary Gate {gate}", use_container_width=True):
     summary = generate_summary(gate)
     st.markdown(f"<div style='color:green; font-size:18px; font-weight:bold;'>{summary}</div>", unsafe_allow_html=True)
