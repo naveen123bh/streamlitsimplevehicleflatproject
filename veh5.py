@@ -126,4 +126,4 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
         st.markdown(f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
     
     else:
-        st.markdown("<h2 style='color:red; font-size:50px;'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। शायद यह नई वाहन हो सकती है या फिर इसे सूची में नहीं डाला गया है।  ..<br>..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:red; font-size:50px;'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।  ..<br>..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>", unsafe_allow_html=True)
