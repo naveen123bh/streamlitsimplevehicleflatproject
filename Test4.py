@@ -32,10 +32,14 @@ df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(lambda x: str(x).upper())
 vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
 
-# ===== Guard Authentication =====
+# ===== Guard Authentication with 6-digit strong passwords =====
 guards = {
-    "Naveen Kumar": "123456",
-    "Rajeev Padwal": "654321"
+    "Naveen Kumar": "482915",
+    "Rajeev Padwal": "736204",
+    "Suresh Sagare": "591837",
+    "Babban": "264905",
+    "Manoj": "853192",
+    "Rajaram": "670481"
 }
 
 if "logged_in" not in st.session_state:
@@ -57,10 +61,9 @@ if not st.session_state.logged_in:
             st.success(f"Welcome {selected_guard}! You can now access the gate log.")
         else:
             st.error("❌ Incorrect password. Access denied.")
-    st.stop()  # Stop the script until login is successful
+    st.stop()  # Stop everything until login is successful
 
 # ===== Main App =====
-# From this point onward, the user is authenticated
 st.info(f"Logged in as: {st.session_state.current_guard}")
 
 # ===== Session State =====
@@ -139,22 +142,18 @@ def generate_summary(gate):
     return summary_text
 
 # ===== Streamlit UI =====
-# Gate selection
 st.markdown("### Select Gate:")
 gate = st.radio("Choose Gate", [1, 2], horizontal=True)
 st.session_state.gate = gate
 
-# Action selection
 st.markdown("### Vehicle Action:")
 action = st.radio("Select Action", ["IN", "OUT"], horizontal=True)
 st.session_state.step = action
 
-# Vehicle details
 st.markdown("### Vehicle Details:")
 vehicle_type = st.selectbox("Vehicle Type", ["Car", "Bike", "Scooty", "Taxi", "EV"])
 vehicle_number = st.text_input("Enter Vehicle Number")
 
-# Submit Entry
 if st.button("Submit Entry", use_container_width=True):
     if vehicle_number:
         log_line = log_entry(gate, st.session_state.current_guard, vehicle_type, vehicle_number, action)
@@ -163,7 +162,6 @@ if st.button("Submit Entry", use_container_width=True):
     else:
         st.error("⚠️ Please enter Vehicle Number")
 
-# Show Logs
 if st.button(f"📖 Show Logs Gate {gate}", use_container_width=True):
     log_data = read_log(gate)
     if log_data:
@@ -172,12 +170,10 @@ if st.button(f"📖 Show Logs Gate {gate}", use_container_width=True):
     else:
         st.info("No logs yet for this gate.")
 
-# Show Summary in Hindi
 if st.button(f"📊 Show Summary Gate {gate}", use_container_width=True):
     summary = generate_summary(gate)
     st.markdown(f"<div style='color:green; font-size:18px; font-weight:bold;'>{summary}</div>", unsafe_allow_html=True)
 
-# Clear Logs
 if st.button(f"🗑️ Clear Log Gate {gate}", use_container_width=True):
     clear_log(gate)
     st.warning(f"Logs for Gate {gate} cleared!")
