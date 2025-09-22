@@ -126,4 +126,4 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
         st.markdown(f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
     
     else:
-        st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। ..<br>कृपया प्रतीक्षा करें: developer इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
