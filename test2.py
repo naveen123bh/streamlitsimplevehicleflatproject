@@ -52,7 +52,6 @@ if df.shape[1] < 2:
 # ===== Normalize dataframe =====
 df = df.iloc[:, :2]
 df.columns = ["Vehicle", "FlatNumber"]
-
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
@@ -61,7 +60,6 @@ df.to_csv(clean_file, index=False)
 
 # ===== Build dictionaries =====
 vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
-
 flat_to_vehicles = {}
 for vehicle, flat in vehicle_flat_pairs.items():
     if flat not in flat_to_vehicles:
@@ -72,6 +70,7 @@ for vehicle, flat in vehicle_flat_pairs.items():
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="Yahaa darj kare", max_chars=20)
 
+# ===== Button for result =====
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
