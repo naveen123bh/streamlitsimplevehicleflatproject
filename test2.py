@@ -72,44 +72,22 @@ for vehicle, flat in vehicle_flat_pairs.items():
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यहाँ लिखें/type here....... " , max_chars=20)
 
-# ===== Clickable link as button =====
-link_html = """
-<a href="#" id="lookup_link" 
-   style="
-        display:inline-block;
-        background-color:#28a745;
-        color:white;
-        font-size:35px;
-        font-weight:bold;
-        padding:15px 30px;
-        border-radius:15px;
-        text-decoration:none;
-        text-align:center;
-        cursor:pointer;
-        margin:10px auto;
-    ">
-    रिज़ल्ट देखें
-</a>
-<script>
-document.getElementById("lookup_link").addEventListener("click", function(){
-    const input = document.querySelector('input[type=text]').value;
-    fetch(`/`, {method: 'POST', body: input});
-});
-</script>
-"""
+# ===== Style Streamlit button to look like a colored link =====
+st.markdown("""
+<style>
+.big-link-button>button {
+    font-size: 28px !important;
+    color: #1E90FF !important;   /* DodgerBlue link color */
+    background-color: transparent !important;
+    border: none !important;
+    text-decoration: underline !important;
+    padding: 0 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
-st.markdown(link_html, unsafe_allow_html=True)
-
-# ===== Trigger lookup on Enter (alternative) =====
-if st.button("Lookup (Alternative Click)"):
-    st.session_state.lookup_click = True
-
-# ===== Lookup logic =====
-if 'lookup_click' not in st.session_state:
-    st.session_state.lookup_click = False
-
-# Check if user entered input manually or pressed alternative button
-if st.session_state.lookup_click or user_input:
+# ===== Lookup button (styled as link) =====
+if st.button("रिज़ल्ट देखें", key="lookup_button", help="Click to view result", args=None):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
