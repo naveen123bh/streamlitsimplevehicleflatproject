@@ -71,12 +71,28 @@ for vehicle, flat in vehicle_flat_pairs.items():
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="Yahaa darj kare", max_chars=20)
 
-# ===== Button for result with green box style =====
+# ===== Styled button for better notice =====
+st.markdown("""
+<div style="
+    background-color: #28a745; 
+    color: white; 
+    padding: 20px; 
+    text-align: center; 
+    font-size: 50px; 
+    border-radius: 10px; 
+    font-weight: bold;
+    cursor: pointer;
+">
+रिज़ल्ट देखें
+</div>
+""", unsafe_allow_html=True)
+
+# ===== Actual button functionality =====
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
-    # CSS style for green box
+    # CSS style for green result box
     box_style = (
         "padding: 20px; "
         "border-radius: 10px; "
