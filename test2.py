@@ -21,7 +21,7 @@ df = df.iloc[:, :2]
 df.columns = ["Vehicle", "FlatNumber"]
 
 def normalize_vehicle_input(vehicle_number):
-    if pd.isna(vehicle_number) or vehicle_number=="":
+    if pd.isna(vehicle_number) or vehicle_number == "":
         return ""
     text = str(vehicle_number).upper()
     text = re.sub(r"\s+", "", text)
@@ -34,7 +34,7 @@ vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
 
 # ===== Session State =====
 if "step" not in st.session_state:
-    st.session_state.step = None  # IN / OUT
+    st.session_state.step = None
 if "vehicle_type" not in st.session_state:
     st.session_state.vehicle_type = None
 if "vehicle_number" not in st.session_state:
@@ -50,30 +50,61 @@ st.markdown("<h1 style='color:blue; font-size:50px;'>Rishabh Tower Vehicle Log</
 # ===== Show & Clear Log Buttons =====
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("Show Vehicle Log"):
+    if st.button("📘 Show Vehicle Log", key="show_log"):
         if os.path.exists(log_file):
             with open(log_file, "r") as f:
                 log_content = f.read()
             st.text_area("Vehicle Log", value=log_content, height=300)
         else:
             st.info("No log entries yet.")
+    st.markdown(
+        "<style> div[data-testid='stButton'] button[kind='primary'][key='show_log'] {background-color: blue; color: white; font-size: 22px; padding: 12px 24px; border-radius: 12px;} </style>",
+        unsafe_allow_html=True,
+    )
 
 with col2:
-    if st.button("Clear Vehicle Log"):
+    if st.button("🗑️ Clear Vehicle Log", key="clear_log"):
         with open(log_file, "w") as f:
-            f.write("")  # clear the file
+            f.write("")
         st.success("Log cleared successfully!")
+    st.markdown(
+        "<style> div[data-testid='stButton'] button[kind='primary'][key='clear_log'] {background-color: red; color: white; font-size: 22px; padding: 12px 24px; border-radius: 12px;} </style>",
+        unsafe_allow_html=True,
+    )
 
 # ===== Step 1: IN/OUT selection =====
 if st.session_state.step is None:
     st.markdown("<h3 style='color:green;'>Select Vehicle Movement</h3>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("IN", key="in_btn"):
+        if st.button("✅ IN", key="in_btn"):
             st.session_state.step = "IN"
     with col2:
-        if st.button("OUT", key="out_btn"):
+        if st.button("❌ OUT", key="out_btn"):
             st.session_state.step = "OUT"
+
+    # Style IN/OUT buttons
+    st.markdown(
+        """
+        <style>
+        div[data-testid='stButton'] button[kind='primary'][key='in_btn'] {
+            background-color: green;
+            color: white;
+            font-size: 28px;
+            padding: 16px 32px;
+            border-radius: 15px;
+        }
+        div[data-testid='stButton'] button[kind='primary'][key='out_btn'] {
+            background-color: red;
+            color: white;
+            font-size: 28px;
+            padding: 16px 32px;
+            border-radius: 15px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 # ===== Step 2: Vehicle Type Selection =====
 elif st.session_state.step and st.session_state.vehicle_type is None:
@@ -84,9 +115,10 @@ elif st.session_state.step and st.session_state.vehicle_type is None:
 
 # ===== Step 3: Vehicle Number Input =====
 elif st.session_state.vehicle_type and st.session_state.vehicle_number is None:
-    st.markdown(f"<h3 style='color:purple;'>Enter Vehicle Number</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='color:orange;'>Enter Vehicle Number</h3>", unsafe_allow_html=True)
     vehicle_number_input = st.text_input("Vehicle Number", "")
-    if st.button("Submit Entry"):
+
+    if st.button("Submit Entry", key="submit_vehicle"):
         vehicle_number_norm = normalize_vehicle_input(vehicle_number_input)
         st.session_state.vehicle_number = vehicle_number_norm
 
@@ -114,3 +146,9 @@ elif st.session_state.vehicle_type and st.session_state.vehicle_number is None:
         st.session_state.vehicle_number = None
         st.session_state.flat_number = None
         st.session_state.description = None
+
+    # Style Vehicle Number Submit button
+    st.markdown(
+        "<style> div[data-testid='stButton'] button[kind='primary'][key='submit_vehicle'] {background-color: orange; color: black; font-size: 24px; padding: 14px 28px; border-radius: 12px;} </style>",
+        unsafe_allow_html=True,
+    )
