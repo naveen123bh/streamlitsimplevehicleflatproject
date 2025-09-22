@@ -6,17 +6,17 @@ import streamlit as st
 import pandas as pd
 
 # ===== Heading =====
-st.markdown("<h1 style='text-align:center; color: #FF5733; font-size:60px;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; color:#FF5733; font-size:70px;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
 
 # ===== Python version check =====
 st.write("Python version:", sys.version)
 st.write("openpyxl version:", openpyxl.__version__)
 
-st.title("Vehicle ↔ Flat Number Lookup Tool")
+# ===== App Title =====
+st.markdown("<h1 style='text-align:center; color:#1F618D; font-size:60px;'>Vehicle ↔ Flat Number App</h1>", unsafe_allow_html=True)
 
 # ===== File setup =====
 default_file = "vehnew.xlsx"
-
 if not os.path.exists(default_file):
     st.error(f"File not found: {default_file}")
     st.stop()
@@ -54,43 +54,45 @@ def normalize_flat_input(flat_number):
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Custom CSS for input & button =====
+# ===== Custom CSS for input, button, results =====
 st.markdown("""
-    <style>
-    /* Input box style */
-    .big-input input {
-        font-size: 36px !important;
-        color: #D35400;
-        font-weight: bold;
-        text-align: center;
-        height: 60px;
-        border: 3px solid #1F618D;
-        border-radius: 12px;
-        background-color: #FCF3CF;
-    }
-    /* Button style */
-    .big-button button {
-        font-size: 32px !important;
-        background-color: #28B463;
-        color: white;
-        font-weight: bold;
-        padding: 15px 25px;
-        border-radius: 12px;
-        width: 300px;
-        display: block;
-        margin: 20px auto;
-    }
-    /* Success/Error message font style */
-    .stSuccess, .stWarning, .stError {
-        font-size: 28px !important;
-        font-weight: bold;
-        text-align: center;
-    }
-    </style>
+<style>
+/* Input box style */
+.big-input input {
+    font-size: 60px !important;
+    color: #D35400;
+    font-weight: bold;
+    text-align: center;
+    height: 80px;
+    border: 4px solid #1F618D;
+    border-radius: 15px;
+    background-color: #FCF3CF;
+}
+
+/* Button style */
+.big-button button {
+    font-size: 60px !important;
+    background-color: #28B463;
+    color: white;
+    font-weight: bold;
+    padding: 25px 50px;
+    border-radius: 15px;
+    width: 400px;
+    display: block;
+    margin: 30px auto;
+}
+
+/* Result messages style */
+.stSuccess, .stWarning, .stError {
+    font-size: 60px !important;
+    font-weight: bold;
+    text-align: center;
+}
+</style>
 """, unsafe_allow_html=True)
 
 # ===== Input box =====
-user_input = st.text_input("Vehicle या Flat Number डालें", "", key="user_input", help="Enter Vehicle या Flat Number")
+user_input = st.text_input("Vehicle या Flat Number डालें", "", key="user_input")
 st.markdown('<div class="big-input"></div>', unsafe_allow_html=True)
 
 # ===== Button =====
