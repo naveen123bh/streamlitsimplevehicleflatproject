@@ -96,7 +96,7 @@ vehicle_flat_pairs = {
     "MHO1BK3371":"F1004","MH02CB3463":"F305","MHO1DK8858":"F1303","MHO1CT9723":"F1101",
     "MH46N9366":"F306","MHO4FP4440":"F1304","MH14EY4814":"F1103","MHO1EB8306":"F401",
     "MHO1DE9438":"F1502","MHO1CS2772":"F1202","MH46P7524":"F403","MH46Z2847":"F1503",
-    "MHO1DE0713":"F1202","MH46AL6027":"F503","21BH3965A":"F1504","MH01DU4729":"F'manager"
+    "MHO1DE0713":"F1202","MH46AL6027":"F503","21BH3965A":"F1504","MH01DU4729":"F'manager","MH01BW8274":"F'wire man"
 }
 
 vehicle_flat_pairs = {normalize_vehicle_input(k): normalize_flat_input(v) for k, v in vehicle_flat_pairs.items()}
