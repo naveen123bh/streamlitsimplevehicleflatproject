@@ -5,18 +5,8 @@ import openpyxl
 import streamlit as st
 import pandas as pd
 
-# ===== Big heading =====
-st.markdown("""
-<h1 style='text-align: center; color: #FF5733; font-size: 60px;
-            font-family: "Comic Sans MS", cursive, sans-serif;
-            background: linear-gradient(to right, #ff0000, #ff9900, #33cc33, #3399ff);
-            -webkit-background-clip: text;
-            color: transparent;
-            font-weight: bold;
-            margin-bottom: 30px;'>
-    Rishabh Tower Security
-</h1>
-""", unsafe_allow_html=True)
+# ===== Plain heading =====
+st.markdown("<h1 style='text-align:center; color: #FF5733; font-size:60px;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
 
 # ===== Python version check =====
 st.write("Python version:", sys.version)
@@ -64,46 +54,13 @@ def normalize_flat_input(flat_number):
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Styled input box =====
-st.markdown("""
-<div style="
-    text-align: center;
-    margin: 20px auto;
-">
-    <input type='text' id='user_input' placeholder='Vehicle या Flat Number डालें' 
-        style='width: 50%; padding: 20px; font-size: 22px; border-radius: 12px; border: 2px solid #4CAF50; text-align: center;'>
-</div>
-""", unsafe_allow_html=True)
+# ===== Input box =====
+user_input = st.text_input("Vehicle या Flat Number डालें", "", 
+                           help="Enter Vehicle या Flat Number", 
+                           key="user_input")
 
-# ===== Hindi button =====
-button_html = """
-<div style="text-align: center; margin: 20px;">
-    <button style="
-        background-color: #FF5733;
-        border: none;
-        color: white;
-        padding: 20px 40px;
-        text-align: center;
-        font-size: 24px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    " onclick="window.dispatchEvent(new Event('streamlit:buttonClick'));">
-        Result देखें
-    </button>
-</div>
-"""
-st.markdown(button_html, unsafe_allow_html=True)
-
-if "button_clicked" not in st.session_state:
-    st.session_state["button_clicked"] = False
-
-if st.experimental_get_query_params().get("streamlit:buttonClick"):
-    st.session_state["button_clicked"] = True
-
-# ===== Lookup logic =====
-if st.session_state["button_clicked"]:
-    user_input = st.text_input("", "")
+# ===== Button =====
+if st.button("Result देखें"):
     if user_input:
         input_norm_vehicle = normalize_vehicle_input(user_input)
         input_norm_flat = normalize_flat_input(user_input)
