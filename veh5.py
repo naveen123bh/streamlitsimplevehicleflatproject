@@ -7,7 +7,7 @@ import pandas as pd
 # ===== Python version check =====
 st.write("Python version:", sys.version)
 
-st.title("Rishabh Tower Security", anchor=None)
+# ===== Heading =====
 st.markdown("<h1 style='color:darkblue; font-size:70px; text-align:center;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
 
 # ===== Vehicle-Flat mapping =====
@@ -86,7 +86,7 @@ vehicle_flat_pairs = {
     "CP9561": "FRELIANCE",
     "MH01DB6179": "F504",
     "MH03EH6869": "F705",
-    # Add all other vehicles from your previous lists here carefully...
+    # Add remaining vehicles as needed...
 }
 
 # ===== Normalize dictionary keys =====
@@ -94,38 +94,44 @@ vehicle_flat_pairs = {k.strip().upper(): v.strip().upper() for k, v in vehicle_f
 
 # ===== Helper functions =====
 def normalize_vehicle_input(vehicle_number):
-    """Normalize vehicle number: case-insensitive, remove spaces/newlines, replace O with 0."""
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
-    text = text.replace("O", "0")          # replace letter O with zero
+    text = re.sub(r"\s+", "", text)
+    text = text.replace("O", "0")
     return text.strip()
 
 def normalize_flat_input(flat_number):
-    """Normalize flat number: case-insensitive, remove spaces/newlines."""
     if pd.isna(flat_number):
         return ""
     text = str(flat_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
+    text = re.sub(r"\s+", "", text)
     return text.strip()
 
 # ===== Streamlit UI =====
-st.markdown("<h2 style='color:green; font-size:50px;'>Vehicle या Flat Number डालें</h2>", unsafe_allow_html=True)
-user_input = st.text_input("", placeholder="Vehicle या Flat Number डालें", key="input_box", max_chars=20, help=None)
+st.markdown("<h2 style='color:green; font-size:50px; text-align:center;'>Vehicle या Flat Number डालें</h2>", unsafe_allow_html=True)
+
+user_input = st.text_input(
+    "", 
+    placeholder="Vehicle या Flat Number डालें", 
+    key="input_box", 
+    max_chars=20,
+    help=None,
+    label_visibility="collapsed"
+)
+
 st.markdown("<br>", unsafe_allow_html=True)
 
+# Button (Hindi)
 if st.button("Result Dekhe"):
     if user_input:
         input_norm_vehicle = normalize_vehicle_input(user_input)
         input_norm_flat = normalize_flat_input(user_input)
 
-        # Check Vehicle
         if input_norm_vehicle in vehicle_flat_pairs:
-            st.markdown(f"<h2 style='color:purple; font-size:50px;'>Flat number(s) for vehicle {input_norm_vehicle}: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
-        # Check Flat
+            st.markdown(f"<h2 style='color:purple; font-size:50px; text-align:center;'>Flat number(s) for vehicle {input_norm_vehicle}: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
         elif input_norm_flat in vehicle_flat_pairs.values():
             matching_vehicles = [v for v, f in vehicle_flat_pairs.items() if f == input_norm_flat]
-            st.markdown(f"<h2 style='color:purple; font-size:50px;'>Vehicle number(s) for flat {input_norm_flat}: {', '.join(matching_vehicles)}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h2 style='color:purple; font-size:50px; text-align:center;'>Vehicle number(s) for flat {input_norm_flat}: {', '.join(matching_vehicles)}</h2>", unsafe_allow_html=True)
         else:
-            st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 style='color:red; font-size:50px; text-align:center;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
