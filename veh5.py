@@ -5,6 +5,19 @@ import openpyxl
 import streamlit as st
 import pandas as pd
 
+# ===== Big heading =====
+st.markdown("""
+<h1 style='text-align: center; color: #FF5733; font-size: 60px;
+            font-family: "Comic Sans MS", cursive, sans-serif;
+            background: linear-gradient(to right, #ff0000, #ff9900, #33cc33, #3399ff);
+            -webkit-background-clip: text;
+            color: transparent;
+            font-weight: bold;
+            margin-bottom: 30px;'>
+    Rishabh Tower Security
+</h1>
+""", unsafe_allow_html=True)
+
 # ===== Python version check =====
 st.write("Python version:", sys.version)
 st.write("openpyxl version:", openpyxl.__version__)
@@ -12,9 +25,8 @@ st.write("openpyxl version:", openpyxl.__version__)
 st.title("Vehicle ↔ Flat Number Lookup Tool")
 
 # ===== File setup =====
-default_file = "vehnew.xlsx"  # relative path, file is in the same folder as your script
+default_file = "vehnew.xlsx"
 
-# Check if file exists
 if not os.path.exists(default_file):
     st.error(f"File not found: {default_file}")
     st.stop()
@@ -26,51 +38,52 @@ except Exception as e:
     st.error(f"Error reading file '{default_file}': {e}")
     st.stop()
 
-# ===== Handle column mismatch =====
 if df.shape[1] < 2:
     st.error("Excel file must have at least 2 columns: Vehicle and FlatNumber")
     st.stop()
 
-# Keep only first two columns and rename
 df = df.iloc[:, :2]
 df.columns = ["Vehicle", "FlatNumber"]
 
 # ===== Helper functions =====
 def normalize_vehicle_input(vehicle_number):
-    """Normalize vehicle number: case-insensitive, remove spaces/newlines, replace O with 0."""
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
-    text = text.replace("O", "0")          # replace letter O with zero
+    text = re.sub(r"\s+", "", text)
+    text = text.replace("O", "0")
     return text.strip()
 
 def normalize_flat_input(flat_number):
-    """Normalize flat number: case-insensitive, remove spaces/newlines."""
     if pd.isna(flat_number):
         return ""
     text = str(flat_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
+    text = re.sub(r"\s+", "", text)
     return text.strip()
 
-# ===== Normalize dataframe =====
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Unified Lookup GUI =====
-user_input = st.text_input("Enter Vehicle Number or Flat Number")
+# ===== Styled input box =====
+st.markdown("""
+<div style="
+    text-align: center;
+    margin: 20px auto;
+">
+    <input type='text' id='user_input' placeholder='Vehicle या Flat Number डालें' 
+        style='width: 50%; padding: 20px; font-size: 22px; border-radius: 12px; border: 2px solid #4CAF50; text-align: center;'>
+</div>
+""", unsafe_allow_html=True)
 
-# ===== Centered, colorful, big Hindi button =====
+# ===== Hindi button =====
 button_html = """
 <div style="text-align: center; margin: 20px;">
     <button style="
-        background-color: #4CAF50;
+        background-color: #FF5733;
         border: none;
         color: white;
         padding: 20px 40px;
         text-align: center;
-        text-decoration: none;
-        display: inline-block;
         font-size: 24px;
         border-radius: 12px;
         cursor: pointer;
@@ -85,23 +98,21 @@ st.markdown(button_html, unsafe_allow_html=True)
 if "button_clicked" not in st.session_state:
     st.session_state["button_clicked"] = False
 
-# Detect button click
 if st.experimental_get_query_params().get("streamlit:buttonClick"):
     st.session_state["button_clicked"] = True
 
 # ===== Lookup logic =====
 if st.session_state["button_clicked"]:
+    user_input = st.text_input("", "")
     if user_input:
         input_norm_vehicle = normalize_vehicle_input(user_input)
         input_norm_flat = normalize_flat_input(user_input)
 
-        # Check vehicle match
         vehicle_rows = df[df["Vehicle"] == input_norm_vehicle]
         if not vehicle_rows.empty:
             flats = ", ".join(vehicle_rows["FlatNumber"].tolist())
             st.success(f"Vehicle {input_norm_vehicle} का Flat number(s): {flats}")
         else:
-            # Check flat match
             flat_rows = df[df["FlatNumber"] == input_norm_flat]
             if not flat_rows.empty:
                 vehicles = ", ".join(flat_rows["Vehicle"].tolist())
