@@ -76,40 +76,20 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
-    # CSS style for green result box
-    box_style = (
-        "padding: 25px; "
-        "border-radius: 12px; "
-        "background-color: #28a745; "
-        "color: white; "
-        "font-size: 60px; "
-        "font-weight: bold; "
-        "text-align: center;"
-    )
-
     # ----- Vehicle lookup -----
     if input_norm_vehicle in vehicle_flat_pairs:
-        st.markdown(
-            f"<div style='{box_style}'>Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}</div>",
-            unsafe_allow_html=True,
-        )
+        st.markdown(f"Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}")
 
     # ----- Flat lookup -----
     elif input_norm_flat in flat_to_vehicles:
         matched_vehicles = flat_to_vehicles[input_norm_flat]
-        st.markdown(
-            f"<div style='{box_style}'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</div>",
-            unsafe_allow_html=True,
-        )
+        st.markdown(f"Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}")
 
     # ----- Not found message -----
     else:
-        st.markdown(
-            f"<div style='{box_style}'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है।<br>"
-            "..शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।<br>"
-            "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</div>",
-            unsafe_allow_html=True,
-        )
+        st.markdown("..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। "
+                    "शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है। "
+                    "गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।")
 
 # ===== Optional: Highlight the button above with green heading =====
 st.markdown("<h2 style='color:#28a745; font-size:50px; font-weight:bold;'>रिज़ल्ट देखें</h2>", unsafe_allow_html=True)
