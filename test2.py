@@ -76,19 +76,20 @@ user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यह
 st.markdown("""
 <style>
 .pressable-button>button {
-    font-size: 36px !important;              /* Big font */
-    color: white !important;                 /* Text color */
-    background-color: red !important;        /* Red fill */
-    border: 2px solid darkred !important;    /* Button border */
-    border-radius: 12px !important;         /* Rounded corners */
-    padding: 15px 40px !important;           /* Padding for bigger button */
+    font-size: 36px !important;              
+    color: white !important;                 
+    background-color: red !important;        
+    border: 2px solid darkred !important;    
+    border-radius: 12px !important;         
+    padding: 15px 40px !important;           
     cursor: pointer !important;
-    box-shadow: 0 5px 0 darkred !important;  /* Protruding shadow for press effect */
+    box-shadow: 0 5px 0 darkred !important;  
     font-weight: bold !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 .pressable-button>button:active {
-    box-shadow: 0 2px 0 darkred !important;  /* Pressed effect */
-    transform: translateY(3px);              /* Button moves down when clicked */
+    box-shadow: 0 2px 0 darkred !important;  
+    transform: translateY(3px);              
 }
 </style>
 """, unsafe_allow_html=True)
