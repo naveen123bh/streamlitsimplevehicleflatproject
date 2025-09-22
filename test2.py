@@ -72,31 +72,26 @@ for vehicle, flat in vehicle_flat_pairs.items():
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यहाँ लिखें/type here....... " , max_chars=20)
 
-# ===== Style Streamlit button as pressable red button =====
+# ===== Style the container for the button =====
 st.markdown("""
 <style>
-.pressable-button>button {
-    font-size: 36px !important;              
-    color: white !important;                 
-    background-color: red !important;        
-    border: 2px solid darkred !important;    
-    border-radius: 12px !important;         
-    padding: 15px 40px !important;           
-    cursor: pointer !important;
-    box-shadow: 0 5px 0 darkred !important;  
-    font-weight: bold !important;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+div.stButton > button {
+    background-color: red;
+    color: white;
+    font-size: 36px;
+    font-weight: bold;
+    border-radius: 12px;
+    padding: 15px 40px;
+    border: 2px solid darkred;
 }
-.pressable-button>button:active {
-    box-shadow: 0 2px 0 darkred !important;  
-    transform: translateY(3px);              
+div.stButton > button:hover {
+    background-color: darkred;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ===== Lookup button (styled as pressable) =====
-st.markdown('<div class="pressable-button">', unsafe_allow_html=True)
-if st.button("रिज़ल्ट देखें", key="lookup_button"):
+# ===== Lookup button =====
+if st.button("रिज़ल्ट देखें"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
@@ -122,4 +117,3 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
             "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>",
             unsafe_allow_html=True,
         )
-st.markdown('</div>', unsafe_allow_html=True)
