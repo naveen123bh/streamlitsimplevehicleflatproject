@@ -42,7 +42,7 @@ def normalize_vehicle_input(vehicle_number):
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace (spaces, tabs, newlines)
+    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
     text = text.replace("O", "0")          # replace letter O with zero
     return text.strip()
 
@@ -58,11 +58,33 @@ def normalize_flat_input(flat_number):
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Input =====
-st.markdown("<h2 style='text-align:center; color:#D35400; font-size:40px;'>Vehicle या Flat Number डालें</h2>", unsafe_allow_html=True)
-user_input = st.text_input("", "", key="user_input")
+# ===== Input label and box =====
+st.markdown("""
+<div style='text-align:center; margin-bottom:5px;'>
+    <h2 style='color:#D35400; font-size:40px; margin-bottom:5px;'>Vehicle या Flat Number डालें</h2>
+</div>
+""", unsafe_allow_html=True)
+
+user_input = st.text_input("", "", key="user_input", 
+                           placeholder="यहाँ दर्ज करें", 
+                           help="Vehicle या Flat Number यहाँ डालें", 
+                           max_chars=20)  # limit so it fits nicely
+
+# ===== Add CSS to make input box bigger with colored border =====
+st.markdown("""
+<style>
+div[data-testid="stTextInput"] input {
+    height: 70px;           /* Bigger input box */
+    font-size: 35px;        /* Bigger text inside box */
+    border: 4px solid #1ABC9C; /* Colored border */
+    border-radius: 10px;    /* Rounded edges */
+    padding-left: 15px;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ===== Lookup button =====
+st.markdown("<div style='text-align:center; margin-top:20px;'>", unsafe_allow_html=True)
 if st.button("Result देखें", key="lookup_button", help="Click to get Vehicle/Flat info"):
     if user_input:
         input_norm_vehicle = normalize_vehicle_input(user_input)
@@ -81,3 +103,4 @@ if st.button("Result देखें", key="lookup_button", help="Click to get V
                 st.markdown(f"<h1 style='text-align:center; color:#196F3D; font-size:60px;'>Vehicle number(s) for flat {input_norm_flat}: {vehicles}</h1>", unsafe_allow_html=True)
             else:
                 st.markdown("<h1 style='text-align:center; color:#C0392B; font-size:60px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h1>", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
