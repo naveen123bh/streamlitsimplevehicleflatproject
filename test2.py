@@ -3,6 +3,7 @@ import re
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import pytz  # For India timezone
 
 # ===== Load vehicle-flat mapping =====
 raw_file = "vehicle_flat_pairs.csv"
@@ -70,8 +71,10 @@ elif st.session_state.vehicle_type and st.session_state.vehicle_number is None:
         # Auto-map flat number
         st.session_state.flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
 
-        # Capture current time
-        current_time = datetime.now().strftime("%H:%M:%S")
+        # ===== Capture current time in IST =====
+        tz = pytz.timezone("Asia/Kolkata")
+        current_time = datetime.now(tz).strftime("%H:%M:%S")  # Only time
+        current_time_full = datetime.now(tz).strftime("%d-%m-%Y %H:%M:%S")  # Date + time
 
         # Create description
         description = f"Vehicle {st.session_state.vehicle_number} of type {st.session_state.vehicle_type} {st.session_state.step} at {current_time} for Flat {st.session_state.flat_number}"
