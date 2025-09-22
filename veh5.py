@@ -76,8 +76,8 @@ if user_input:
             vehicles = ", ".join(flat_rows["Vehicle"].tolist())
             st.success(f"Flat {input_norm_flat} का Vehicle number(s): {vehicles}")
         else:
-            # Updated friendly Hindi message for no match
+            # Updated friendly Hindi message for no match (reordered)
             st.warning(
-                "कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं। "
-                "कुछ दिनों के लिए प्रतीक्षा करें, वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..."
+                "वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है।\n"
+                "कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।"
             )
