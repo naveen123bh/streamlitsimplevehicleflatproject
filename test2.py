@@ -5,6 +5,11 @@ import pandas as pd
 from datetime import datetime
 import pytz  # For India timezone
 
+# ===== Setup internal folder for logs =====
+log_folder = "vehicle_logs"
+os.makedirs(log_folder, exist_ok=True)  # create folder if not exists
+log_file = os.path.join(log_folder, "vehicle_log.txt")
+
 # ===== Load vehicle-flat mapping =====
 raw_file = "vehicle_flat_pairs.csv"
 if not os.path.exists(raw_file):
@@ -41,6 +46,15 @@ if "description" not in st.session_state:
 
 # ===== App Heading =====
 st.markdown("<h1 style='color:blue; font-size:50px;'>Rishabh Tower Vehicle Log</h1>", unsafe_allow_html=True)
+
+# ===== Show Log Option =====
+if st.button("Show Vehicle Log"):
+    if os.path.exists(log_file):
+        with open(log_file, "r") as f:
+            log_content = f.read()
+        st.text_area("Vehicle Log", value=log_content, height=300)
+    else:
+        st.info("No log entries yet.")
 
 # ===== Step 1: IN/OUT selection =====
 if st.session_state.step is None:
@@ -83,8 +97,7 @@ elif st.session_state.vehicle_type and st.session_state.vehicle_number is None:
         # Show description
         st.success(description)
 
-        # Append to log file
-        log_file = "vehicle_log.txt"
+        # Append to log file in internal folder
         with open(log_file, "a") as f:
             f.write(description + "\n")
 
