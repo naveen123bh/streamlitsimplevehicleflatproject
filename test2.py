@@ -71,15 +71,8 @@ for vehicle, flat in vehicle_flat_pairs.items():
 st.markdown("<h3 style='color:green; font-size:45px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="Yahaa darj kare", max_chars=20)
 
-# ===== Custom green large clickable button =====
-click_js = """
-<button style="background-color:#28a745;color:white;font-size:45px;font-weight:bold;padding:15px 50px;border:none;border-radius:12px;cursor:pointer;"
-onclick="document.querySelector('#dummy').click()">रिज़ल्ट देखें</button>
-"""
-st.markdown(click_js, unsafe_allow_html=True)
-
-# Hidden dummy button to trigger Streamlit
-if st.button("", key="dummy", help="Hidden trigger for custom button"):
+# ===== Clickable functional button =====
+if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
@@ -117,3 +110,6 @@ if st.button("", key="dummy", help="Hidden trigger for custom button"):
             "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</div>",
             unsafe_allow_html=True,
         )
+
+# ===== Optional: Highlight the button above with green heading =====
+st.markdown("<h2 style='color:#28a745; font-size:50px; font-weight:bold;'>रिज़ल्ट देखें</h2>", unsafe_allow_html=True)
