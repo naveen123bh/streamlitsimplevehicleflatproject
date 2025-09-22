@@ -37,20 +37,18 @@ df.columns = ["Vehicle", "FlatNumber"]
 
 # ===== Helper functions =====
 def normalize_vehicle_input(vehicle_number):
-    """Normalize vehicle number: case-insensitive, remove spaces/newlines, replace O with 0."""
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace (spaces, tabs, newlines)
-    text = text.replace("O", "0")          # replace letter O with zero
+    text = re.sub(r"\s+", "", text)
+    text = text.replace("O", "0")
     return text.strip()
 
 def normalize_flat_input(flat_number):
-    """Normalize flat number: case-insensitive, remove spaces/newlines."""
     if pd.isna(flat_number):
         return ""
     text = str(flat_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
+    text = re.sub(r"\s+", "", text)
     return text.strip()
 
 # ===== Normalize dataframe =====
@@ -60,24 +58,27 @@ df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 # ===== Unified Lookup GUI =====
 user_input = st.text_input("Vehicle Number या Flat Number दर्ज करें")
 
-if user_input:
-    input_norm_vehicle = normalize_vehicle_input(user_input)
-    input_norm_flat = normalize_flat_input(user_input)
+# ===== Lookup Button =====
+if st.button("Lookup"):
+    if user_input:
+        input_norm_vehicle = normalize_vehicle_input(user_input)
+        input_norm_flat = normalize_flat_input(user_input)
 
-    # Check if input matches any Vehicle
-    vehicle_rows = df[df["Vehicle"] == input_norm_vehicle]
-    if not vehicle_rows.empty:
-        flats = ", ".join(vehicle_rows["FlatNumber"].tolist())
-        st.success(f"Vehicle {input_norm_vehicle} का Flat number(s): {flats}")
-    else:
-        # Check if input matches any FlatNumber
-        flat_rows = df[df["FlatNumber"] == input_norm_flat]
-        if not flat_rows.empty:
-            vehicles = ", ".join(flat_rows["Vehicle"].tolist())
-            st.success(f"Flat {input_norm_flat} का Vehicle number(s): {vehicles}")
+        # Check if input matches any Vehicle
+        vehicle_rows = df[df["Vehicle"] == input_norm_vehicle]
+        if not vehicle_rows.empty:
+            flats = ", ".join(vehicle_rows["FlatNumber"].tolist())
+            st.success(f"Vehicle {input_norm_vehicle} का Flat number(s): {flats}")
         else:
-            # Updated friendly Hindi message for no match (reordered)
-            st.warning(
-                "वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है।\n"
-                "कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।"
-            )
+            # Check if input matches any FlatNumber
+            flat_rows = df[df["FlatNumber"] == input_norm_flat]
+            if not flat_rows.empty:
+                vehicles = ", ".join(flat_rows["Vehicle"].tolist())
+                st.success(f"Flat {input_norm_flat} का Vehicle number(s): {vehicles}")
+            else:
+                st.warning(
+                    "वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है।\n"
+                    "कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।"
+                )
+    else:
+        st.error("कृपया Vehicle या Flat Number दर्ज करें।")
