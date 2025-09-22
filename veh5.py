@@ -70,7 +70,7 @@ for vehicle, flat in vehicle_flat_pairs.items():
 
 # ===== Streamlit Input =====
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
-user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यहाँ टाइप करें"type here ", max_chars=20)
+user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यहाँ टाइप करें" ", max_chars=20)
 
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
