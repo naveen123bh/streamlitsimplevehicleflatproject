@@ -42,8 +42,8 @@ def normalize_vehicle_input(vehicle_number):
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
-    text = text.replace("O", "0")          # replace letter O with zero
+    text = re.sub(r"\s+", "", text)
+    text = text.replace("O", "0")
     return text.strip()
 
 def normalize_flat_input(flat_number):
@@ -51,26 +51,27 @@ def normalize_flat_input(flat_number):
     if pd.isna(flat_number):
         return ""
     text = str(flat_number).upper()
-    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
+    text = re.sub(r"\s+", "", text)
     return text.strip()
 
 # ===== Normalize dataframe =====
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Input label and box =====
+# ===== Input label =====
 st.markdown("""
-<div style='text-align:center; margin-bottom:5px;'>
+<div style='text-align:center; margin-bottom:5px; margin-top:20px;'>
     <h2 style='color:#D35400; font-size:40px; margin-bottom:5px;'>Vehicle या Flat Number डालें</h2>
 </div>
 """, unsafe_allow_html=True)
 
+# ===== Input box =====
 user_input = st.text_input("", "", key="user_input", 
                            placeholder="यहाँ दर्ज करें", 
                            help="Vehicle या Flat Number यहाँ डालें", 
-                           max_chars=20)  # limit so it fits nicely
+                           max_chars=20)
 
-# ===== Add CSS to make input box bigger with colored border =====
+# ===== Add CSS to make input box bigger and more visible =====
 st.markdown("""
 <style>
 div[data-testid="stTextInput"] input {
@@ -79,6 +80,7 @@ div[data-testid="stTextInput"] input {
     border: 4px solid #1ABC9C; /* Colored border */
     border-radius: 10px;    /* Rounded edges */
     padding-left: 15px;
+    margin-top: 5px;
 }
 </style>
 """, unsafe_allow_html=True)
