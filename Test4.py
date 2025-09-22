@@ -130,16 +130,21 @@ if len(st.session_state.logged_in_users) < 2:
     selected_user = st.selectbox("Select your name", available_users)
     password_input = st.text_input("Enter your 6-digit password", type="password", key="login_pass")
     
+    login_success = False
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
             if len(st.session_state.logged_in_users) < 2:
                 st.session_state.logged_in_users.append(selected_user)
                 st.success(f"Welcome {selected_user}! You are logged in.")
-                st.experimental_rerun()
+                login_success = True
             else:
                 st.warning("⚠️ Maximum 2 users already logged in.")
         else:
             st.error("❌ Incorrect password. Access denied.")
+
+    # Rerun safely outside the button
+    if login_success:
+        st.experimental_rerun()
 else:
     st.warning("⚠️ Maximum 2 users can be logged in at the same time.")
 
