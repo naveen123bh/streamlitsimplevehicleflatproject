@@ -208,4 +208,4 @@ for user in st.session_state.logged_in_users:
             clear_log(gate)
             st.warning(f"Logs for Gate {gate} cleared by {user}!")
         else:
-            st.error("Supervisors cannot clear logs directly. Please use guards.")
+            st.error("Supervisors cannot clear logs directly. Please use guards.") 
