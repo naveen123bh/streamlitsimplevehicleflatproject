@@ -72,22 +72,27 @@ for vehicle, flat in vehicle_flat_pairs.items():
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यहाँ लिखें/type here....... " , max_chars=20)
 
-# ===== Style Streamlit button to look like a colored link =====
+# ===== Style Streamlit button as big colorful link =====
 st.markdown("""
 <style>
 .big-link-button>button {
-    font-size: 28px !important;
-    color: #1E90FF !important;   /* DodgerBlue link color */
+    font-size: 40px !important;             /* Bigger font */
+    color: #FF4500 !important;             /* Orange-Red color */
     background-color: transparent !important;
     border: none !important;
     text-decoration: underline !important;
     padding: 0 !important;
+    cursor: pointer !important;
+}
+.big-link-button>button:hover {
+    color: #32CD32 !important;             /* LimeGreen on hover */
+    font-size: 45px !important;            /* Slightly bigger on hover */
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ===== Lookup button (styled as link) =====
-if st.button("रिज़ल्ट देखें", key="lookup_button", help="Click to view result", args=None):
+if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
