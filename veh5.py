@@ -26,7 +26,6 @@ except Exception as e:
     st.error(f"Error reading file '{default_file}': {e}")
     st.stop()
 
-# ===== Handle column mismatch =====
 if df.shape[1] < 2:
     st.error("Excel file must have at least 2 columns: Vehicle and FlatNumber")
     st.stop()
@@ -58,19 +57,25 @@ df["FlatNumber"] = df["FlatNumber"].apply(lambda x: "F"+str(x).strip().upper() i
 
 # ===== Hardcoded vehicle → flat mapping =====
 vehicle_flat_pairs = {
-    "DL25M8883": "F706", "MH01AW0076": "F803", "MH01DV7905": "F803",
-    "MH01BL4073": "F1001", "MH01CY4916": "F1101", "MH01DV4548": "F1101",
-    "MH01CW8883":"F1402", "MHO1CW8883":"F1402"
+    "MH01BL4073":"F1001", "MH01CY4916":"F1101", "MH01DV4548":"F1101",
+    "MH01CW8883":"F1402", "MHO1CW8883":"F1402", "MH01DF8883":"F1402",
+    "MH01AW0076":"F803", "MH01DV7905":"F803"
 }
 
-# Normalize keys and values to uppercase and strip spaces
+# Normalize keys and values
 vehicle_flat_pairs = {normalize_vehicle_input(k): normalize_flat_input(v) for k, v in vehicle_flat_pairs.items()}
+
+# ===== Invert dictionary to allow flat → list of vehicles -----
+flat_to_vehicles = {}
+for vehicle, flat in vehicle_flat_pairs.items():
+    if flat not in flat_to_vehicles:
+        flat_to_vehicles[flat] = []
+    flat_to_vehicles[flat].append(vehicle)
 
 # ===== Streamlit Input =====
 st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
 user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="Yahaa darj kare", max_chars=15)
 
-# ===== Lookup Button =====
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
@@ -80,12 +85,9 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
         st.markdown(f"<h2 style='color:red; font-size:50px;'>Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
     
     # ----- Flat lookup: show all vehicles related to this flat -----
-    elif input_norm_flat in vehicle_flat_pairs.values():
-        matched_vehicles = [v for v, f in vehicle_flat_pairs.items() if f == input_norm_flat]
-        if matched_vehicles:
-            st.markdown(f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
-        else:
-            st.markdown(f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए कोई Vehicle नहीं मिला।</h2>", unsafe_allow_html=True)
+    elif input_norm_flat in flat_to_vehicles:
+        matched_vehicles = flat_to_vehicles[input_norm_flat]
+        st.markdown(f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
     
     else:
         st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
