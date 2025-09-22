@@ -109,18 +109,5 @@ user_input = st.text_input("", "", key="vehicle_flat_input",
 
 # ===== Lookup Button =====
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
+    # ===== Normalize user input =====
     input_norm_vehicle = normalize_vehicle_input(user_input)
-    input_norm_flat = normalize_flat_input(user_input)
-
-    # If user entered only numbers, add "F" prefix for flat lookup
-    if input_norm_flat.isnumeric():
-        input_norm_flat = f"F{input_norm_flat}"
-
-    # Check vehicle dictionary first
-    if input_norm_vehicle in vehicle_flat_pairs:
-        st.markdown(f"<h2 style='color:purple; font-size:50px;'>Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}</h2>", unsafe_allow_html=True)
-    elif input_norm_flat in vehicle_flat_pairs.values():
-        matched_vehicles = [v for v, f in vehicle_flat_pairs.items() if f == input_norm_flat]
-        st.markdown(f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>", unsafe_allow_html=True)
-    else:
-        st.markdown("<h2 style='color:red; font-size:50px;'>वाहन सूची अपडेट की जा रही है। कार्य प्रगति में है..<br>कृपया 2 दिन प्रतीक्षा करें: लेखक इस पर काम कर रहे हैं।</h2>", unsafe_allow_html=True)
