@@ -66,17 +66,25 @@ elif st.session_state.vehicle_type and st.session_state.vehicle_number is None:
     if st.button("Submit Entry"):
         vehicle_number_norm = normalize_vehicle_input(vehicle_number_input)
         st.session_state.vehicle_number = vehicle_number_norm
-        # Auto-map flat
+
+        # Auto-map flat number
         st.session_state.flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
-        # Create description
+
+        # Capture current time
         current_time = datetime.now().strftime("%H:%M:%S")
+
+        # Create description
         description = f"Vehicle {st.session_state.vehicle_number} of type {st.session_state.vehicle_type} {st.session_state.step} at {current_time} for Flat {st.session_state.flat_number}"
         st.session_state.description = description
+
+        # Show description
+        st.success(description)
+
         # Append to log file
         log_file = "vehicle_log.txt"
         with open(log_file, "a") as f:
             f.write(description + "\n")
-        st.success(description)
+
         # Reset for next entry
         st.session_state.step = None
         st.session_state.vehicle_type = None
