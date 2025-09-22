@@ -1,7 +1,6 @@
 import sys
 import os
 import re
-import unicodedata
 import openpyxl
 import streamlit as st
 import pandas as pd
@@ -21,8 +20,7 @@ if not os.path.exists(default_file):
     st.stop()
 
 try:
-    df_raw = pd.read_excel(default_file)   # keep raw copy for debugging
-    df = df_raw.copy()
+    df = pd.read_excel(default_file)
     st.success(f"File '{default_file}' loaded successfully!")
 except Exception as e:
     st.error(f"Error reading file '{default_file}': {e}")
@@ -39,31 +37,25 @@ df.columns = ["Vehicle", "FlatNumber"]
 
 # ===== Helper functions =====
 def normalize_vehicle_input(vehicle_number):
-    """Strong normalization: case-insensitive, remove spaces/newlines, replace O with 0, strip hidden chars."""
+    """Normalize vehicle number: case-insensitive, remove spaces/newlines, replace O with 0."""
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = ''.join(ch for ch in text if unicodedata.category(ch)[0] != 'C')  # remove control chars
-    text = re.sub(r"\s+", "", text)  # remove ALL whitespace (spaces, newlines, tabs)
-    text = text.replace("O", "0")
+    text = re.sub(r"\s+", "", text)        # remove ALL whitespace (spaces, tabs, newlines)
+    text = text.replace("O", "0")          # replace letter O with zero
     return text.strip()
 
 def normalize_flat_input(flat_number):
-    """Normalize flat number: case-insensitive, remove spaces/newlines, strip hidden chars."""
+    """Normalize flat number: case-insensitive, remove spaces/newlines."""
     if pd.isna(flat_number):
         return ""
     text = str(flat_number).upper()
-    text = ''.join(ch for ch in text if unicodedata.category(ch)[0] != 'C')  # remove control chars
-    text = re.sub(r"\s+", "", text)  # remove ALL whitespace
+    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
     return text.strip()
 
 # ===== Normalize dataframe =====
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
-
-# ===== Debugging: Show raw vs normalized =====
-st.write("🔎 Raw first 20 values:", df_raw.iloc[:20, :2].to_dict(orient="records"))
-st.write("🔧 Normalized first 20 values:", df.iloc[:20, :2].to_dict(orient="records"))
 
 # ===== Unified Lookup GUI =====
 user_input = st.text_input("Enter Vehicle Number or Flat Number")
