@@ -76,14 +76,15 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
 
-    # CSS style for green result box
+    # ===== CSS style for green result box =====
     box_style = (
-        "padding: 20px; "
-        "border-radius: 10px; "
-        "background-color: #d4edda; "
-        "color: #155724; "
+        "padding: 25px; "
+        "border-radius: 12px; "
+        "background-color: #28a745; "  # Darker green
+        "color: white; "
         "font-size: 60px; "
-        "font-weight: bold;"
+        "font-weight: bold; "
+        "text-align: center;"
     )
 
     # ----- Vehicle lookup -----
@@ -104,7 +105,7 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
     # ----- Not found message -----
     else:
         st.markdown(
-            f"<div style='{box_style}'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। "
+            f"<div style='{box_style}'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है।<br>"
             "..शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।<br>"
             "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</div>",
             unsafe_allow_html=True,
