@@ -76,8 +76,8 @@ user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यह
 st.markdown("""
 <style>
 .big-link-button>button {
-    font-size: 40px !important;             /* Bigger font */
-    color: #FF4500 !important;             /* Orange-Red color */
+    font-size: 40px !important;             /* Big font */
+    color: red !important;                  /* Base color red before click */
     background-color: transparent !important;
     border: none !important;
     text-decoration: underline !important;
@@ -85,13 +85,14 @@ st.markdown("""
     cursor: pointer !important;
 }
 .big-link-button>button:hover {
-    color: #32CD32 !important;             /* LimeGreen on hover */
+    color: green !important;                /* Color changes on hover */
     font-size: 45px !important;            /* Slightly bigger on hover */
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ===== Lookup button (styled as link) =====
+st.markdown('<div class="big-link-button">', unsafe_allow_html=True)
 if st.button("रिज़ल्ट देखें", key="lookup_button"):
     input_norm_vehicle = normalize_vehicle_input(user_input)
     input_norm_flat = normalize_flat_input(user_input)
@@ -118,3 +119,4 @@ if st.button("रिज़ल्ट देखें", key="lookup_button"):
             "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>",
             unsafe_allow_html=True,
         )
+st.markdown('</div>', unsafe_allow_html=True)
