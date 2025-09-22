@@ -24,7 +24,7 @@ try:
     st.success(f"File '{default_file}' loaded successfully!")
 except Exception as e:
     st.error(f"Error reading file '{default_file}': {e}")
-    st.stop()  # stop further execution if file not found
+    st.stop()
 
 # ===== Handle column mismatch =====
 if df.shape[1] < 2:
@@ -37,20 +37,20 @@ df.columns = ["Vehicle", "FlatNumber"]
 
 # ===== Helper functions =====
 def normalize_vehicle_input(vehicle_number):
-    """Normalize vehicle number for case-insensitive, space-free lookup."""
+    """Normalize vehicle number: case-insensitive, remove spaces/newlines, replace O with 0."""
     if pd.isna(vehicle_number):
         return ""
     text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)   # remove spaces, tabs, newlines
-    text = text.replace("O", "0").replace("o", "0")  # replace O/o with 0
+    text = re.sub(r"\s+", "", text)        # remove ALL whitespace (spaces, tabs, newlines)
+    text = text.replace("O", "0")          # replace letter O with zero
     return text.strip()
 
 def normalize_flat_input(flat_number):
-    """Normalize flat number for consistent lookup."""
+    """Normalize flat number: case-insensitive, remove spaces/newlines."""
     if pd.isna(flat_number):
         return ""
     text = str(flat_number).upper()
-    text = re.sub(r"\s+", "", text)   # remove spaces, tabs, newlines
+    text = re.sub(r"\s+", "", text)        # remove ALL whitespace
     return text.strip()
 
 # ===== Normalize dataframe =====
