@@ -2,23 +2,45 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import re
+import pytz  # For India timezone
 
-# Folder to store logs
-log_folder = "logs"
+# ===== Setup internal folder for logs =====
+log_folder = "vehicle_logs"
 os.makedirs(log_folder, exist_ok=True)
 
-# Mapping of vehicle numbers to flats (you can expand this list)
-vehicle_to_flat = {
-    "MH01EV9273": "F'DILIP PAANCHAL--1101",
-    "MH02AB1234": "Flat 202",
-    "MH03XY7890": "Flat 303"
-}
+# ===== Load vehicle-flat mapping =====
+raw_file = "vehicle_flat_pairs.csv"
+if not os.path.exists(raw_file):
+    st.error(f"File not found: {raw_file}")
+    st.stop()
 
-# Function to get log file path for a given gate
+df = pd.read_csv(raw_file)
+df = df.iloc[:, :2]
+df.columns = ["Vehicle", "FlatNumber"]
+
+# Normalize vehicle numbers for dictionary keys
+def normalize_vehicle_input(vehicle_number):
+    if pd.isna(vehicle_number) or vehicle_number == "":
+        return ""
+    text = str(vehicle_number).upper()  # Convert to uppercase
+    text = re.sub(r"\s+", "", text)     # Remove spaces
+    text = text.replace("O", "0")       # Replace O with 0
+    return text.strip()
+
+df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
+df["FlatNumber"] = df["FlatNumber"].apply(lambda x: str(x).upper())
+vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
+
+# ===== Session State =====
+for key in ["gate", "step", "vehicle_type", "vehicle_number", "flat_number", "description"]:
+    if key not in st.session_state:
+        st.session_state[key] = None
+
+# ===== Helper functions =====
 def get_log_file(gate):
     return os.path.join(log_folder, f"vehicle_log_gate{gate}.txt")
 
-# Function to count entries in log (for numbering)
 def get_entry_number(log_file):
     if not os.path.exists(log_file):
         return 1
@@ -26,18 +48,18 @@ def get_entry_number(log_file):
         lines = f.readlines()
     return len([line for line in lines if "Entry No." in line]) + 1
 
-# Function to log entry
 def log_entry(gate, vehicle_type, vehicle_number, action):
     log_file = get_log_file(gate)
-    flat_number = vehicle_to_flat.get(vehicle_number, "Unknown Flat")
-    time_now = datetime.now().strftime("%I:%M:%S %p")  # 12-hour format
+    vehicle_number_norm = normalize_vehicle_input(vehicle_number)
+    flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
+    time_now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%I:%M:%S %p")
     entry_no = get_entry_number(log_file)
 
     log_line = (
         f"Entry No.{entry_no} | "
         f"🚪 Gate {gate} | "
         f"🚘 Vehicle: {vehicle_type} | "
-        f"🔢 Number: {vehicle_number} | "
+        f"🔢 Number: {vehicle_number_norm} | "
         f"🏠 Flat: {flat_number} | "
         f"📍 Action: {action} | "
         f"⏰ Time: {time_now}\n"
@@ -45,10 +67,8 @@ def log_entry(gate, vehicle_type, vehicle_number, action):
 
     with open(log_file, "a") as f:
         f.write(log_line)
-
     return log_line
 
-# Function to read log file
 def read_log(gate):
     log_file = get_log_file(gate)
     if not os.path.exists(log_file):
@@ -56,12 +76,9 @@ def read_log(gate):
     with open(log_file, "r") as f:
         return f.readlines()
 
-# Function to clear log file
 def clear_log(gate):
-    log_file = get_log_file(gate)
-    open(log_file, "w").close()
+    open(get_log_file(gate), "w").close()
 
-# Function to generate summary
 def generate_summary(gate):
     log_lines = read_log(gate)
     if not log_lines:
@@ -80,39 +97,41 @@ def generate_summary(gate):
         elif action == "OUT":
             summary[vehicle_type]["OUT"] += 1
 
-    # Format summary
     summary_text = ""
     count = 1
     for vehicle, counts in summary.items():
         summary_text += (
-            f"**No.{count} → {vehicle}**: "
-            f"🟢 IN = {counts['IN']} | 🔴 OUT = {counts['OUT']}\n\n"
+            f"**No.{count} → {vehicle}**: 🟢 IN = {counts['IN']} | 🔴 OUT = {counts['OUT']}\n\n"
         )
         count += 1
     return summary_text
 
-# Streamlit UI
-st.title("🚓 Vehicle Entry Management System")
+# ===== Streamlit UI =====
+st.markdown("<h1 style='color:blue; text-align:center;'>🚓 Rishabh Tower Vehicle Log</h1>", unsafe_allow_html=True)
 
+# Gate selection
 st.markdown("### Select Gate:")
-col1, col2 = st.columns(2)
-with col1:
-    gate = st.radio("Choose Gate", [1, 2], horizontal=True)
+gate = st.radio("Choose Gate", [1, 2], horizontal=True)
+st.session_state.gate = gate
 
+# Action selection
 st.markdown("### Vehicle Action:")
 action = st.radio("Select Action", ["IN", "OUT"], horizontal=True)
+st.session_state.step = action
 
+# Vehicle details
 st.markdown("### Vehicle Details:")
-vehicle_type = st.selectbox("Vehicle Type", ["Car", "Bike", "Scooty", "Taxi", "E.V"])
+vehicle_type = st.selectbox("Vehicle Type", ["Car", "Bike", "Scooty", "Taxi", "EV"])
 vehicle_number = st.text_input("Enter Vehicle Number")
 
+# Submit Entry
 if st.button("Submit Entry", use_container_width=True):
     if vehicle_number:
         log_line = log_entry(gate, vehicle_type, vehicle_number, action)
-        st.success("Entry logged successfully!")
+        st.success("✅ Entry logged successfully!")
         st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
     else:
-        st.error("Please enter Vehicle Number")
+        st.error("⚠️ Please enter Vehicle Number")
 
 # Show Logs
 if st.button(f"📖 Show Logs Gate {gate}", use_container_width=True):
