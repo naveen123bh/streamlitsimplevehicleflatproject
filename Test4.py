@@ -1,210 +1,134 @@
-import os
-import re
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import pytz  # For India timezone
+import os
 
-# ===== Setup internal folder for logs =====
-log_folder = "vehicle_logs"
+# Folder to store logs
+log_folder = "logs"
 os.makedirs(log_folder, exist_ok=True)
 
-# ===== Load vehicle-flat mapping =====
-raw_file = "vehicle_flat_pairs.csv"
-if not os.path.exists(raw_file):
-    st.error(f"File not found: {raw_file}")
-    st.stop()
+# Mapping of vehicle numbers to flats (you can expand this list)
+vehicle_to_flat = {
+    "MH01EV9273": "F'DILIP PAANCHAL--1101",
+    "MH02AB1234": "Flat 202",
+    "MH03XY7890": "Flat 303"
+}
 
-df = pd.read_csv(raw_file)
-df = df.iloc[:, :2]
-df.columns = ["Vehicle", "FlatNumber"]
+# Function to get log file path for a given gate
+def get_log_file(gate):
+    return os.path.join(log_folder, f"vehicle_log_gate{gate}.txt")
 
-def normalize_vehicle_input(vehicle_number):
-    if pd.isna(vehicle_number) or vehicle_number == "":
-        return ""
-    text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)
-    text = text.replace("O", "0")
-    return text.strip()
+# Function to count entries in log (for numbering)
+def get_entry_number(log_file):
+    if not os.path.exists(log_file):
+        return 1
+    with open(log_file, "r") as f:
+        lines = f.readlines()
+    return len([line for line in lines if "Entry No." in line]) + 1
 
-df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
-df["FlatNumber"] = df["FlatNumber"].apply(lambda x: str(x).upper())
-vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
+# Function to log entry
+def log_entry(gate, vehicle_type, vehicle_number, action):
+    log_file = get_log_file(gate)
+    flat_number = vehicle_to_flat.get(vehicle_number, "Unknown Flat")
+    time_now = datetime.now().strftime("%I:%M:%S %p")  # 12-hour format
+    entry_no = get_entry_number(log_file)
 
-# ===== Session State =====
-if "gate" not in st.session_state:
-    st.session_state.gate = None
-if "step" not in st.session_state:
-    st.session_state.step = None
-if "vehicle_type" not in st.session_state:
-    st.session_state.vehicle_type = None
-if "vehicle_number" not in st.session_state:
-    st.session_state.vehicle_number = None
-if "flat_number" not in st.session_state:
-    st.session_state.flat_number = None
-if "description" not in st.session_state:
-    st.session_state.description = None
-
-# ===== App Heading =====
-st.markdown("<h1 style='color:blue; font-size:50px; text-align:center;'>🚗 Rishabh Tower Vehicle Log</h1>", unsafe_allow_html=True)
-
-# ===== Gate Selection =====
-if st.session_state.gate is None:
-    st.markdown("<h3 style='color:purple;'>Select Your Gate</h3>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Gate 1", key="gate1_btn"):
-            st.session_state.gate = "Gate1"
-    with col2:
-        if st.button("Gate 2", key="gate2_btn"):
-            st.session_state.gate = "Gate2"
-
-    # Style Gate buttons
-    st.markdown(
-        """
-        <style>
-        div[data-testid='stButton'] button[kind='primary'][key='gate1_btn'] {
-            background-color: green;
-            color: white;
-            font-size: 26px;
-            padding: 16px 32px;
-            border-radius: 15px;
-        }
-        div[data-testid='stButton'] button[kind='primary'][key='gate2_btn'] {
-            background-color: red;
-            color: white;
-            font-size: 26px;
-            padding: 16px 32px;
-            border-radius: 15px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
+    log_line = (
+        f"Entry No.{entry_no} | "
+        f"🚪 Gate {gate} | "
+        f"🚘 Vehicle: {vehicle_type} | "
+        f"🔢 Number: {vehicle_number} | "
+        f"🏠 Flat: {flat_number} | "
+        f"📍 Action: {action} | "
+        f"⏰ Time: {time_now}\n"
     )
 
-else:
-    log_file = os.path.join(log_folder, f"vehicle_log_{st.session_state.gate}.txt")
+    with open(log_file, "a") as f:
+        f.write(log_line)
 
-    # ===== Show & Clear Log Buttons =====
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📘 Show Vehicle Log", key="show_log"):
-            if os.path.exists(log_file):
-                with open(log_file, "r") as f:
-                    log_content = f.read()
-                st.text_area("Vehicle Log", value=log_content, height=300)
-            else:
-                st.info("No log entries yet.")
-        st.markdown(
-            "<style> div[data-testid='stButton'] button[kind='primary'][key='show_log'] {background-color: blue; color: white; font-size: 22px; padding: 12px 24px; border-radius: 12px;} </style>",
-            unsafe_allow_html=True,
+    return log_line
+
+# Function to read log file
+def read_log(gate):
+    log_file = get_log_file(gate)
+    if not os.path.exists(log_file):
+        return []
+    with open(log_file, "r") as f:
+        return f.readlines()
+
+# Function to clear log file
+def clear_log(gate):
+    log_file = get_log_file(gate)
+    open(log_file, "w").close()
+
+# Function to generate summary
+def generate_summary(gate):
+    log_lines = read_log(gate)
+    if not log_lines:
+        return "No data available."
+
+    summary = {}
+    for line in log_lines:
+        parts = line.split("|")
+        if len(parts) < 6:
+            continue
+        vehicle_type = parts[2].split(":")[1].strip()
+        action = parts[5].split(":")[1].strip()
+        summary.setdefault(vehicle_type, {"IN": 0, "OUT": 0})
+        if action == "IN":
+            summary[vehicle_type]["IN"] += 1
+        elif action == "OUT":
+            summary[vehicle_type]["OUT"] += 1
+
+    # Format summary
+    summary_text = ""
+    count = 1
+    for vehicle, counts in summary.items():
+        summary_text += (
+            f"**No.{count} → {vehicle}**: "
+            f"🟢 IN = {counts['IN']} | 🔴 OUT = {counts['OUT']}\n\n"
         )
+        count += 1
+    return summary_text
 
-    with col2:
-        if st.button("🗑️ Clear Vehicle Log", key="clear_log"):
-            with open(log_file, "w") as f:
-                f.write("")
-            st.success(f"{st.session_state.gate} log cleared successfully!")
-        st.markdown(
-            "<style> div[data-testid='stButton'] button[kind='primary'][key='clear_log'] {background-color: red; color: white; font-size: 22px; padding: 12px 24px; border-radius: 12px;} </style>",
-            unsafe_allow_html=True,
-        )
+# Streamlit UI
+st.title("🚓 Vehicle Entry Management System")
 
-    # ===== Step 1: IN/OUT selection =====
-    if st.session_state.step is None:
-        st.markdown("<h3 style='color:green;'>Select Vehicle Movement</h3>", unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("✅ IN", key="in_btn"):
-                st.session_state.step = "IN"
-        with col2:
-            if st.button("❌ OUT", key="out_btn"):
-                st.session_state.step = "OUT"
+st.markdown("### Select Gate:")
+col1, col2 = st.columns(2)
+with col1:
+    gate = st.radio("Choose Gate", [1, 2], horizontal=True)
 
-        # Style IN/OUT buttons
-        st.markdown(
-            """
-            <style>
-            div[data-testid='stButton'] button[kind='primary'][key='in_btn'] {
-                background-color: green;
-                color: white;
-                font-size: 28px;
-                padding: 16px 32px;
-                border-radius: 15px;
-            }
-            div[data-testid='stButton'] button[kind='primary'][key='out_btn'] {
-                background-color: red;
-                color: white;
-                font-size: 28px;
-                padding: 16px 32px;
-                border-radius: 15px;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
+st.markdown("### Vehicle Action:")
+action = st.radio("Select Action", ["IN", "OUT"], horizontal=True)
 
-    # ===== Step 2: Vehicle Type Selection =====
-    elif st.session_state.step and st.session_state.vehicle_type is None:
-        st.markdown(f"<h3 style='color:purple;'>Vehicle Type for {st.session_state.step}</h3>", unsafe_allow_html=True)
-        vehicle_type = st.selectbox("Select vehicle type", ["Car", "Bike", "Scooty", "Taxi", "EV"])
-        if vehicle_type:
-            st.session_state.vehicle_type = vehicle_type
+st.markdown("### Vehicle Details:")
+vehicle_type = st.selectbox("Vehicle Type", ["Car", "Bike", "Scooty", "Taxi", "E.V"])
+vehicle_number = st.text_input("Enter Vehicle Number")
 
-    # ===== Step 3: Vehicle Number Input =====
-    elif st.session_state.vehicle_type and st.session_state.vehicle_number is None:
-        st.markdown(f"<h3 style='color:orange;'>Enter Vehicle Number</h3>", unsafe_allow_html=True)
-        vehicle_number_input = st.text_input("Vehicle Number", "")
+if st.button("Submit Entry", use_container_width=True):
+    if vehicle_number:
+        log_line = log_entry(gate, vehicle_type, vehicle_number, action)
+        st.success("Entry logged successfully!")
+        st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
+    else:
+        st.error("Please enter Vehicle Number")
 
-        if st.button("Submit Entry", key="submit_vehicle"):
-            vehicle_number_norm = normalize_vehicle_input(vehicle_number_input)
-            st.session_state.vehicle_number = vehicle_number_norm
+# Show Logs
+if st.button(f"📖 Show Logs Gate {gate}", use_container_width=True):
+    log_data = read_log(gate)
+    if log_data:
+        for line in log_data:
+            st.markdown(f"<p style='color:purple; font-size:16px;'>{line}</p>", unsafe_allow_html=True)
+    else:
+        st.info("No logs yet for this gate.")
 
-            # Auto-map flat number
-            st.session_state.flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
+# Show Summary
+if st.button(f"📊 Show Summary Gate {gate}", use_container_width=True):
+    summary = generate_summary(gate)
+    st.markdown(f"<div style='color:green; font-size:18px; font-weight:bold;'>{summary}</div>", unsafe_allow_html=True)
 
-            # Capture current time in IST (12-hour format)
-            tz = pytz.timezone("Asia/Kolkata")
-            current_time = datetime.now(tz).strftime("%I:%M:%S %p")
-
-            # Create highlighted description for Streamlit
-            highlighted_description = f"""
-            <div style='font-size:22px; color:blue;'>
-                <b>[{st.session_state.gate}]</b> 
-                Vehicle <span style='color:red;'><b>{st.session_state.vehicle_number}</b></span> 
-                of type <span style='color:green;'><b>{st.session_state.vehicle_type}</b></span> 
-                <span style='color:purple;'><b>{st.session_state.step}</b></span> 
-                at <span style='color:orange;'><b>{current_time}</b></span> 
-                for Flat <span style='color:brown;'><b>{st.session_state.flat_number}</b></span>
-            </div>
-            """
-
-            # Create plain but structured log entry
-            log_description = (
-                f"[{st.session_state.gate}] "
-                f"[TYPE: {st.session_state.vehicle_type}] "
-                f"[ACTION: {st.session_state.step}] "
-                f"[TIME: {current_time}] "
-                f"[VEHICLE: {st.session_state.vehicle_number}] "
-                f"[FLAT: {st.session_state.flat_number}]"
-            )
-
-            # Show highlighted description in Streamlit
-            st.markdown(highlighted_description, unsafe_allow_html=True)
-
-            # Append structured log entry to file
-            with open(log_file, "a") as f:
-                f.write(log_description + "\n")
-
-            # Reset for next entry
-            st.session_state.step = None
-            st.session_state.vehicle_type = None
-            st.session_state.vehicle_number = None
-            st.session_state.flat_number = None
-            st.session_state.description = None
-
-        # Style Vehicle Number Submit button
-        st.markdown(
-            "<style> div[data-testid='stButton'] button[kind='primary'][key='submit_vehicle'] {background-color: orange; color: black; font-size: 24px; padding: 14px 28px; border-radius: 12px;} </style>",
-            unsafe_allow_html=True,
-        )
+# Clear Logs
+if st.button(f"🗑️ Clear Log Gate {gate}", use_container_width=True):
+    clear_log(gate)
+    st.warning(f"Logs for Gate {gate} cleared!")
