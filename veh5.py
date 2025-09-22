@@ -5,7 +5,7 @@ import openpyxl
 import streamlit as st
 import pandas as pd
 
-# ===== Plain heading =====
+# ===== Heading =====
 st.markdown("<h1 style='text-align:center; color: #FF5733; font-size:60px;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
 
 # ===== Python version check =====
@@ -54,22 +54,37 @@ def normalize_flat_input(flat_number):
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
-# ===== Custom CSS for input =====
+# ===== Custom CSS for input & button =====
 st.markdown("""
     <style>
+    /* Input box style */
     .big-input input {
-        font-size: 30px;
-        color: #1F618D;
+        font-size: 36px !important;
+        color: #D35400;
         font-weight: bold;
         text-align: center;
+        height: 60px;
+        border: 3px solid #1F618D;
+        border-radius: 12px;
+        background-color: #FCF3CF;
     }
+    /* Button style */
     .big-button button {
-        font-size: 28px;
+        font-size: 32px !important;
         background-color: #28B463;
         color: white;
         font-weight: bold;
-        padding: 12px 20px;
-        border-radius: 10px;
+        padding: 15px 25px;
+        border-radius: 12px;
+        width: 300px;
+        display: block;
+        margin: 20px auto;
+    }
+    /* Success/Error message font style */
+    .stSuccess, .stWarning, .stError {
+        font-size: 28px !important;
+        font-weight: bold;
+        text-align: center;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -79,7 +94,7 @@ user_input = st.text_input("Vehicle या Flat Number डालें", "", key
 st.markdown('<div class="big-input"></div>', unsafe_allow_html=True)
 
 # ===== Button =====
-if st.button("Result देखें"):
+if st.button("Result देखें", key="result_button"):
     if user_input:
         input_norm_vehicle = normalize_vehicle_input(user_input)
         input_norm_flat = normalize_flat_input(user_input)
