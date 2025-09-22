@@ -54,10 +54,29 @@ def normalize_flat_input(flat_number):
 df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
 
+# ===== Custom CSS for input =====
+st.markdown("""
+    <style>
+    .big-input input {
+        font-size: 30px;
+        color: #1F618D;
+        font-weight: bold;
+        text-align: center;
+    }
+    .big-button button {
+        font-size: 28px;
+        background-color: #28B463;
+        color: white;
+        font-weight: bold;
+        padding: 12px 20px;
+        border-radius: 10px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # ===== Input box =====
-user_input = st.text_input("Vehicle या Flat Number डालें", "", 
-                           help="Enter Vehicle या Flat Number", 
-                           key="user_input")
+user_input = st.text_input("Vehicle या Flat Number डालें", "", key="user_input", help="Enter Vehicle या Flat Number")
+st.markdown('<div class="big-input"></div>', unsafe_allow_html=True)
 
 # ===== Button =====
 if st.button("Result देखें"):
