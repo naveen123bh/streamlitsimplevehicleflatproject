@@ -4,22 +4,21 @@ from datetime import datetime
 import os
 import re
 import pytz  # For India timezone
-import pywhatkit as pwk
-import time
+from twilio.rest import Client   # 📲 Added for SMS alerts
 
 # ===== Setup internal folder for logs =====
 log_folder = "vehicle_logs"
 os.makedirs(log_folder, exist_ok=True)
 
-# ===== Mobile-friendly CSV upload =====
-raw_file = st.file_uploader("Upload vehicle-flat CSV file", type=["csv"])
-if raw_file is not None:
-    df = pd.read_csv(raw_file)
-    df = df.iloc[:, :2]
-    df.columns = ["Vehicle", "FlatNumber"]
-else:
-    st.warning("Please upload the CSV file to continue.")
+# ===== Load vehicle-flat mapping =====
+raw_file = "vehicle_flat_pairs.csv"
+if not os.path.exists(raw_file):
+    st.error(f"File not found: {raw_file}")
     st.stop()
+
+df = pd.read_csv(raw_file)
+df = df.iloc[:, :2]
+df.columns = ["Vehicle", "FlatNumber"]
 
 # Normalize vehicle numbers
 def normalize_vehicle_input(vehicle_number):
@@ -56,6 +55,24 @@ if "logged_in_users" not in st.session_state:
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
+# ===== Twilio SMS Alert Function =====
+def send_alert_sms(message_text):
+    try:
+        account_sid = st.secrets["TWILIO_SID"]
+        auth_token = st.secrets["TWILIO_AUTH_TOKEN"]
+        from_number = st.secrets["TWILIO_FROM_NUMBER"]
+        to_number = st.secrets["TWILIO_TO_NUMBER"]
+
+        client = Client(account_sid, auth_token)
+        client.messages.create(
+            body=message_text,
+            from_=from_number,
+            to=to_number
+        )
+        st.success("📩 Supervisor alerted via SMS!")
+    except Exception as e:
+        st.error(f"❌ Failed to send SMS: {e}")
+
 # ===== Helper functions =====
 def get_log_file(gate):
     return os.path.join(log_folder, f"vehicle_log_gate{gate}.txt")
@@ -67,28 +84,10 @@ def get_entry_number(log_file):
         lines = f.readlines()
     return len([line for line in lines if "Entry No." in line]) + 1
 
-def send_whatsapp_alert(message_text, phone_number="+917247889502"):
-    try:
-        now = datetime.now()
-        hour = now.hour
-        minute = now.minute + 1  # Send 1 min later
-        pwk.sendwhatmsg(phone_number, message_text, hour, minute)
-        time.sleep(10)
-    except Exception as e:
-        st.error(f"❌ Failed to send WhatsApp alert: {e}")
-
 def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
     log_file = get_log_file(gate)
     vehicle_number_norm = normalize_vehicle_input(vehicle_number)
     flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
-
-    # WhatsApp alert if unknown
-    if flat_number == "Unknown Flat":
-        alert_text = (
-            "Alert: ye gaadi Rishabh tower ki gaadi ki list me nahi hai, "
-            "gaadi ke maalik se puchhe kon se flat me jana hai yaa kon se flat ke lie aaye hai."
-        )
-        send_whatsapp_alert(alert_text)
 
     time_now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%I:%M:%S %p")
     entry_no = get_entry_number(log_file)
@@ -106,6 +105,12 @@ def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
 
     with open(log_file, "a") as f:
         f.write(log_line)
+
+    # 🚨 Send SMS alert if flat is unknown
+    if flat_number == "Unknown Flat":
+        alert_message = f"⚠️ Unknown Vehicle Detected!\nGate {gate} | {vehicle_type} {vehicle_number_norm} | Action: {action} | Time: {time_now}"
+        send_alert_sms(alert_message)
+
     return log_line
 
 def read_log(gate):
@@ -122,6 +127,7 @@ def generate_summary(gate):
     log_lines = read_log(gate)
     if not log_lines:
         return "कोई डेटा उपलब्ध नहीं है।"
+
     summary = {}
     for line in log_lines:
         parts = line.split("|")
@@ -134,6 +140,7 @@ def generate_summary(gate):
             summary[vehicle_type]["IN"] += 1
         elif action == "OUT":
             summary[vehicle_type]["OUT"] += 1
+
     summary_text = ""
     count = 1
     for vehicle, counts in summary.items():
@@ -151,9 +158,10 @@ if st.session_state.current_user is None:
     available_users = list(users.keys())
     selected_user = st.selectbox("Select your name", available_users)
     password_input = st.text_input("Enter your 6-digit password", type="password")
+
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
-            if len(st.session_state.logged_in_users) < 5:
+            if len(st.session_state.logged_in_users) < 5:   # ✅ Limit 5 users
                 st.session_state.logged_in_users.append(selected_user)
                 st.session_state.current_user = selected_user
                 st.success(f"Welcome {selected_user}! You are logged in.")
@@ -168,7 +176,7 @@ else:
 if st.session_state.logged_in_users:
     st.info(f"Currently logged-in users: {', '.join(st.session_state.logged_in_users)}")
 
-# Logout Section
+# Logout Section for each user
 for user in st.session_state.logged_in_users.copy():
     if st.button(f"🚪 Log Out {user}"):
         st.session_state.logged_in_users.remove(user)
@@ -183,35 +191,41 @@ logged_in_guards = [u for u in st.session_state.logged_in_users if u in guard_us
 if logged_in_guards:
     st.markdown("### Select Gate:")
     gate = st.radio("Choose Gate", [1, 2], horizontal=True)
+
     st.markdown("### Vehicle Action:")
     action = st.radio("Select Action", ["IN", "OUT"], horizontal=True)
+
     st.markdown("### Vehicle Details:")
     vehicle_type = st.selectbox("Vehicle Type", ["Car", "Bike", "Scooty", "Taxi", "EV"])
     vehicle_number = st.text_input("Enter Vehicle Number")
+
     if st.button("Submit Entry", use_container_width=True):
         if vehicle_number:
             for guard in logged_in_guards:
                 log_line = log_entry(gate, guard, vehicle_type, vehicle_number, action)
                 st.success(f"✅ Entry logged successfully by {guard}!")
                 st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
+
+                # 🔔 Show Hindi alert in red if flat is unknown
                 if "Unknown Flat" in log_line:
                     st.markdown(
                         "<p style='color:red; font-size:18px;'>"
-                        "Alert: ye vehicle Rishabh tower ki vehicle  list me nahi hai, "
-                        "vehicle ke owner se flat number puchhe."
+                        "कृपया ध्यान दें: यह वाहन सूची में नहीं है। मालिक से Flat Number पूछें।"
                         "</p>",
                         unsafe_allow_html=True
                     )
         else:
             st.error("⚠️ Please enter Vehicle Number")
 
-# ===== Logs and Summary =====
+# ===== Logs and Summary (for all users, supervisors can see everything) =====
 for user in st.session_state.logged_in_users:
     st.markdown(f"### Logs & Summary for {user}")
+
     if user in guard_users:
         gate = st.radio(f"Select Gate for {user}", [1,2], key=f"gate_{user}")
     else:
         gate = st.radio(f"Select Gate for supervisor {user}", [1,2], key=f"gate_{user}")
+
     if st.button(f"📖 Show Logs Gate {gate} ({user})", key=f"showlog_{user}", use_container_width=True):
         log_data = read_log(gate)
         if log_data:
@@ -219,11 +233,13 @@ for user in st.session_state.logged_in_users:
                 st.markdown(f"<p style='color:purple; font-size:16px;'>{line}</p>", unsafe_allow_html=True)
         else:
             st.info("No logs yet for this gate.")
+
     if st.button(f"📊 Show Summary Gate {gate} ({user})", key=f"summary_{user}", use_container_width=True):
         summary = generate_summary(gate)
         st.markdown(f"<div style='color:green; font-size:18px; font-weight:bold;'>{summary}</div>", unsafe_allow_html=True)
+
     if st.button(f"🗑️ Clear Log Gate {gate} ({user})", key=f"clear_{user}", use_container_width=True):
-        if user == "Naveen Kumar":
+        if user == "Naveen Kumar":   # ✅ Only Naveen can clear logs
             clear_log(gate)
             st.warning(f"Logs for Gate {gate} cleared by {user}!")
         else:
