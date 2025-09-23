@@ -131,7 +131,7 @@ def generate_summary(gate):
 def send_email_alert(vehicle_number, gate):
     sender_email = "your_email@gmail.com"          # Replace with your Gmail
     app_password = "your_app_password"            # Use Gmail App Password
-    receiver_email = "7247navhhatt@gmail.com"     # Supervisor's email
+    receiver_email = "7247navbhatt@gmail.com"     # Supervisor's email
 
     message = f"Alert: Unknown Flat vehicle detected.\nVehicle Number: {vehicle_number}\nGate: {gate}"
 
