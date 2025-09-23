@@ -159,7 +159,7 @@ for user in st.session_state.logged_in_users.copy():
         st.success(f"{user} logged out successfully.")
 
 # ===== Vehicle Logging Section (for Guards only) =====
-guard_users = ["Naveen Kumar","Rajeev Padwal","Suresh Sagare","Babban","Manoj","Rajaram","Sandeep Karekar"]
+guard_users = ["Naveen Kumar","Rajeev Padwal","Suresh Sagare","Babban","Manoj","Rajaram","Sandeep Karekar","pramod"]
 logged_in_guards = [u for u in st.session_state.logged_in_users if u in guard_users]
 
 if logged_in_guards:
@@ -204,8 +204,8 @@ for user in st.session_state.logged_in_users:
         st.markdown(f"<div style='color:green; font-size:18px; font-weight:bold;'>{summary}</div>", unsafe_allow_html=True)
 
     if st.button(f"🗑️ Clear Log Gate {gate} ({user})", key=f"clear_{user}", use_container_width=True):
-        if user in guard_users:
+        if user == "Naveen Kumar":   # ✅ Only Naveen can clear logs
             clear_log(gate)
             st.warning(f"Logs for Gate {gate} cleared by {user}!")
         else:
-            st.error("Supervisors cannot clear logs directly. Please use guards.") 
+            st.error("❌ Only Naveen Kumar is authorized to clear logs.")
