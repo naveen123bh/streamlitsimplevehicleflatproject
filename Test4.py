@@ -185,8 +185,8 @@ if logged_in_guards:
                 if "Unknown Flat" in log_line:
                     st.markdown(
                         "<p style='color:red; font-size:18px;'>"
-                        "Alert: ye gaadi Rishabh tower ki gaadi ki list me nahi hai, "
-                        "gaadi ke maalik se puchhe kon se flat me jana hai yaa kon se flat ke lie aaye hai"
+                        "Please note: ye vehicle Rishabh tower ki vehicle  list me nahi hai, "
+                        "vehicle ke owner se flat number puchhe. "
                         "</p>",
                         unsafe_allow_html=True
                     )
