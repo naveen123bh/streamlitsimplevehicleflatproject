@@ -135,7 +135,7 @@ if st.session_state.current_user is None:
 
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
-            if len(st.session_state.logged_in_users) < 2:
+            if len(st.session_state.logged_in_users) < 5:
                 st.session_state.logged_in_users.append(selected_user)
                 st.session_state.current_user = selected_user
                 st.success(f"Welcome {selected_user}! You are logged in.")
