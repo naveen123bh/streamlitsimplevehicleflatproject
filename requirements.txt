@@ -1,19 +1,19 @@
 # Streamlit core
 streamlit==1.38.0
 
-# Real-time microphone streaming
+# Real-time audio streaming
 streamlit-webrtc==0.63.4
 
-# Whisper CPU-friendly version compatible with Python 3.12
+# Whisper speech-to-text compatible with Python 3.12
 whisper==1.1.10
 
-# PyTorch CPU backend for Whisper
-torch==2.1.0
+# PyTorch CPU backend compatible with Python 3.12
+torch==2.8.0
 
-# Audio file processing
+# Audio file handling
 wavio==0.0.7
 
-# Numerical computations
+# Numerical computation
 numpy==1.24.0
 
 # Timezone support
