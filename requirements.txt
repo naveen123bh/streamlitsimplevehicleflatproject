@@ -1,16 +1,8 @@
-# Core Streamlit app
 streamlit==1.38.0
-
-# Audio / WebRTC feature
 streamlit-webrtc==0.63.4
-
-# Whisper for speech recognition
 whisper==1.1.10
-
-# Torch for Whisper
 torch==2.8.0
-
-# Dependencies that whisper and rich might use
+wavio==0.0.4
 numpy>=1.24.0
-scipy>=1.10.0
+sounddevice>=0.4.6
 pandas>=2.1.0
