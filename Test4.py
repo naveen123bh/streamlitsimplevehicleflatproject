@@ -70,10 +70,6 @@ def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
     vehicle_number_norm = normalize_vehicle_input(vehicle_number)
     flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
 
-    # 🔔 Show Hindi alert if flat is unknown
-    if flat_number == "Unknown Flat":
-        st.warning("⚠️ Alert: ye gaadi Rishabh tower ki gaadi ki list me nahi hai, gaadi ke maalik se puchhe kon se flat me jana hai yaa kon se flat ke lie aaye hai")
-
     time_now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%I:%M:%S %p")
     entry_no = get_entry_number(log_file)
 
@@ -184,6 +180,16 @@ if logged_in_guards:
                 log_line = log_entry(gate, guard, vehicle_type, vehicle_number, action)
                 st.success(f"✅ Entry logged successfully by {guard}!")
                 st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
+
+                # 🔔 Show Hindi alert in green if flat is unknown
+                if "Unknown Flat" in log_line:
+                    st.markdown(
+                        "<p style='color:green; font-size:18px;'>"
+                        "Alert: ye gaadi Rishabh tower ki gaadi ki list me nahi hai, "
+                        "gaadi ke maalik se puchhe kon se flat me jana hai yaa kon se flat ke lie aaye hai"
+                        "</p>",
+                        unsafe_allow_html=True
+                    )
         else:
             st.error("⚠️ Please enter Vehicle Number")
 
