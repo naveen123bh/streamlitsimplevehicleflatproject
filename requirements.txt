@@ -1,24 +1,30 @@
-# Streamlit and UI
+# Streamlit
 streamlit==1.38.0
-rich<14  # Streamlit-compatible version
+
+# Streamlit WebRTC for audio streaming
 streamlit-webrtc==0.63.4
 
-# Whisper / ASR
-openai-whisper==20230424
+# Whisper (official OpenAI package)
+openai-whisper==1.1.10
 
-# PyTorch CPU-only (compatible with Python 3.12)
+# Torch CPU version compatible with Python 3.12
 torch==2.2.0+cpu
 torchaudio==2.2.0+cpu
 
-# Audio processing
-wavio
-numpy
-pytz
+# Rich (Streamlit compatible)
+rich<14,>=10.14.0
 
-# Rich dependencies (installed automatically)
+# Markdown parser used by Rich
 markdown-it-py>=2.2.0
-mdurl~=0.1
-pygments<3.0.0,>=2.13.0
 
-# Optional: temporary file handling, usually in stdlib
-tempfile
+# URL parser used by markdown-it-py
+mdurl~=0.1
+
+# For audio WAV processing
+wavio==0.0.4
+
+# Numpy for array processing
+numpy>=1.25.0
+
+# Pytz for timezone handling
+pytz>=2023.3
