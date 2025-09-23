@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 
 sender_email = "your_email@gmail.com"
 app_password = "your_app_password"
-receiver_email = "7247navhhatt@gmail.com"
+receiver_email = "7247navbhatt@gmail.com"
 
 message = MIMEText("Test alert from Streamlit app")
 message['Subject'] = "Test Email Alert"
