@@ -69,6 +69,7 @@ def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
     log_file = get_log_file(gate)
     vehicle_number_norm = normalize_vehicle_input(vehicle_number)
     flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
+
     time_now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%I:%M:%S %p")
     entry_no = get_entry_number(log_file)
 
@@ -135,12 +136,12 @@ if st.session_state.current_user is None:
 
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
-            if len(st.session_state.logged_in_users) < 5:
+            if len(st.session_state.logged_in_users) < 5:   # ✅ Limit 5 users
                 st.session_state.logged_in_users.append(selected_user)
                 st.session_state.current_user = selected_user
                 st.success(f"Welcome {selected_user}! You are logged in.")
             else:
-                st.warning("⚠️ Maximum 2 users already logged in.")
+                st.warning("⚠️ Maximum 5 users already logged in.")
         else:
             st.error("❌ Incorrect password. Access denied.")
 else:
@@ -179,6 +180,16 @@ if logged_in_guards:
                 log_line = log_entry(gate, guard, vehicle_type, vehicle_number, action)
                 st.success(f"✅ Entry logged successfully by {guard}!")
                 st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
+
+                # 🔔 Show Hindi alert in green if flat is unknown
+                if "Unknown Flat" in log_line:
+                    st.markdown(
+                        "<p style='color:red; font-size:18px;'>"
+                        "Please note: ye vehicle Rishabh tower ki vehicle  list me nahi hai, "
+                        "vehicle ke owner se flat number puchhe. "
+                        "</p>",
+                        unsafe_allow_html=True
+                    )
         else:
             st.error("⚠️ Please enter Vehicle Number")
 
