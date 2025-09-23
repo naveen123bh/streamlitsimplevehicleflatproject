@@ -4,6 +4,8 @@ from datetime import datetime
 import os
 import re
 import pytz  # For India timezone
+import smtplib
+from email.mime.text import MIMEText
 
 # ===== Setup internal folder for logs =====
 log_folder = "vehicle_logs"
@@ -125,6 +127,27 @@ def generate_summary(gate):
         count += 1
     return summary_text
 
+# ===== Email Alert Function =====
+def send_email_alert(vehicle_number, gate):
+    sender_email = "your_email@gmail.com"          # Replace with your Gmail
+    app_password = "your_app_password"            # Use Gmail App Password
+    receiver_email = "7247navhhatt@gmail.com"     # Supervisor's email
+
+    message = f"Alert: Unknown Flat vehicle detected.\nVehicle Number: {vehicle_number}\nGate: {gate}"
+
+    msg = MIMEText(message)
+    msg['Subject'] = "Rishabh Tower Unknown Vehicle Alert"
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(sender_email, app_password)
+            server.send_message(msg)
+        print("✅ Email alert sent successfully")
+    except Exception as e:
+        print("❌ Failed to send email:", e)
+
 # ===== Login Section =====
 st.markdown("<h1 style='color:blue; text-align:center;'>🚓 Rishabh Tower Vehicle Log</h1>", unsafe_allow_html=True)
 
@@ -181,19 +204,20 @@ if logged_in_guards:
                 st.success(f"✅ Entry logged successfully by {guard}!")
                 st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
 
-                # 🔔 Show Hindi alert in green if flat is unknown
+                # 🔔 Show green alert if flat is unknown + send email
                 if "Unknown Flat" in log_line:
                     st.markdown(
-                        "<p style='color:red; font-size:18px;'>"
-                        "Please note: ye vehicle Rishabh tower ki vehicle  list me nahi hai, "
-                        "vehicle ke owner se flat number puchhe. "
+                        "<p style='color:green; font-size:18px;'>"
+                        "Alert: ye gaadi Rishabh tower ki gaadi ki list me nahi hai, "
+                        "gaadi ke maalik se puchhe kon se flat me jana hai yaa kon se flat ke lie aaye hai"
                         "</p>",
                         unsafe_allow_html=True
                     )
+                    send_email_alert(vehicle_number_norm, gate)
         else:
             st.error("⚠️ Please enter Vehicle Number")
 
-# ===== Logs and Summary (for all users, supervisors can see everything) =====
+# ===== Logs and Summary (for all users) =====
 for user in st.session_state.logged_in_users:
     st.markdown(f"### Logs & Summary for {user}")
 
