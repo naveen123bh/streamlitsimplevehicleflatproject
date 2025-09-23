@@ -1,7 +1,7 @@
 # Streamlit compatible with rich<14
 streamlit==1.38.0
 
-# Real-time microphone streaming (latest compatible)
+# Real-time microphone streaming (latest compatible version)
 streamlit-webrtc==0.63.4
 
 # Offline speech-to-text
@@ -16,5 +16,5 @@ wavio==0.0.7
 # Numerical computations
 numpy==1.24.0
 
-# Timezone support for India
+# Timezone support
 pytz==2023.3
