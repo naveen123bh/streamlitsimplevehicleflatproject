@@ -184,7 +184,7 @@ if logged_in_guards:
                 # 🔔 Show Hindi alert in green if flat is unknown
                 if "Unknown Flat" in log_line:
                     st.markdown(
-                        "<p style='color:green; font-size:18px;'>"
+                        "<p style='color:red; font-size:18px;'>"
                         "Alert: ye gaadi Rishabh tower ki gaadi ki list me nahi hai, "
                         "gaadi ke maalik se puchhe kon se flat me jana hai yaa kon se flat ke lie aaye hai"
                         "</p>",
