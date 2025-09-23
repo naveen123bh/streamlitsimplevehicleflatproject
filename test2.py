@@ -40,7 +40,7 @@ users = {
     "Suresh Sagare": "591837",
     "Babban": "264905",
     "Manoj": "853192",
-    "Rajaram": "670481",
+    "pramod": "670481",
     "Sandeep Karekar": "309572",
     # Supervisors
     "Satyam Kumar": "927364",
