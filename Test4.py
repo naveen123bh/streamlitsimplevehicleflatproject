@@ -40,7 +40,7 @@ users = {
     "Suresh Sagare": "591837",
     "Babban": "264905",
     "Manoj": "853192",
-    "Rajaram": "670481",
+    "pramod": "670481",
     "Sandeep Karekar": "309572",
     # Supervisors
     "Satyam Kumar": "927364",
@@ -185,7 +185,7 @@ if logged_in_guards:
 # ===== Logs and Summary (for all users, supervisors can see everything) =====
 for user in st.session_state.logged_in_users:
     st.markdown(f"### Logs & Summary for {user}")
-    
+
     if user in guard_users:
         gate = st.radio(f"Select Gate for {user}", [1,2], key=f"gate_{user}")
     else:
@@ -204,8 +204,8 @@ for user in st.session_state.logged_in_users:
         st.markdown(f"<div style='color:green; font-size:18px; font-weight:bold;'>{summary}</div>", unsafe_allow_html=True)
 
     if st.button(f"🗑️ Clear Log Gate {gate} ({user})", key=f"clear_{user}", use_container_width=True):
-        if user in guard_users:
+        if user == "Naveen Kumar":   # ✅ Only Naveen can clear logs
             clear_log(gate)
             st.warning(f"Logs for Gate {gate} cleared by {user}!")
         else:
-            st.error("Supervisors cannot clear logs directly. Please use guards.")
+            st.error("❌ Only Naveen Kumar is authorized to clear logs.")
