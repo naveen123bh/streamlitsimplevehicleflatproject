@@ -1,14 +1,14 @@
-# ========================== Combined Vehicle Log + Voice Input App ==========================
+        # ========================== Combined Vehicle Log + Voice Input App ==========================
 import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
 import re
-import pytz  # For India timezone
+import pytz
 import tempfile
 import numpy as np
 import wavio
-import whisper
+import openai_whisper as whisper  # Updated import
 from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
 
 # ========================== Setup Folders and CSV ==========================
@@ -39,7 +39,6 @@ vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
 
 # ========================== Users ==========================
 users = {
-    # Guards
     "Naveen Kumar": "482915",
     "Rajeev Padwal": "736204",
     "Suresh Sagare": "591837",
@@ -47,7 +46,6 @@ users = {
     "Manoj": "853192",
     "pramod": "670481",
     "Sandeep Karekar": "309572",
-    # Supervisors
     "Satyam Kumar": "927364",
     "Sagar Bamne": "615283"
 }
@@ -74,7 +72,6 @@ def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
     log_file = get_log_file(gate)
     vehicle_number_norm = normalize_vehicle_input(vehicle_number)
     flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
-
     time_now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%I:%M:%S %p")
     entry_no = get_entry_number(log_file)
 
@@ -88,7 +85,6 @@ def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
         f"📍 Action: {action} | "
         f"⏰ Time: {time_now}\n"
     )
-
     with open(log_file, "a") as f:
         f.write(log_line)
     return log_line
@@ -138,7 +134,6 @@ if st.session_state.current_user is None:
     available_users = list(users.keys())
     selected_user = st.selectbox("Select your name", available_users)
     password_input = st.text_input("Enter your 6-digit password", type="password")
-
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
             if len(st.session_state.logged_in_users) < 5:
@@ -165,7 +160,6 @@ for user in st.session_state.logged_in_users.copy():
 # ========================== Voice Input Section ==========================
 st.markdown("### 🎤 Voice Input for Vehicle Logging")
 
-# Load Whisper model
 @st.cache_resource
 def load_whisper_model():
     return whisper.load_model("small")  # CPU-friendly
@@ -203,23 +197,12 @@ if webrtc_ctx.state.playing:
             st.success(f"📝 Recognized Text: {text}")
 
             # Parse vehicle info
-            vehicle_type = None
-            action = None
-            vehicle_number = None
-
-            for vt in ["CAR","BIKE","SCOOTY","TAXI","EV"]:
-                if vt in text:
-                    vehicle_type = vt
-            for act in ["IN","OUT"]:
-                if act in text:
-                    action = act
-            vehicle_number_pattern = r"[A-Z]{2}[0-9]{1,2}[A-Z]{0,2}[0-9]{1,4}"
-            match = re.search(vehicle_number_pattern, text)
-            if match:
-                vehicle_number = match.group(0)
+            vehicle_type = next((vt for vt in ["CAR","BIKE","SCOOTY","TAXI","EV"] if vt in text), None)
+            action = next((act for act in ["IN","OUT"] if act in text), None)
+            vehicle_number = re.search(r"[A-Z]{2}[0-9]{1,2}[A-Z]{0,2}[0-9]{1,4}", text)
+            vehicle_number = vehicle_number.group(0) if vehicle_number else None
 
             if vehicle_type and vehicle_number and action:
-                # Default gate selection if not chosen yet
                 gate = st.radio("Select Gate for Voice Entry", [1,2])
                 log_line = log_entry(gate, st.session_state.current_user, vehicle_type, vehicle_number, action)
                 st.success(f"✅ Vehicle Logged Automatically: {log_line}")
@@ -229,8 +212,6 @@ if webrtc_ctx.state.playing:
             st.warning("⚠️ No audio detected. Please speak clearly.")
 
 # ========================== Manual Vehicle Logging Section ==========================
-# Keep your existing manual logging UI (vehicle type, number, action) here
-# Example snippet:
 guard_users = ["Naveen Kumar","Rajeev Padwal","Suresh Sagare","Babban","Manoj","Rajaram","Sandeep Karekar","pramod"]
 logged_in_guards = [u for u in st.session_state.logged_in_users if u in guard_users]
 
