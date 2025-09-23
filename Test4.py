@@ -131,7 +131,7 @@ def generate_summary(gate):
 def send_email_alert(vehicle_number, gate):
     sender_email = "your_email@gmail.com"          # Replace with your Gmail
     app_password = "your_app_password"            # Use Gmail App Password
-    receiver_email = "7247navbhatt@gmail.com"     # Supervisor's email
+    receiver_email = "7247navhhatt@gmail.com"     # Supervisor's email
 
     message = f"Alert: Unknown Flat vehicle detected.\nVehicle Number: {vehicle_number}\nGate: {gate}"
 
@@ -200,6 +200,7 @@ if logged_in_guards:
     if st.button("Submit Entry", use_container_width=True):
         if vehicle_number:
             for guard in logged_in_guards:
+                vehicle_number_norm = normalize_vehicle_input(vehicle_number)  # 🔹 Fixed
                 log_line = log_entry(gate, guard, vehicle_type, vehicle_number, action)
                 st.success(f"✅ Entry logged successfully by {guard}!")
                 st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
