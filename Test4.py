@@ -3,9 +3,8 @@ import pandas as pd
 from datetime import datetime
 import os
 import re
-import pytz  # For India timezone
-import smtplib
-from email.mime.text import MIMEText
+import pytz
+from twilio.rest import Client
 
 # ===== Setup internal folder for logs =====
 log_folder = "vehicle_logs"
@@ -127,34 +126,37 @@ def generate_summary(gate):
         count += 1
     return summary_text
 
-# ===== Email Alert Function with Streamlit feedback =====
-def send_email_alert(vehicle_number, gate):
-    sender_email = "your_email@gmail.com"          # Replace with your Gmail
-    app_password = "your_app_password"            # Use Gmail App Password
-    receiver_email = "7247navhhatt@gmail.com"     # Supervisor's email
-
-    message = f"Alert: Unknown Flat vehicle detected.\nVehicle Number: {vehicle_number}\nGate: {gate}"
-
-    msg = MIMEText(message)
-    msg['Subject'] = "Rishabh Tower Unknown Vehicle Alert"
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
-
+# ===== WhatsApp Alert Function via Twilio =====
+def send_whatsapp_alert(vehicle_number, gate):
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(sender_email, app_password)
-            server.send_message(msg)
-        st.success("✅ Email alert sent successfully to supervisor")
+        account_sid = os.getenv("TWILIO_SID")
+        auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+        from_whatsapp = os.getenv("TWILIO_WHATSAPP_FROM")
+        to_whatsapp = os.getenv("SUPERVISOR_WHATSAPP")
+        client = Client(account_sid, auth_token)
+
+        message_body = (
+            f"Alert: Unknown Flat vehicle detected!\n"
+            f"Vehicle Number: {vehicle_number}\n"
+            f"Gate: {gate}\n"
+            "Please check the owner or flat number."
+        )
+
+        client.messages.create(
+            body=message_body,
+            from_=from_whatsapp,
+            to=to_whatsapp
+        )
+        st.success("✅ WhatsApp alert sent successfully to supervisor")
     except Exception as e:
-        st.error(f"❌ Failed to send email: {e}")
+        st.error(f"❌ Failed to send WhatsApp alert: {e}")
 
 # ===== Login Section =====
 st.markdown("<h1 style='color:blue; text-align:center;'>🚓 Rishabh Tower Vehicle Log</h1>", unsafe_allow_html=True)
 
 if st.session_state.current_user is None:
     st.markdown("### User Login 🔐")
-    available_users = list(users.keys())
-    selected_user = st.selectbox("Select your name", available_users)
+    selected_user = st.selectbox("Select your name", list(users.keys()))
     password_input = st.text_input("Enter your 6-digit password", type="password")
 
     if st.button("Login"):
@@ -170,7 +172,7 @@ if st.session_state.current_user is None:
 else:
     st.info(f"Logged in as: {st.session_state.current_user}")
 
-# Show currently logged-in users
+# Show logged-in users
 if st.session_state.logged_in_users:
     st.info(f"Currently logged-in users: {', '.join(st.session_state.logged_in_users)}")
 
@@ -205,7 +207,7 @@ if logged_in_guards:
                 st.success(f"✅ Entry logged successfully by {guard}!")
                 st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
 
-                # 🔔 Show green alert and send email
+                # Unknown Flat alert
                 if "Unknown Flat" in log_line:
                     st.markdown(
                         "<p style='color:green; font-size:18px;'>"
@@ -214,11 +216,11 @@ if logged_in_guards:
                         "</p>",
                         unsafe_allow_html=True
                     )
-                    send_email_alert(vehicle_number_norm, gate)
+                    send_whatsapp_alert(vehicle_number_norm, gate)
         else:
             st.error("⚠️ Please enter Vehicle Number")
 
-# ===== Logs and Summary Section =====
+# ===== Logs & Summary Section =====
 for user in st.session_state.logged_in_users:
     st.markdown(f"### Logs & Summary for {user}")
 
