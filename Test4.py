@@ -5,6 +5,9 @@ import os
 import re
 import pytz
 from twilio.rest import Client
+import twilio
+
+
 
 # ===== Setup internal folder for logs =====
 log_folder = "vehicle_logs"
