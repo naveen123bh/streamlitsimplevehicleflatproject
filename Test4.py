@@ -1,16 +1,20 @@
+# ========================== Combined Vehicle Log + Voice Input App ==========================
 import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
 import re
 import pytz  # For India timezone
-from twilio.rest import Client   # 📲 Added for SMS alerts
+import tempfile
+import numpy as np
+import wavio
+import whisper
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
 
-# ===== Setup internal folder for logs =====
+# ========================== Setup Folders and CSV ==========================
 log_folder = "vehicle_logs"
 os.makedirs(log_folder, exist_ok=True)
 
-# ===== Load vehicle-flat mapping =====
 raw_file = "vehicle_flat_pairs.csv"
 if not os.path.exists(raw_file):
     st.error(f"File not found: {raw_file}")
@@ -33,7 +37,7 @@ df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
 df["FlatNumber"] = df["FlatNumber"].apply(lambda x: str(x).upper())
 vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
 
-# ===== Guard + Supervisor Authentication =====
+# ========================== Users ==========================
 users = {
     # Guards
     "Naveen Kumar": "482915",
@@ -48,32 +52,14 @@ users = {
     "Sagar Bamne": "615283"
 }
 
-# ===== Session State Initialization =====
+# ========================== Session State Initialization ==========================
 if "logged_in_users" not in st.session_state:
     st.session_state.logged_in_users = []
 
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
-# ===== Twilio SMS Alert Function =====
-def send_alert_sms(message_text):
-    try:
-        account_sid = st.secrets["TWILIO_SID"]
-        auth_token = st.secrets["TWILIO_AUTH_TOKEN"]
-        from_number = st.secrets["TWILIO_FROM_NUMBER"]
-        to_number = st.secrets["TWILIO_TO_NUMBER"]
-
-        client = Client(account_sid, auth_token)
-        client.messages.create(
-            body=message_text,
-            from_=from_number,
-            to=to_number
-        )
-        st.success("📩 Supervisor alerted via SMS!")
-    except Exception as e:
-        st.error(f"❌ Failed to send SMS: {e}")
-
-# ===== Helper functions =====
+# ========================== Logging Functions ==========================
 def get_log_file(gate):
     return os.path.join(log_folder, f"vehicle_log_gate{gate}.txt")
 
@@ -105,12 +91,6 @@ def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
 
     with open(log_file, "a") as f:
         f.write(log_line)
-
-    # 🚨 Send SMS alert if flat is unknown
-    if flat_number == "Unknown Flat":
-        alert_message = f"⚠️ Unknown Vehicle Detected!\nGate {gate} | {vehicle_type} {vehicle_number_norm} | Action: {action} | Time: {time_now}"
-        send_alert_sms(alert_message)
-
     return log_line
 
 def read_log(gate):
@@ -150,7 +130,7 @@ def generate_summary(gate):
         count += 1
     return summary_text
 
-# ===== Login Section =====
+# ========================== Login Section ==========================
 st.markdown("<h1 style='color:blue; text-align:center;'>🚓 Rishabh Tower Vehicle Log</h1>", unsafe_allow_html=True)
 
 if st.session_state.current_user is None:
@@ -161,7 +141,7 @@ if st.session_state.current_user is None:
 
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
-            if len(st.session_state.logged_in_users) < 5:   # ✅ Limit 5 users
+            if len(st.session_state.logged_in_users) < 5:
                 st.session_state.logged_in_users.append(selected_user)
                 st.session_state.current_user = selected_user
                 st.success(f"Welcome {selected_user}! You are logged in.")
@@ -172,11 +152,9 @@ if st.session_state.current_user is None:
 else:
     st.info(f"Logged in as: {st.session_state.current_user}")
 
-# Show currently logged-in users
 if st.session_state.logged_in_users:
     st.info(f"Currently logged-in users: {', '.join(st.session_state.logged_in_users)}")
 
-# Logout Section for each user
 for user in st.session_state.logged_in_users.copy():
     if st.button(f"🚪 Log Out {user}"):
         st.session_state.logged_in_users.remove(user)
@@ -184,7 +162,75 @@ for user in st.session_state.logged_in_users.copy():
             st.session_state.current_user = None
         st.success(f"{user} logged out successfully.")
 
-# ===== Vehicle Logging Section (for Guards only) =====
+# ========================== Voice Input Section ==========================
+st.markdown("### 🎤 Voice Input for Vehicle Logging")
+
+# Load Whisper model
+@st.cache_resource
+def load_whisper_model():
+    return whisper.load_model("small")  # CPU-friendly
+
+model = load_whisper_model()
+
+class AudioProcessor(AudioProcessorBase):
+    def __init__(self):
+        self.recorded_frames = []
+
+    def recv(self, frame):
+        pcm = frame.to_ndarray()
+        self.recorded_frames.append(pcm)
+        return frame
+
+webrtc_ctx = webrtc_streamer(
+    key="voice-input",
+    mode=WebRtcMode.SENDRECV,
+    audio_processor_factory=AudioProcessor,
+    media_stream_constraints={"audio": True, "video": False},
+    async_processing=True
+)
+
+if webrtc_ctx.state.playing:
+    if st.button("Process Voice Input"):
+        audio_processor = webrtc_ctx.audio_processor
+        if audio_processor and audio_processor.recorded_frames:
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+                audio_data = np.concatenate(audio_processor.recorded_frames, axis=0)
+                wavio.write(f.name, audio_data, 44100, sampwidth=2)
+                audio_file = f.name
+
+            result = model.transcribe(audio_file)
+            text = result["text"].upper()
+            st.success(f"📝 Recognized Text: {text}")
+
+            # Parse vehicle info
+            vehicle_type = None
+            action = None
+            vehicle_number = None
+
+            for vt in ["CAR","BIKE","SCOOTY","TAXI","EV"]:
+                if vt in text:
+                    vehicle_type = vt
+            for act in ["IN","OUT"]:
+                if act in text:
+                    action = act
+            vehicle_number_pattern = r"[A-Z]{2}[0-9]{1,2}[A-Z]{0,2}[0-9]{1,4}"
+            match = re.search(vehicle_number_pattern, text)
+            if match:
+                vehicle_number = match.group(0)
+
+            if vehicle_type and vehicle_number and action:
+                # Default gate selection if not chosen yet
+                gate = st.radio("Select Gate for Voice Entry", [1,2])
+                log_line = log_entry(gate, st.session_state.current_user, vehicle_type, vehicle_number, action)
+                st.success(f"✅ Vehicle Logged Automatically: {log_line}")
+            else:
+                st.warning("⚠️ Could not parse all details. Try speaking clearly.")
+        else:
+            st.warning("⚠️ No audio detected. Please speak clearly.")
+
+# ========================== Manual Vehicle Logging Section ==========================
+# Keep your existing manual logging UI (vehicle type, number, action) here
+# Example snippet:
 guard_users = ["Naveen Kumar","Rajeev Padwal","Suresh Sagare","Babban","Manoj","Rajaram","Sandeep Karekar","pramod"]
 logged_in_guards = [u for u in st.session_state.logged_in_users if u in guard_users]
 
@@ -206,18 +252,18 @@ if logged_in_guards:
                 st.success(f"✅ Entry logged successfully by {guard}!")
                 st.markdown(f"<p style='color:blue; font-size:18px;'>{log_line}</p>", unsafe_allow_html=True)
 
-                # 🔔 Show Hindi alert in red if flat is unknown
                 if "Unknown Flat" in log_line:
                     st.markdown(
                         "<p style='color:red; font-size:18px;'>"
-                        "कृपया ध्यान दें: यह वाहन सूची में नहीं है। मालिक से Flat Number पूछें।"
+                        "Please note: ye vehicle Rishabh tower ki vehicle  list me nahi hai, "
+                        "vehicle ke owner se flat number puchhe. "
                         "</p>",
                         unsafe_allow_html=True
                     )
         else:
             st.error("⚠️ Please enter Vehicle Number")
 
-# ===== Logs and Summary (for all users, supervisors can see everything) =====
+# ========================== Logs & Summary Section ==========================
 for user in st.session_state.logged_in_users:
     st.markdown(f"### Logs & Summary for {user}")
 
@@ -239,7 +285,7 @@ for user in st.session_state.logged_in_users:
         st.markdown(f"<div style='color:green; font-size:18px; font-weight:bold;'>{summary}</div>", unsafe_allow_html=True)
 
     if st.button(f"🗑️ Clear Log Gate {gate} ({user})", key=f"clear_{user}", use_container_width=True):
-        if user == "Naveen Kumar":   # ✅ Only Naveen can clear logs
+        if user == "Naveen Kumar":
             clear_log(gate)
             st.warning(f"Logs for Gate {gate} cleared by {user}!")
         else:
