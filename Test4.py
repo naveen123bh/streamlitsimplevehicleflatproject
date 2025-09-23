@@ -159,7 +159,7 @@ for user in st.session_state.logged_in_users.copy():
         st.success(f"{user} logged out successfully.")
 
 # ===== Vehicle Logging Section (for Guards only) =====
-guard_users = ["Naveen Kumar","Rajeev Padwal","Suresh Sagare","Babban","Manoj","Rajaram","Sandeep Karekar"]
+guard_users = ["Naveen Kumar","Rajeev Padwal","Suresh Sagare","Babban","Manoj","Rajaram","Sandeep Karekar","pramod"]
 logged_in_guards = [u for u in st.session_state.logged_in_users if u in guard_users]
 
 if logged_in_guards:
