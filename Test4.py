@@ -69,6 +69,11 @@ def log_entry(gate, user_name, vehicle_type, vehicle_number, action):
     log_file = get_log_file(gate)
     vehicle_number_norm = normalize_vehicle_input(vehicle_number)
     flat_number = vehicle_flat_pairs.get(vehicle_number_norm, "Unknown Flat")
+
+    # 🔔 Show Hindi alert if flat is unknown
+    if flat_number == "Unknown Flat":
+        st.warning("⚠️ Alert: ye gaadi Rishabh tower ki gaadi ki list me nahi hai, gaadi ke maalik se puchhe kon se flat me jana hai yaa kon se flat ke lie aaye hai")
+
     time_now = datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%I:%M:%S %p")
     entry_no = get_entry_number(log_file)
 
@@ -135,7 +140,7 @@ if st.session_state.current_user is None:
 
     if st.button("Login"):
         if selected_user in users and password_input == users[selected_user]:
-            if len(st.session_state.logged_in_users) < 5:   # ✅ Increased limit from 2 → 5
+            if len(st.session_state.logged_in_users) < 5:   # ✅ Limit 5 users
                 st.session_state.logged_in_users.append(selected_user)
                 st.session_state.current_user = selected_user
                 st.success(f"Welcome {selected_user}! You are logged in.")
