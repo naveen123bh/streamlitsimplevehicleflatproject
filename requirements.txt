@@ -1,10 +1,20 @@
+# Streamlit and WebRTC
 streamlit==1.38.0
 streamlit-webrtc==0.63.4
-openai-whisper==20230424
-openai-whisper==20230424
 
-torch==2.8.0
-wavio==0.0.4
+# Audio processing
 numpy>=1.24.0
-sounddevice>=0.4.6
-pandas>=2.1.0
+wavio>=0.0.4
+pytz>=2023.3
+
+# OpenAI Whisper (CPU-friendly)
+openai-whisper==20230424
+torch==2.2.0      # CPU compatible version for Python 3.12
+torchaudio==2.2.0
+
+# Rich for logging, compatible with Streamlit
+rich<14,>=10.14.0
+markdown-it-py>=2.2.0
+mdurl~=0.1
+pygments>=2.13.0,<3.0.0
+
