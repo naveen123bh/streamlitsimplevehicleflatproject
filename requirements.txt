@@ -1,7 +1,7 @@
-# Streamlit compatible with rich<14
+# Streamlit (compatible with rich<14)
 streamlit==1.38.0
 
-# Real-time microphone streaming (latest compatible version)
+# Real-time microphone streaming
 streamlit-webrtc==0.63.4
 
 # Offline speech-to-text
