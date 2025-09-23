@@ -1,11 +1,11 @@
-# Streamlit (compatible with rich<14)
+# Streamlit core
 streamlit==1.38.0
 
 # Real-time microphone streaming
 streamlit-webrtc==0.63.4
 
-# Offline speech-to-text
-whisper==20230424
+# Whisper CPU-friendly version compatible with Python 3.12
+whisper==1.1.10
 
 # PyTorch CPU backend for Whisper
 torch==2.1.0
