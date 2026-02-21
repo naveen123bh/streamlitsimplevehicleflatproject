@@ -44,7 +44,7 @@ if "current_floor" not in st.session_state:
     st.session_state.current_floor = None
 
 # ==================================
-# LOGIN SECTION
+# LOGIN
 # ==================================
 if st.session_state.logged_in_user is None:
 
@@ -84,23 +84,45 @@ if st.button("Logout"):
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
 
 # ==================================
-# LOAD CSV
+# SAFE CSV LOAD
 # ==================================
-df = pd.read_csv("sets.csv")
+if not os.path.exists("sets.csv"):
+    st.error("sets.csv file not found.")
+    st.stop()
+
+try:
+    df = pd.read_csv(
+        "sets.csv",
+        engine="python",
+        on_bad_lines="skip",
+        encoding="utf-8"
+    )
+except Exception:
+    st.error("Error reading sets.csv file.")
+    st.stop()
+
+if df.shape[1] < 2:
+    st.error("CSV must contain at least 2 columns (SetName, Floor).")
+    st.stop()
+
+df = df.iloc[:, :2]
 df.columns = ["SetName", "Floor"]
 
-df["SetName"] = df["SetName"].str.upper().str.strip()
-df["Floor"] = df["Floor"].str.upper().str.strip()
+df["SetName"] = df["SetName"].astype(str).str.upper().str.strip()
+df["Floor"] = df["Floor"].astype(str).str.upper().str.strip()
 
 set_floor_pairs = dict(zip(df["SetName"], df["Floor"]))
 
 # ==================================
-# ISSUE LOG
+# ISSUE LOG SAFE LOAD
 # ==================================
 LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
-    log_df = pd.read_csv(LOG_FILE)
+    try:
+        log_df = pd.read_csv(LOG_FILE)
+    except:
+        log_df = pd.DataFrame(columns=["Technician", "Floor"])
 else:
     log_df = pd.DataFrame(columns=["Technician", "Floor"])
 
@@ -144,7 +166,7 @@ if st.session_state.current_floor:
         st.success(f"{floor_name} issued successfully")
 
 # ==================================
-# HISTORY
+# ISSUE HISTORY
 # ==================================
 st.markdown("### Issue History")
 
