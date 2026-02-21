@@ -6,9 +6,9 @@ import streamlit as st
 import pandas as pd
 import difflib
 
-# ==============================
+# ==================================
 # CSSD TECHNICIAN MASTER LIST
-# ==============================
+# ==================================
 TECHNICIAN_NAMES = [
     "MR. MANISH SHENVI",
     "MISS SAUNDARYA JADHAV",
@@ -36,15 +36,15 @@ TECHNICIAN_NAMES = [
     "MR. NAVEEN KUMAR",
 ]
 
-# ==============================
-# SESSION STATE FOR LOGIN
-# ==============================
+# ==================================
+# SESSION STATE
+# ==================================
 if "logged_in_user" not in st.session_state:
     st.session_state.logged_in_user = None
 
-# ==============================
-# LOGIN SECTION
-# ==============================
+# ==================================
+# LOGIN SECTION (LIVE AUTOSUGGEST)
+# ==================================
 if st.session_state.logged_in_user is None:
 
     st.markdown(
@@ -54,51 +54,58 @@ if st.session_state.logged_in_user is None:
 
     name_input = st.text_input("Enter Your Name")
 
-    if st.button("Login"):
+    name_upper = name_input.strip().upper()
 
-        name_upper = name_input.strip().upper()
+    if name_upper:
 
-        # Exact match
+        # Exact match → direct login
         if name_upper in TECHNICIAN_NAMES:
             st.session_state.logged_in_user = name_upper
+            st.success(f"Welcome {name_upper}")
             st.rerun()
 
-        # Suggestion logic
+        # Show suggestions
         else:
             suggestions = difflib.get_close_matches(
                 name_upper,
                 TECHNICIAN_NAMES,
                 n=5,
-                cutoff=0.6,
+                cutoff=0.5,
             )
 
             if suggestions:
-                st.warning("Name not found. Did you mean:")
+                st.info("Select your correct name:")
                 for s in suggestions:
                     if st.button(s):
                         st.session_state.logged_in_user = s
+                        st.success(f"Welcome {s}")
                         st.rerun()
             else:
-                st.error("please enter full name or Please check spelling  .")
+                st.warning("Name not recognized.")
 
     st.stop()
 
-# ==============================
+# ==================================
 # AFTER LOGIN
-# ==============================
+# ==================================
 st.success(f"Logged in as: {st.session_state.logged_in_user}")
 
-# ==============================
+# Logout option
+if st.button("Logout"):
+    st.session_state.logged_in_user = None
+    st.rerun()
+
+# ==================================
 # APP HEADER
-# ==============================
+# ==================================
 st.markdown(
     "<h1 style='color:blue; font-size:50px;'>CSSD Set Floor Finder</h1>",
     unsafe_allow_html=True,
 )
 
-# ==============================
+# ==================================
 # HELPER FUNCTIONS
-# ==============================
+# ==================================
 def normalize_set_input(set_name):
     if pd.isna(set_name):
         return ""
@@ -113,9 +120,9 @@ def normalize_floor_input(floor_name):
     text = re.sub(r"\s+", "", text)
     return text.strip()
 
-# ==============================
+# ==================================
 # LOAD CSV SAFELY
-# ==============================
+# ==================================
 raw_file = "sets.csv"
 
 if not os.path.exists(raw_file):
@@ -149,9 +156,9 @@ floor_to_sets = {}
 for set_name, floor in set_floor_pairs.items():
     floor_to_sets.setdefault(floor, []).append(set_name)
 
-# ==============================
+# ==================================
 # SEARCH SECTION
-# ==============================
+# ==================================
 st.markdown("<h3>Enter Set Name or Floor</h3>")
 user_input = st.text_input("Search Here")
 
@@ -170,7 +177,7 @@ if st.button("Find Floor"):
         for s in floor_to_sets[input_norm_floor]:
             st.write(f"👉 {s}")
 
-    # Suggest Similar Set Names
+    # Suggest Similar Sets
     else:
         suggestions = difflib.get_close_matches(
             input_norm_set,
