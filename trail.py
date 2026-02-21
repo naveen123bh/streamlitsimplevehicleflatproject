@@ -40,9 +40,6 @@ TECHNICIAN_NAMES = [
 if "logged_in_user" not in st.session_state:
     st.session_state.logged_in_user = None
 
-if "selected_set" not in st.session_state:
-    st.session_state.selected_set = None
-
 # ==================================
 # LOGIN SECTION
 # ==================================
@@ -141,46 +138,36 @@ for set_name, floor in set_floor_pairs.items():
     floor_to_sets.setdefault(floor, []).append(set_name)
 
 # ==================================
-# SEARCH SECTION
+# SEARCH SECTION (FINAL FIXED)
 # ==================================
 st.markdown("<h3>Enter Set Name or Floor</h3>")
 user_input = st.text_input("Search Here")
 
-# If suggestion was clicked earlier
-if st.session_state.selected_set:
-    selected = st.session_state.selected_set
-    st.success(f"{selected} ➜ {set_floor_pairs[selected]}")
-    st.session_state.selected_set = None
+input_norm_set = normalize_set_input(user_input)
+input_norm_floor = normalize_floor_input(user_input)
 
-if st.button("Find Floor"):
+# Exact match auto show
+if input_norm_set in set_floor_pairs:
+    st.success(f"{input_norm_set} ➜ {set_floor_pairs[input_norm_set]}")
 
-    input_norm_set = normalize_set_input(user_input)
-    input_norm_floor = normalize_floor_input(user_input)
+elif input_norm_floor in floor_to_sets:
+    st.info(f"Sets for {input_norm_floor}:")
+    for s in floor_to_sets[input_norm_floor]:
+        st.write(f"👉 {s}")
 
-    # Exact Set Match
-    if input_norm_set in set_floor_pairs:
-        st.success(f"{input_norm_set} ➜ {set_floor_pairs[input_norm_set]}")
+elif user_input:
 
-    # Floor Lookup
-    elif input_norm_floor in floor_to_sets:
-        st.info(f"Sets for {input_norm_floor}:")
-        for s in floor_to_sets[input_norm_floor]:
-            st.write(f"👉 {s}")
+    suggestions = difflib.get_close_matches(
+        input_norm_set,
+        set_floor_pairs.keys(),
+        n=5,
+        cutoff=0.6,
+    )
 
-    # Clickable Suggestions
+    if suggestions:
+        st.warning("Set not found. Did you mean:")
+        for s in suggestions:
+            if st.button(s):
+                st.success(f"{s} ➜ {set_floor_pairs[s]}")
     else:
-        suggestions = difflib.get_close_matches(
-            input_norm_set,
-            set_floor_pairs.keys(),
-            n=5,
-            cutoff=0.6,
-        )
-
-        if suggestions:
-            st.warning("Set not found. Did you mean:")
-            for s in suggestions:
-                if st.button(s):
-                    st.session_state.selected_set = s
-                    st.rerun()
-        else:
-            st.error("Set not found in database.")
+        st.error("Set not found in database.")
