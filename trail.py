@@ -38,7 +38,6 @@ if "current_set" not in st.session_state:
 # ==================================
 if st.session_state.logged_in_user is None:
 
-    # Highlighted login box
     st.markdown(
         """
         <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff; max-width:500px;">
@@ -49,26 +48,28 @@ if st.session_state.logged_in_user is None:
     )
 
     name_input = st.text_input("Technician Name", key="login_name_input")
-    cleaned_input = " ".join(name_input.upper().split())
-    normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
     selected_name = None
 
-    # Exact match
-    if cleaned_input in normalized_names:
-        selected_name = normalized_names[cleaned_input]
-    else:
-        # suggestions using selectbox
-        suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
-        if suggestions:
-            options = [normalized_names[s] for s in suggestions]
-            selected_name = st.selectbox("Did you mean:", options, key="login_suggest_select")
+    if name_input:
+        cleaned_input = " ".join(name_input.upper().split())
+        normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
+
+        # Exact match
+        if cleaned_input in normalized_names:
+            selected_name = normalized_names[cleaned_input]
+        else:
+            # Suggestion list
+            suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
+            if suggestions:
+                options = [normalized_names[s] for s in suggestions]
+                selected_name = st.selectbox("Did you mean:", options, key="login_suggest_select")
 
     if st.button("Login", key="login_btn"):
         if selected_name:
             st.session_state.logged_in_user = selected_name
             st.experimental_rerun()
         else:
-            st.warning("Please enter your full name or select from suggestions.")
+            st.warning("Please enter full name or select from suggestions.")
 
     st.stop()
 
@@ -120,15 +121,12 @@ log_df = log_df[["Technician","Floor","SetName"]]
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
 
-# Press Enter or button
 search_pressed = st.button("Find Floor")
 
-# ===== Handle search =====
 if search_pressed or user_input:
     search = user_input.upper().strip()
     matched_set = None
 
-    # Exact match
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
@@ -136,17 +134,14 @@ if search_pressed or user_input:
     else:
         suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
         if suggestions:
-            st.warning("Did you mean:")
-            for s in suggestions:
-                if st.button(s):
-                    st.session_state.current_floor = set_floor_pairs[s]
-                    st.session_state.current_set = s
-                    matched_set = s
+            options = suggestions
+            selected_set = st.selectbox("Did you mean:", options, key="set_suggest_select")
+            if st.button("Select Set"):
+                st.session_state.current_set = selected_set
+                st.session_state.current_floor = set_floor_pairs[selected_set]
         else:
-            # If no match, still show input as set name
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
-            matched_set = search
 
 # ==================================
 # SHOW FLOOR + ISSUE BUTTON
