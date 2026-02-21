@@ -56,9 +56,10 @@ if st.session_state.logged_in_user is None:
                 suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
                 if suggestions:
                     st.info("Select your correct name:")
-                    for s in suggestions:
+                    for i, s in enumerate(suggestions):
                         original_name = normalized_names[s]
-                        if st.button(original_name):
+                        # Give unique key to avoid StreamlitAPIException
+                        if st.button(original_name, key=f"login_suggest_{i}"):
                             st.session_state.logged_in_user = original_name
                             st.experimental_rerun()
                 else:
@@ -128,8 +129,8 @@ if search_pressed or user_input:
         suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
         if suggestions:
             st.warning("Did you mean:")
-            for s in suggestions:
-                if st.button(s):
+            for i, s in enumerate(suggestions):
+                if st.button(s, key=f"search_suggest_{i}"):
                     st.session_state.current_floor = set_floor_pairs[s]
                     st.session_state.current_set = s
                     matched_set = s
