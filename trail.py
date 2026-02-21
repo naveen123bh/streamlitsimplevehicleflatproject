@@ -40,15 +40,15 @@ TECHNICIAN_NAMES = [
 if "logged_in_user" not in st.session_state:
     st.session_state.logged_in_user = None
 
+if "current_floor" not in st.session_state:
+    st.session_state.current_floor = None
+
 # ==================================
 # LOGIN SECTION
 # ==================================
 if st.session_state.logged_in_user is None:
 
-    st.markdown(
-        "<h2 style='color:blue;'>CSSD Technician - Please enter your name here</h2>",
-        unsafe_allow_html=True,
-    )
+    st.markdown("<h2 style='color:blue;'>CSSD Technician - Please enter your name here</h2>", unsafe_allow_html=True)
 
     name_input = st.text_input("Enter Your Name")
     name_upper = name_input.strip().upper()
@@ -57,22 +57,15 @@ if st.session_state.logged_in_user is None:
 
         if name_upper in TECHNICIAN_NAMES:
             st.session_state.logged_in_user = name_upper
-            st.success(f"Welcome {name_upper}")
             st.rerun()
         else:
-            suggestions = difflib.get_close_matches(
-                name_upper,
-                TECHNICIAN_NAMES,
-                n=5,
-                cutoff=0.5,
-            )
+            suggestions = difflib.get_close_matches(name_upper, TECHNICIAN_NAMES, n=5, cutoff=0.5)
 
             if suggestions:
                 st.info("Select your correct name:")
                 for s in suggestions:
                     if st.button(s):
                         st.session_state.logged_in_user = s
-                        st.success(f"Welcome {s}")
                         st.rerun()
             else:
                 st.warning("Name not recognized.")
@@ -88,57 +81,21 @@ if st.button("Logout"):
     st.session_state.logged_in_user = None
     st.rerun()
 
-st.markdown(
-    "<h1 style='color:blue; font-size:45px;'>CSSD Set Floor Finder</h1>",
-    unsafe_allow_html=True,
-)
-
-# ==================================
-# HELPER FUNCTIONS
-# ==================================
-def normalize_set_input(text):
-    if pd.isna(text):
-        return ""
-    text = str(text).upper()
-    text = re.sub(r"\s+", " ", text)
-    return text.strip()
-
-def normalize_floor_input(text):
-    if pd.isna(text):
-        return ""
-    text = str(text).upper()
-    text = re.sub(r"\s+", "", text)
-    return text.strip()
+st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
 
 # ==================================
 # LOAD CSV
 # ==================================
-raw_file = "sets.csv"
-
-if not os.path.exists(raw_file):
-    st.error("sets.csv file not found.")
-    st.stop()
-
-df = pd.read_csv(raw_file, engine="python", on_bad_lines="skip")
-
-if df.shape[1] < 2:
-    st.error("CSV must contain SetName and Floor columns.")
-    st.stop()
-
-df = df.iloc[:, :2]
+df = pd.read_csv("sets.csv")
 df.columns = ["SetName", "Floor"]
 
-df["SetName"] = df["SetName"].apply(normalize_set_input)
-df["Floor"] = df["Floor"].apply(normalize_floor_input)
+df["SetName"] = df["SetName"].str.upper().str.strip()
+df["Floor"] = df["Floor"].str.upper().str.strip()
 
 set_floor_pairs = dict(zip(df["SetName"], df["Floor"]))
 
-floor_to_sets = {}
-for set_name, floor in set_floor_pairs.items():
-    floor_to_sets.setdefault(floor, []).append(set_name)
-
 # ==================================
-# ISSUE LOG SETUP
+# ISSUE LOG
 # ==================================
 LOG_FILE = "issue_log.csv"
 
@@ -148,15 +105,31 @@ else:
     log_df = pd.DataFrame(columns=["Technician", "Floor"])
 
 # ==================================
-# SEARCH SECTION
+# SEARCH
 # ==================================
-st.markdown("<h3>Enter Set Name or Floor</h3>")
+st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here")
 
-input_norm_set = normalize_set_input(user_input)
-input_norm_floor = normalize_floor_input(user_input)
+if user_input:
+    search = user_input.upper().strip()
 
-def show_issue_option(floor_name):
+    if search in set_floor_pairs:
+        st.session_state.current_floor = set_floor_pairs[search]
+
+    else:
+        suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
+
+        if suggestions:
+            st.warning("Did you mean:")
+            for s in suggestions:
+                if st.button(s):
+                    st.session_state.current_floor = set_floor_pairs[s]
+
+# ==================================
+# SHOW FLOOR + ISSUE BUTTON
+# ==================================
+if st.session_state.current_floor:
+    floor_name = st.session_state.current_floor
     st.success(f"Floor ➜ {floor_name}")
 
     if st.button("Issue"):
@@ -165,51 +138,18 @@ def show_issue_option(floor_name):
             "Floor": floor_name
         }
 
-        updated_log = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
-        updated_log.to_csv(LOG_FILE, index=False)
+        log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
+        log_df.to_csv(LOG_FILE, index=False)
 
         st.success(f"{floor_name} issued successfully")
 
-# Exact match
-if input_norm_set in set_floor_pairs:
-    floor_found = set_floor_pairs[input_norm_set]
-    show_issue_option(floor_found)
-
-elif input_norm_floor in floor_to_sets:
-    st.info(f"Sets for {input_norm_floor}:")
-    for s in floor_to_sets[input_norm_floor]:
-        st.write(f"👉 {s}")
-
-elif user_input:
-
-    suggestions = difflib.get_close_matches(
-        input_norm_set,
-        set_floor_pairs.keys(),
-        n=5,
-        cutoff=0.6,
-    )
-
-    if suggestions:
-        st.warning("Set not found. Did you mean:")
-        for s in suggestions:
-            if st.button(s):
-                floor_found = set_floor_pairs[s]
-                show_issue_option(floor_found)
-    else:
-        st.error("Set not found in database.")
-
 # ==================================
-# ISSUE HISTORY
+# HISTORY
 # ==================================
 st.markdown("### Issue History")
 
-if os.path.exists(LOG_FILE):
-    history_df = pd.read_csv(LOG_FILE)
-
-    if not history_df.empty:
-        for index, row in history_df.iterrows():
-            st.write(f"{row['Floor']} issued by {row['Technician']}")
-    else:
-        st.write("No issues recorded yet.")
+if not log_df.empty:
+    for index, row in log_df.iterrows():
+        st.write(f"{row['Floor']} issued by {row['Technician']}")
 else:
     st.write("No issues recorded yet.")
