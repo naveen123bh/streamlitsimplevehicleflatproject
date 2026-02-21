@@ -170,6 +170,15 @@ if st.session_state.current_floor:
 # ==================================
 st.markdown("### Issue History")
 
+col1, col2 = st.columns([3,1])
+
+with col2:
+    if st.button("Clear Log"):
+        log_df = pd.DataFrame(columns=["Technician", "Floor"])
+        log_df.to_csv(LOG_FILE, index=False)
+        st.success("Issue history cleared")
+        st.rerun()
+
 if not log_df.empty:
     for index, row in log_df.iterrows():
         st.write(f"{row['Floor']} issued by {row['Technician']}")
