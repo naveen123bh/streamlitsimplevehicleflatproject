@@ -6,7 +6,7 @@ import difflib
 # ==================================
 # KDHA HEADER & NOTE
 # ==================================
-st.markdown("<h2 style='color:purple; font-weight:bold;'>KDHA</h2>", unsafe_allow_html=True)
+st.markdown("<h2 style='color:purple; font-weight:bold;'>KDA</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange; font-style:italic;'>Note: This app is under development and consideration</p>", unsafe_allow_html=True)
 
 # ==================================
