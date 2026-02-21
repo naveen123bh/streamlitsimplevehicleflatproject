@@ -2,36 +2,26 @@ import os
 import streamlit as st
 import pandas as pd
 import difflib
-from technician import TECHNICIAN_NAMES
-# ==================================
+from technicians import TECHNICIAN_NAMES
+
+# ==============================
 # KDHA HEADER & NOTE
-# ==================================
+# ==============================
 st.markdown("<h2 style='color:purple; font-weight:bold;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange; font-style:italic;'>Note: This app is under development and consideration</p>", unsafe_allow_html=True)
 
-# ==================================
-
-# ==================================
-
-
-# ==================================
+# ==============================
 # SESSION STATE
-# ==================================
-if "logged_in_user" not in st.session_state:
-    st.session_state.logged_in_user = None
-if "current_floor" not in st.session_state:
-    st.session_state.current_floor = None
-if "current_set" not in st.session_state:
-    st.session_state.current_set = None
-if "login_selected_name" not in st.session_state:
-    st.session_state.login_selected_name = None
+# ==============================
+for key in ["logged_in_user","current_floor","current_set","login_selected_name"]:
+    if key not in st.session_state:
+        st.session_state[key] = None
 
-# ==================================
+# ==============================
 # LOGIN
-# ==================================
+# ==============================
 if st.session_state.logged_in_user is None:
 
-    # Highlighted login box
     st.markdown(
         """
         <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff; max-width:500px;">
@@ -58,30 +48,26 @@ if st.session_state.logged_in_user is None:
     if st.button("Login"):
         if st.session_state.login_selected_name:
             st.session_state.logged_in_user = st.session_state.login_selected_name
-            # no rerun needed, state will switch automatically
         else:
             st.warning("Please enter full name or select from suggestions.")
+    st.stop()
 
-    st.stop()  # Wait until login complete
-
-# ==================================
+# ==============================
 # AFTER LOGIN
-# ==================================
+# ==============================
 st.success(f"Logged in as: {st.session_state.logged_in_user}")
 
 if st.button("Logout"):
-    st.session_state.logged_in_user = None
-    st.session_state.login_selected_name = None
-    st.session_state.current_floor = None
-    st.session_state.current_set = None
-    st.experimental_rerun = None  # safe clear
+    for key in ["logged_in_user","login_selected_name","current_floor","current_set"]:
+        st.session_state[key] = None
+    st.experimental_rerun()
     st.stop()
 
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
 
-# ==================================
+# ==============================
 # LOAD CSV
-# ==================================
+# ==============================
 if not os.path.exists("sets.csv"):
     st.error("sets.csv file not found.")
     st.stop()
@@ -89,15 +75,13 @@ if not os.path.exists("sets.csv"):
 df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
 df = df.iloc[:, :2]
 df.columns = ["SetName", "Floor"]
-
 df["SetName"] = df["SetName"].astype(str).str.upper().str.strip()
 df["Floor"] = df["Floor"].astype(str).str.upper().str.strip()
-
 set_floor_pairs = dict(zip(df["SetName"], df["Floor"]))
 
-# ==================================
+# ==============================
 # ISSUE LOG
-# ==================================
+# ==============================
 LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE)
@@ -107,47 +91,46 @@ else:
 for col in ["Technician","Floor","SetName"]:
     if col not in log_df.columns:
         log_df[col] = ""
-
 log_df = log_df[["Technician","Floor","SetName"]]
 
-# ==================================
+# ==============================
 # SEARCH SECTION
-# ==================================
+# ==============================
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
 search_pressed = st.button("Find Floor")
+matched_set = None
 
 if search_pressed or user_input:
     search = user_input.upper().strip()
-    matched_set = None
 
     if search in set_floor_pairs:
-        st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
+        st.session_state.current_floor = set_floor_pairs[search]
         matched_set = search
     else:
         suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
         if suggestions:
             st.warning("Did you mean:")
-            for s in suggestions:
-                if st.button(s):
-                    st.session_state.current_floor = set_floor_pairs[s]
-                    st.session_state.current_set = s
-                    matched_set = s
+            selected = st.selectbox("Select the correct set", suggestions, key="suggested_sets")
+            if selected:
+                st.session_state.current_set = selected
+                st.session_state.current_floor = set_floor_pairs[selected]
+                matched_set = selected
         else:
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
             matched_set = search
 
-# ==================================
+# ==============================
 # SHOW FLOOR + ISSUE BUTTON
-# ==================================
+# ==============================
 if st.session_state.current_floor:
     floor_name = st.session_state.current_floor
     set_name = st.session_state.current_set
 
     st.success(f"Floor ➜ {floor_name}")
-    st.info(f"Yah set {floor_name} bheja jata hai.")
+    st.info(f"Set '{set_name}' goes to {floor_name}")
 
     if st.button("Issue"):
         new_entry = {
@@ -159,9 +142,9 @@ if st.session_state.current_floor:
         log_df.to_csv(LOG_FILE, index=False)
         st.success(f"{set_name} issued successfully")
 
-# ==================================
+# ==============================
 # ISSUE HISTORY + CLEAR LOG
-# ==================================
+# ==============================
 st.markdown("### Issue History")
 col1, col2 = st.columns([3,1])
 
