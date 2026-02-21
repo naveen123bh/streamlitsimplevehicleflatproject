@@ -36,7 +36,12 @@ if not os.path.exists(raw_file):
     st.stop()
 
 try:
-    df = pd.read_csv(raw_file)
+    df = pd.read_csv(
+        raw_file,
+        engine="python",        # flexible parser
+        on_bad_lines="skip",    # skip broken rows
+        encoding="utf-8"
+    )
     st.success(f"File '{raw_file}' loaded successfully!")
 except Exception as e:
     st.error(f"Error reading file '{raw_file}': {e}")
@@ -92,7 +97,7 @@ if st.button("Find Floor"):
     input_norm_set = normalize_set_input(user_input)
     input_norm_floor = normalize_floor_input(user_input)
 
-    # ----- Set lookup -----
+    # ----- Exact Set lookup -----
     if input_norm_set in set_floor_pairs:
         st.markdown(
             f"<h2 style='color:red; font-size:50px;'>Set '{input_norm_set}' should go to: {set_floor_pairs[input_norm_set]}</h2>",
