@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import difflib
 from datetime import datetime
-import pytz  # for India time
+import pytz
 
 # ==================================
 # KDHA HEADER & NOTE
@@ -40,7 +40,6 @@ if "current_set" not in st.session_state:
 # ==================================
 if st.session_state.logged_in_user is None:
 
-    # Highlighted login box
     st.markdown(
         """
         <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff">
@@ -52,8 +51,9 @@ if st.session_state.logged_in_user is None:
     )
 
     name_input = st.text_input("Technician Name", key="login_name_input")
+    login_pressed = st.button("Login")
 
-    if name_input:
+    if login_pressed and name_input:
         cleaned_input = " ".join(name_input.upper().split())
         normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
 
@@ -120,14 +120,13 @@ log_df = log_df[["Technician","Floor","SetName","Sister","Timestamp"]]
 # ==================================
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
-
 search_pressed = st.button("Find Floor")
 
+# ===== Handle search =====
 if search_pressed or user_input:
     search = user_input.upper().strip()
     matched_set = None
 
-    # Exact match
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
@@ -142,12 +141,13 @@ if search_pressed or user_input:
                     st.session_state.current_set = s
                     matched_set = s
         else:
+            # If no match, still show input as set name
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
             matched_set = search
 
 # ==================================
-# ENTER SISTER NAME + SHOW FLOOR + ISSUE BUTTON
+# SHOW FLOOR + ISSUE BUTTON
 # ==================================
 if st.session_state.current_floor:
     floor_name = st.session_state.current_floor
@@ -156,10 +156,11 @@ if st.session_state.current_floor:
     st.success(f"Floor ➜ {floor_name}")
     st.info(f"Yah set {floor_name} bheja jata hai.")
 
+    # Sister name manual input
     sister_name = st.text_input("Enter Sister Name")
 
     if st.button("Issue"):
-        # Current India time
+        # Current Indian Time
         ist = pytz.timezone("Asia/Kolkata")
         current_time = datetime.now(ist).strftime("%Y-%m-%d %I:%M:%S %p")
 
@@ -189,6 +190,6 @@ with col2:
 
 if not log_df.empty:
     for index,row in log_df.iterrows():
-        st.write(f"{row['Timestamp']} ➜ {row['Floor']} issued by {row['Technician']} (Set: {row['SetName']}) to Sister: {row['Sister']})")
+        st.write(f"{row['Timestamp']} ➜ {row['Floor']} issued by {row['Technician']} (Set: {row['SetName']}, Sister: {row['Sister']})")
 else:
     st.write("No issues recorded yet.")
