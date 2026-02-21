@@ -104,8 +104,9 @@ LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE)
 else:
-    log_df = pd.DataFrame()
+    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName"])
 
+# Ensure columns exist
 for col in ["Technician", "Floor", "SetName"]:
     if col not in log_df.columns:
         log_df[col] = ""
@@ -163,7 +164,6 @@ with col2:
 
 if not log_df.empty:
     for index, row in log_df.iterrows():
-        set_display = row["SetName"] if row["SetName"] else "Unknown Set"
-        st.write(f"{row['Floor']} issued by {row['Technician']} (Set: {set_display})")
+        st.write(f"{row['Floor']} issued by {row['Technician']} (Set: {row['SetName']})")
 else:
     st.write("No issues recorded yet.")
