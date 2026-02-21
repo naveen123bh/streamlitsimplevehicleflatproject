@@ -7,30 +7,14 @@ import difflib
 # CSSD TECHNICIAN MASTER LIST
 # ==================================
 TECHNICIAN_NAMES = [
-    "MR. MANISH SHENVI",
-    "MISS SAUNDARYA JADHAV",
-    "MR. SANTOSH CHANDGUDE",
-    "MR. AKSHAY GURAV",
-    "MR. NIKHIL KADAM",
-    "MISS SNEHA VISHVAKARMA",
-    "MISS RUPAL MAHADAYE",
-    "MR. RAHUL SAWANT",
-    "MR. PADMAKAR JAGTAP",
-    "MR. RAKESH MORE",
-    "MR. VINOD NIRAVDEKAR",
-    "MR. HRISHIKESH PARAB",
-    "MR. SMITHIL POWAR",
-    "MR. AMAN SHUKLA",
-    "MR. MAYURAJ KADAM",
-    "MR. SURESH LAMBARE",
-    "MR. PAWAN MASUDKAR",
-    "MR. JAVASH KAMTEKAR",
-    "MISS MRUDULA CHAVAN",
-    "MR. FARHAN AHMED",
-    "MR. SANKET SUTAR",
-    "MISS BHAGYASHRI MALANDKAR",
-    "MR. DEVENDRA DEVLEKAR",
-    "MR. NAVEEN KUMAR",
+    "MR. MANISH SHENVI","MISS SAUNDARYA JADHAV","MR. SANTOSH CHANDGUDE",
+    "MR. AKSHAY GURAV","MR. NIKHIL KADAM","MISS SNEHA VISHVAKARMA",
+    "MISS RUPAL MAHADAYE","MR. RAHUL SAWANT","MR. PADMAKAR JAGTAP",
+    "MR. RAKESH MORE","MR. VINOD NIRAVDEKAR","MR. HRISHIKESH PARAB",
+    "MR. SMITHIL POWAR","MR. AMAN SHUKLA","MR. MAYURAJ KADAM",
+    "MR. SURESH LAMBARE","MR. PAWAN MASUDKAR","MR. JAVASH KAMTEKAR",
+    "MISS MRUDULA CHAVAN","MR. FARHAN AHMED","MR. SANKET SUTAR",
+    "MISS BHAGYASHRI MALANDKAR","MR. DEVENDRA DEVLEKAR","MR. NAVEEN KUMAR",
 ]
 
 # ==================================
@@ -38,10 +22,8 @@ TECHNICIAN_NAMES = [
 # ==================================
 if "logged_in_user" not in st.session_state:
     st.session_state.logged_in_user = None
-
 if "current_floor" not in st.session_state:
     st.session_state.current_floor = None
-
 if "current_set" not in st.session_state:
     st.session_state.current_set = None
 
@@ -49,9 +31,7 @@ if "current_set" not in st.session_state:
 # LOGIN
 # ==================================
 if st.session_state.logged_in_user is None:
-
     st.markdown("<h2 style='color:blue;'>CSSD Technician - Please enter your name here</h2>", unsafe_allow_html=True)
-
     name_input = st.text_input("Enter Your Name")
     name_upper = name_input.strip().upper()
 
@@ -60,15 +40,7 @@ if st.session_state.logged_in_user is None:
             st.session_state.logged_in_user = name_upper
             st.rerun()
         else:
-            suggestions = difflib.get_close_matches(name_upper, TECHNICIAN_NAMES, n=5, cutoff=0.5)
-            if suggestions:
-                st.info("Select your correct name:")
-                for s in suggestions:
-                    if st.button(s):
-                        st.session_state.logged_in_user = s
-                        st.rerun()
-            else:
-                st.warning("Name not recognized.")
+            st.warning("Name not recognized.")
 
     st.stop()
 
@@ -90,8 +62,7 @@ if not os.path.exists("sets.csv"):
     st.error("sets.csv file not found.")
     st.stop()
 
-df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip", encoding="utf-8")
-
+df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
 df = df.iloc[:, :2]
 df.columns = ["SetName", "Floor"]
 
@@ -101,14 +72,21 @@ df["Floor"] = df["Floor"].astype(str).str.upper().str.strip()
 set_floor_pairs = dict(zip(df["SetName"], df["Floor"]))
 
 # ==================================
-# ISSUE LOG
+# ISSUE LOG SAFE LOAD
 # ==================================
 LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE)
 else:
-    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName"])
+    log_df = pd.DataFrame()
+
+# Ensure required columns exist
+for col in ["Technician", "Floor", "SetName"]:
+    if col not in log_df.columns:
+        log_df[col] = ""
+
+log_df = log_df[["Technician", "Floor", "SetName"]]
 
 # ==================================
 # SEARCH
@@ -151,6 +129,7 @@ st.markdown("### Issue History")
 
 if not log_df.empty:
     for index, row in log_df.iterrows():
-        st.write(f"{row['Floor']} issued by {row['Technician']} (Set: {row['SetName']})")
+        set_display = row["SetName"] if row["SetName"] else "Unknown Set"
+        st.write(f"{row['Floor']} issued by {row['Technician']} (Set: {set_display})")
 else:
     st.write("No issues recorded yet.")
