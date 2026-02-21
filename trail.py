@@ -57,7 +57,7 @@ if st.session_state.logged_in_user is None:
 
         if cleaned_input in normalized_names:
             st.session_state.logged_in_user = normalized_names[cleaned_input]
-            st.experimental_rerun()
+            st.experimental_rerun()  # move to main menu
         else:
             suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
             if suggestions:
@@ -69,7 +69,7 @@ if st.session_state.logged_in_user is None:
                         st.experimental_rerun()
             else:
                 st.warning("Please enter full name.")
-    st.stop()
+    st.stop()  # stops everything below until login
 
 # ==================================
 # AFTER LOGIN
@@ -118,7 +118,7 @@ log_df = log_df[["Technician","Floor","SetName"]]
 # ==================================
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
-search_pressed = st.button("Find Floor")
+search_pressed = st.button("Find Floor", key="find_floor_btn")
 
 if search_pressed or user_input:
     search = user_input.upper().strip()
@@ -138,7 +138,6 @@ if search_pressed or user_input:
                     st.session_state.current_set = s
                     matched_set = s
         else:
-            # If no match, still show input as set name
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
             matched_set = search
@@ -153,7 +152,7 @@ if st.session_state.current_floor:
     st.success(f"Floor ➜ {floor_name}")
     st.info(f"Yah set {floor_name} bheja jata hai.")
 
-    if st.button("Issue"):
+    if st.button("Issue", key="issue_btn"):
         new_entry = {
             "Technician": st.session_state.logged_in_user,
             "Floor": floor_name,
@@ -170,7 +169,7 @@ st.markdown("### Issue History")
 col1, col2 = st.columns([3,1])
 
 with col2:
-    if st.button("Clear Log"):
+    if st.button("Clear Log", key="clear_log_btn"):
         log_df = pd.DataFrame(columns=["Technician","Floor","SetName"])
         log_df.to_csv(LOG_FILE,index=False)
         st.success("Issue history cleared")
