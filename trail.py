@@ -75,7 +75,7 @@ if st.session_state.logged_in_user is None:
                         st.success(f"Welcome {s}")
                         st.rerun()
             else:
-                st.warning("enter full name .")
+                st.warning("Name not recognized.")
 
     st.stop()
 
@@ -138,7 +138,17 @@ for set_name, floor in set_floor_pairs.items():
     floor_to_sets.setdefault(floor, []).append(set_name)
 
 # ==================================
-# SEARCH SECTION (FINAL FIXED)
+# ISSUE LOG SETUP
+# ==================================
+LOG_FILE = "issue_log.csv"
+
+if os.path.exists(LOG_FILE):
+    log_df = pd.read_csv(LOG_FILE)
+else:
+    log_df = pd.DataFrame(columns=["Technician", "Floor"])
+
+# ==================================
+# SEARCH SECTION
 # ==================================
 st.markdown("<h3>Enter Set Name or Floor</h3>")
 user_input = st.text_input("Search Here")
@@ -146,9 +156,24 @@ user_input = st.text_input("Search Here")
 input_norm_set = normalize_set_input(user_input)
 input_norm_floor = normalize_floor_input(user_input)
 
-# Exact match auto show
+def show_issue_option(floor_name):
+    st.success(f"Floor ➜ {floor_name}")
+
+    if st.button("Issue"):
+        new_entry = {
+            "Technician": st.session_state.logged_in_user,
+            "Floor": floor_name
+        }
+
+        updated_log = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
+        updated_log.to_csv(LOG_FILE, index=False)
+
+        st.success(f"{floor_name} issued successfully")
+
+# Exact match
 if input_norm_set in set_floor_pairs:
-    st.success(f"{input_norm_set} ➜ {set_floor_pairs[input_norm_set]}")
+    floor_found = set_floor_pairs[input_norm_set]
+    show_issue_option(floor_found)
 
 elif input_norm_floor in floor_to_sets:
     st.info(f"Sets for {input_norm_floor}:")
@@ -168,6 +193,23 @@ elif user_input:
         st.warning("Set not found. Did you mean:")
         for s in suggestions:
             if st.button(s):
-                st.success(f"{s} ➜ {set_floor_pairs[s]}")
+                floor_found = set_floor_pairs[s]
+                show_issue_option(floor_found)
     else:
         st.error("Set not found in database.")
+
+# ==================================
+# ISSUE HISTORY
+# ==================================
+st.markdown("### Issue History")
+
+if os.path.exists(LOG_FILE):
+    history_df = pd.read_csv(LOG_FILE)
+
+    if not history_df.empty:
+        for index, row in history_df.iterrows():
+            st.write(f"{row['Floor']} issued by {row['Technician']}")
+    else:
+        st.write("No issues recorded yet.")
+else:
+    st.write("No issues recorded yet.")
