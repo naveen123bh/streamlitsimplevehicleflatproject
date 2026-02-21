@@ -79,7 +79,7 @@ if st.session_state.logged_in_user is None:
                         st.session_state.logged_in_user = s
                         st.rerun()
             else:
-                st.error("Name not recognized. Please check spelling.")
+                st.error("please enter full name or Please check spelling  .")
 
     st.stop()
 
