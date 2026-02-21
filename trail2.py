@@ -2,8 +2,8 @@ import os
 import streamlit as st
 import pandas as pd
 import difflib
-from datetime import datetime
 import pytz
+from datetime import datetime
 
 # ==================================
 # KDHA HEADER & NOTE
@@ -51,7 +51,7 @@ if st.session_state.logged_in_user is None:
     )
 
     name_input = st.text_input("Technician Name", key="login_name_input")
-    login_pressed = st.button("Login")
+    login_pressed = st.button("Login", key="login_button")
 
     if login_pressed and name_input:
         cleaned_input = " ".join(name_input.upper().split())
@@ -107,26 +107,26 @@ LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE)
 else:
-    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName", "Sister", "Timestamp"])
+    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName", "IssuedTo", "DateTime"])
 
-for col in ["Technician","Floor","SetName","Sister","Timestamp"]:
+for col in ["Technician","Floor","SetName","IssuedTo","DateTime"]:
     if col not in log_df.columns:
         log_df[col] = ""
 
-log_df = log_df[["Technician","Floor","SetName","Sister","Timestamp"]]
+log_df = log_df[["Technician","Floor","SetName","IssuedTo","DateTime"]]
 
 # ==================================
 # SEARCH SECTION
 # ==================================
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
-search_pressed = st.button("Find Floor")
+search_pressed = st.button("Find Floor", key="search_button")
 
-# ===== Handle search =====
 if search_pressed or user_input:
     search = user_input.upper().strip()
     matched_set = None
 
+    # Exact match
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
@@ -141,7 +141,6 @@ if search_pressed or user_input:
                     st.session_state.current_set = s
                     matched_set = s
         else:
-            # If no match, still show input as set name
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
             matched_set = search
@@ -156,11 +155,11 @@ if st.session_state.current_floor:
     st.success(f"Floor ➜ {floor_name}")
     st.info(f"Yah set {floor_name} bheja jata hai.")
 
-    # Sister name manual input
-    sister_name = st.text_input("Enter Sister Name")
+    # Input for sister's name
+    issued_to = st.text_input("Issued To (Sister Name)")
 
-    if st.button("Issue"):
-        # Current Indian Time
+    if st.button("Issue", key="issue_button"):
+        # Correct Indian time
         ist = pytz.timezone("Asia/Kolkata")
         current_time = datetime.now(ist).strftime("%Y-%m-%d %I:%M:%S %p")
 
@@ -168,12 +167,12 @@ if st.session_state.current_floor:
             "Technician": st.session_state.logged_in_user,
             "Floor": floor_name,
             "SetName": set_name,
-            "Sister": sister_name,
-            "Timestamp": current_time
+            "IssuedTo": issued_to if issued_to else "N/A",
+            "DateTime": current_time
         }
         log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
         log_df.to_csv(LOG_FILE, index=False)
-        st.success(f"{set_name} issued successfully at {current_time} to Sister: {sister_name}")
+        st.success(f"{set_name} issued successfully at {current_time}")
 
 # ==================================
 # ISSUE HISTORY + CLEAR LOG
@@ -183,13 +182,13 @@ col1, col2 = st.columns([3,1])
 
 with col2:
     if st.button("Clear Log"):
-        log_df = pd.DataFrame(columns=["Technician","Floor","SetName","Sister","Timestamp"])
+        log_df = pd.DataFrame(columns=["Technician","Floor","SetName","IssuedTo","DateTime"])
         log_df.to_csv(LOG_FILE,index=False)
         st.success("Issue history cleared")
         st.experimental_rerun()
 
 if not log_df.empty:
     for index,row in log_df.iterrows():
-        st.write(f"{row['Timestamp']} ➜ {row['Floor']} issued by {row['Technician']} (Set: {row['SetName']}, Sister: {row['Sister']})")
+        st.write(f"{row['DateTime']} ➜ {row['Floor']} issued by {row['Technician']} (Set: {row['SetName']}, Issued To: {row['IssuedTo']})")
 else:
     st.write("No issues recorded yet.")
