@@ -38,8 +38,18 @@ if "current_set" not in st.session_state:
 # ==================================
 if st.session_state.logged_in_user is None:
 
-    st.markdown("<h2 style='color:blue;'>CSSD Technician - Please enter your name here</h2>", unsafe_allow_html=True)
-    name_input = st.text_input("Enter Your Name")
+    # Highlighted login box
+    st.markdown(
+        """
+        <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff">
+            <h3 style='color:blue;'>CSSD Technician Login</h3>
+            <p>Enter your name below:</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    name_input = st.text_input("Technician Name", key="login_name_input")
 
     if name_input:
         cleaned_input = " ".join(name_input.upper().split())
@@ -58,7 +68,7 @@ if st.session_state.logged_in_user is None:
                         st.session_state.logged_in_user = original_name
                         st.rerun()
             else:
-                st.warning("please enter full name .")
+                st.warning("Please enter full name.")
     st.stop()
 
 # ==================================
