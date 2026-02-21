@@ -75,7 +75,7 @@ if st.session_state.logged_in_user is None:
                         st.success(f"Welcome {s}")
                         st.rerun()
             else:
-                st.warning("Name not recognized.")
+                st.warning("enter full name .")
 
     st.stop()
 
