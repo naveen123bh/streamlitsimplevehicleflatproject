@@ -51,7 +51,25 @@ if st.session_state.logged_in_user is None:
 
     name_input = st.text_input("Technician Name", key="login_name_input")
 
-    if name_input:
+    # Big noticeable login button
+    st.markdown("""
+        <style>
+        div.stButton > button:first-child {
+            background-color: #ff5733;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            padding: 15px 40px;
+            border-radius: 12px;
+            border: 2px solid darkred;
+        }
+        div.stButton > button:first-child:hover {
+            background-color: darkred;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+    if st.button("Login") and name_input:
         cleaned_input = " ".join(name_input.upper().split())
         normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
 
