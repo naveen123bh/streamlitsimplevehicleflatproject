@@ -38,6 +38,7 @@ if "current_set" not in st.session_state:
 # ==================================
 if st.session_state.logged_in_user is None:
 
+    # Highlighted login box
     st.markdown(
         """
         <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff; max-width:500px;">
@@ -58,12 +59,13 @@ if st.session_state.logged_in_user is None:
         if cleaned_input in normalized_names:
             selected_name = normalized_names[cleaned_input]
         else:
-            # Suggestion list
+            # Close matches for suggestions
             suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
             if suggestions:
                 options = [normalized_names[s] for s in suggestions]
                 selected_name = st.selectbox("Did you mean:", options, key="login_suggest_select")
 
+    # Login button outside any loop
     if st.button("Login", key="login_btn"):
         if selected_name:
             st.session_state.logged_in_user = selected_name
@@ -71,7 +73,7 @@ if st.session_state.logged_in_user is None:
         else:
             st.warning("Please enter full name or select from suggestions.")
 
-    st.stop()
+    st.stop()  # Stop execution until login complete
 
 # ==================================
 # AFTER LOGIN
@@ -134,14 +136,16 @@ if search_pressed or user_input:
     else:
         suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
         if suggestions:
-            options = suggestions
-            selected_set = st.selectbox("Did you mean:", options, key="set_suggest_select")
-            if st.button("Select Set"):
-                st.session_state.current_set = selected_set
-                st.session_state.current_floor = set_floor_pairs[selected_set]
+            st.warning("Did you mean:")
+            for s in suggestions:
+                if st.button(s):
+                    st.session_state.current_floor = set_floor_pairs[s]
+                    st.session_state.current_set = s
+                    matched_set = s
         else:
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
+            matched_set = search
 
 # ==================================
 # SHOW FLOOR + ISSUE BUTTON
