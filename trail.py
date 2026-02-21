@@ -28,19 +28,44 @@ if "current_set" not in st.session_state:
     st.session_state.current_set = None
 
 # ==================================
-# LOGIN
+# FLEXIBLE LOGIN
 # ==================================
 if st.session_state.logged_in_user is None:
-    st.markdown("<h2 style='color:blue;'>CSSD Technician - Please enter your name here</h2>", unsafe_allow_html=True)
-    name_input = st.text_input("Enter Your Name")
-    name_upper = name_input.strip().upper()
 
-    if name_upper:
-        if name_upper in TECHNICIAN_NAMES:
-            st.session_state.logged_in_user = name_upper
+    st.markdown("<h2 style='color:blue;'>CSSD Technician - Please enter your name here</h2>", unsafe_allow_html=True)
+
+    name_input = st.text_input("Enter Your Name")
+
+    if name_input:
+
+        cleaned_input = name_input.upper().strip()
+        cleaned_input = " ".join(cleaned_input.split())
+
+        normalized_names = {
+            " ".join(name.upper().split()): name
+            for name in TECHNICIAN_NAMES
+        }
+
+        if cleaned_input in normalized_names:
+            st.session_state.logged_in_user = normalized_names[cleaned_input]
             st.rerun()
         else:
-            st.warning("Name not recognized.")
+            suggestions = difflib.get_close_matches(
+                cleaned_input,
+                normalized_names.keys(),
+                n=5,
+                cutoff=0.5
+            )
+
+            if suggestions:
+                st.info("Select your correct name:")
+                for s in suggestions:
+                    original_name = normalized_names[s]
+                    if st.button(original_name):
+                        st.session_state.logged_in_user = original_name
+                        st.rerun()
+            else:
+                st.warning("Name not recognized.")
 
     st.stop()
 
@@ -81,7 +106,6 @@ if os.path.exists(LOG_FILE):
 else:
     log_df = pd.DataFrame()
 
-# Ensure required columns exist
 for col in ["Technician", "Floor", "SetName"]:
     if col not in log_df.columns:
         log_df[col] = ""
@@ -109,6 +133,7 @@ if st.session_state.current_floor:
     set_name = st.session_state.current_set
 
     st.success(f"Floor ➜ {floor_name}")
+    st.info(f"Yah set {floor_name} bheja jata hai.")
 
     if st.button("Issue"):
         new_entry = {
@@ -123,9 +148,18 @@ if st.session_state.current_floor:
         st.success(f"{set_name} issued successfully")
 
 # ==================================
-# ISSUE HISTORY
+# ISSUE HISTORY + CLEAR BUTTON
 # ==================================
 st.markdown("### Issue History")
+
+col1, col2 = st.columns([3,1])
+
+with col2:
+    if st.button("Clear Log"):
+        log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName"])
+        log_df.to_csv(LOG_FILE, index=False)
+        st.success("Issue history cleared")
+        st.rerun()
 
 if not log_df.empty:
     for index, row in log_df.iterrows():
