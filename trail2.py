@@ -2,6 +2,7 @@ import os
 import streamlit as st
 import pandas as pd
 import difflib
+from datetime import datetime
 
 # ==================================
 # KDHA HEADER & NOTE
@@ -67,7 +68,6 @@ if st.session_state.logged_in_user is None:
     if st.button("Login"):
         if st.session_state.login_selected_name:
             st.session_state.logged_in_user = st.session_state.login_selected_name
-            # no rerun needed, state will switch automatically
         else:
             st.warning("Please enter full name or select from suggestions.")
 
@@ -83,7 +83,6 @@ if st.button("Logout"):
     st.session_state.login_selected_name = None
     st.session_state.current_floor = None
     st.session_state.current_set = None
-    st.experimental_rerun = None  # safe clear
     st.stop()
 
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
@@ -111,13 +110,13 @@ LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE)
 else:
-    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName"])
+    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName", "Timestamp"])
 
-for col in ["Technician","Floor","SetName"]:
+for col in ["Technician","Floor","SetName","Timestamp"]:
     if col not in log_df.columns:
         log_df[col] = ""
 
-log_df = log_df[["Technician","Floor","SetName"]]
+log_df = log_df[["Technician","Floor","SetName","Timestamp"]]
 
 # ==================================
 # SEARCH SECTION
@@ -159,14 +158,16 @@ if st.session_state.current_floor:
     st.info(f"Yah set {floor_name} bheja jata hai.")
 
     if st.button("Issue"):
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         new_entry = {
             "Technician": st.session_state.logged_in_user,
             "Floor": floor_name,
-            "SetName": set_name
+            "SetName": set_name,
+            "Timestamp": current_time
         }
         log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
         log_df.to_csv(LOG_FILE, index=False)
-        st.success(f"{set_name} issued successfully")
+        st.success(f"{set_name} issued successfully at {current_time}")
 
 # ==================================
 # ISSUE HISTORY + CLEAR LOG
@@ -176,13 +177,13 @@ col1, col2 = st.columns([3,1])
 
 with col2:
     if st.button("Clear Log"):
-        log_df = pd.DataFrame(columns=["Technician","Floor","SetName"])
+        log_df = pd.DataFrame(columns=["Technician","Floor","SetName","Timestamp"])
         log_df.to_csv(LOG_FILE,index=False)
         st.success("Issue history cleared")
         st.stop()
 
 if not log_df.empty:
     for index,row in log_df.iterrows():
-        st.write(f"{row['Floor']} issued by {row['Technician']} (Set: {row['SetName']})")
+        st.write(f"{row['Timestamp']} ➜ {row['Floor']} issued by {row['Technician']} (Set: {row['SetName']})")
 else:
     st.write("No issues recorded yet.")
