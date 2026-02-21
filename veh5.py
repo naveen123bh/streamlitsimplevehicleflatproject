@@ -10,29 +10,26 @@ st.write("Python version:", sys.version)
 st.write("openpyxl version:", openpyxl.__version__)
 
 # ===== App Heading =====
-st.markdown("<h1 style='color:blue; font-size:60px;'>Rishabh Tower Security</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='color:blue; font-size:60px;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
 
 # ===== Helper functions =====
-def normalize_vehicle_input(vehicle_number):
-    if pd.isna(vehicle_number):
+def normalize_set_input(set_name):
+    if pd.isna(set_name):
         return ""
-    text = str(vehicle_number).upper()
-    text = re.sub(r"\s+", "", text)
-    text = text.replace("O", "0")
+    text = str(set_name).upper()
+    text = re.sub(r"\s+", " ", text)
     return text.strip()
 
-def normalize_flat_input(flat_number):
-    if pd.isna(flat_number):
+def normalize_floor_input(floor_name):
+    if pd.isna(floor_name):
         return ""
-    text = str(flat_number).upper()
+    text = str(floor_name).upper()
     text = re.sub(r"\s+", "", text)
-    if text.isnumeric():
-        text = "F" + text
     return text.strip()
 
 # ===== File setup =====
-raw_file = "vehicle_flat_pairs.csv"
-clean_file = "vehicle_flat_pairs_clean.csv"
+raw_file = "sets.csv"
+clean_file = "sets_clean.csv"
 
 if not os.path.exists(raw_file):
     st.error(f"File not found: {raw_file}")
@@ -46,33 +43,33 @@ except Exception as e:
     st.stop()
 
 if df.shape[1] < 2:
-    st.error("CSV file must have at least 2 columns: Vehicle and FlatNumber")
+    st.error("CSV file must have at least 2 columns: set_name and floor")
     st.stop()
 
 # ===== Normalize dataframe =====
 df = df.iloc[:, :2]
-df.columns = ["Vehicle", "FlatNumber"]
+df.columns = ["SetName", "Floor"]
 
-df["Vehicle"] = df["Vehicle"].apply(normalize_vehicle_input)
-df["FlatNumber"] = df["FlatNumber"].apply(normalize_flat_input)
+df["SetName"] = df["SetName"].apply(normalize_set_input)
+df["Floor"] = df["Floor"].apply(normalize_floor_input)
 
 # Save normalized clean file
 df.to_csv(clean_file, index=False)
 
 # ===== Build dictionaries =====
-vehicle_flat_pairs = dict(zip(df["Vehicle"], df["FlatNumber"]))
+set_floor_pairs = dict(zip(df["SetName"], df["Floor"]))
 
-flat_to_vehicles = {}
-for vehicle, flat in vehicle_flat_pairs.items():
-    if flat not in flat_to_vehicles:
-        flat_to_vehicles[flat] = []
-    flat_to_vehicles[flat].append(vehicle)
+floor_to_sets = {}
+for set_name, floor in set_floor_pairs.items():
+    if floor not in floor_to_sets:
+        floor_to_sets[floor] = []
+    floor_to_sets[floor].append(set_name)
 
 # ===== Streamlit Input =====
-st.markdown("<h3 style='color:green; font-size:40px;'>Vehicle या Flat Number डालें</h3>", unsafe_allow_html=True)
-user_input = st.text_input("", "", key="vehicle_flat_input", placeholder="यहाँ लिखें/type here....... " , max_chars=20)
+st.markdown("<h3 style='color:green; font-size:40px;'>Set Name या Floor डालें</h3>", unsafe_allow_html=True)
+user_input = st.text_input("", "", key="set_floor_input", placeholder="Enter Set Name or Floor....", max_chars=100)
 
-# ===== Style the container for the button =====
+# ===== Style the button =====
 st.markdown("""
 <style>
 div.stButton > button {
@@ -91,29 +88,30 @@ div.stButton > button:hover {
 """, unsafe_allow_html=True)
 
 # ===== Lookup button =====
-if st.button("रिज़ल्ट देखें"):
-    input_norm_vehicle = normalize_vehicle_input(user_input)
-    input_norm_flat = normalize_flat_input(user_input)
+if st.button("Find Floor"):
+    input_norm_set = normalize_set_input(user_input)
+    input_norm_floor = normalize_floor_input(user_input)
 
-    # ----- Vehicle lookup -----
-    if input_norm_vehicle in vehicle_flat_pairs:
+    # ----- Set lookup -----
+    if input_norm_set in set_floor_pairs:
         st.markdown(
-            f"<h2 style='color:red; font-size:50px;'>Vehicle {input_norm_vehicle} का Flat Number है: {vehicle_flat_pairs[input_norm_vehicle]}</h2>",
+            f"<h2 style='color:red; font-size:50px;'>Set '{input_norm_set}' should go to: {set_floor_pairs[input_norm_set]}</h2>",
             unsafe_allow_html=True,
         )
 
-    # ----- Flat lookup -----
-    elif input_norm_flat in flat_to_vehicles:
-        matched_vehicles = flat_to_vehicles[input_norm_flat]
+    # ----- Floor lookup -----
+    elif input_norm_floor in floor_to_sets:
+        matched_sets = floor_to_sets[input_norm_floor]
         st.markdown(
-            f"<h2 style='color:red; font-size:50px;'>Flat {input_norm_flat} के लिए Vehicle नंबर हैं: {', '.join(matched_vehicles)}</h2>",
+            f"<h2 style='color:red; font-size:40px;'>Sets for {input_norm_floor}:</h2>",
             unsafe_allow_html=True,
         )
+        for s in matched_sets:
+            st.write(s)
 
     else:
         st.markdown(
-            "<h2 style='color:red; font-size:50px;'>..यह गाड़ी रिषभ टावर की वाहन सूची में नहीं है। "
-            "शायद यह Reliance की हो सकती है या फिर कोई नई गाड़ी हो सकती है।<br>"
-            "..गाड़ी के मालिक से फ्लैट नंबर पूछें या manager / supervisor से बात करें।</h2>",
+            "<h2 style='color:red; font-size:50px;'>Set not found in database.<br>"
+            "Please check spelling or confirm with supervisor.</h2>",
             unsafe_allow_html=True,
-        ) 
+        )
