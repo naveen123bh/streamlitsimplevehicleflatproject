@@ -168,4 +168,4 @@ if not log_df.empty:
     for index,row in log_df.iterrows():
         st.write(f"{row['Floor']} issued by {row['Technician']} (Set: {row['SetName']})")
 else:
-    st.write("No issues recorded yet.")
+    st.write("No issues recorded yet .")
