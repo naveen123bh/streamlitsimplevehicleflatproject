@@ -4,10 +4,10 @@ import pandas as pd
 import difflib
 
 # ==================================
-# KDHA NOTE
+# KDHA HEADER & NOTE
 # ==================================
-st.markdown("<h3 style='color:purple;'>KDHA</h3>", unsafe_allow_html=True)
-st.markdown("<i>Note: This app is under development and consideration.</i>", unsafe_allow_html=True)
+st.markdown("<h2 style='color:purple; font-weight:bold;'>KDHA</h2>", unsafe_allow_html=True)
+st.markdown("<p style='color:orange; font-style:italic;'>Note: This app is under development and consideration</p>", unsafe_allow_html=True)
 
 # ==================================
 # CSSD TECHNICIAN MASTER LIST
