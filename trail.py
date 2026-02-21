@@ -32,55 +32,37 @@ if "current_set" not in st.session_state:
 # ==================================
 if st.session_state.logged_in_user is None:
 
-    # Highlighted login box
     st.markdown(
         """
         <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff">
             <h3 style='color:blue;'>CSSD Technician Login</h3>
             <p>Enter your name below:</p>
         </div>
-        """,
-        unsafe_allow_html=True
+        """, unsafe_allow_html=True
     )
 
-    name_input = st.text_input("Technician Name", key="login_name_input")
+    with st.form(key="login_form"):
+        name_input = st.text_input("Technician Name")
+        submit_button = st.form_submit_button("Login")  # big login button
 
-    # Big noticeable login button
-    st.markdown("""
-        <style>
-        div.stButton > button:first-child {
-            background-color: #ff5733;
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            padding: 15px 40px;
-            border-radius: 12px;
-            border: 2px solid darkred;
-        }
-        div.stButton > button:first-child:hover {
-            background-color: darkred;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        if submit_button:
+            cleaned_input = " ".join(name_input.upper().split())
+            normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
 
-    if st.button("Login") and name_input:
-        cleaned_input = " ".join(name_input.upper().split())
-        normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
-
-        if cleaned_input in normalized_names:
-            st.session_state.logged_in_user = normalized_names[cleaned_input]
-            st.experimental_rerun()
-        else:
-            suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
-            if suggestions:
-                st.info("Select your correct name:")
-                for s in suggestions:
-                    original_name = normalized_names[s]
-                    if st.button(original_name):
-                        st.session_state.logged_in_user = original_name
-                        st.experimental_rerun()
+            if cleaned_input in normalized_names:
+                st.session_state.logged_in_user = normalized_names[cleaned_input]
+                st.experimental_rerun()
             else:
-                st.warning("Please enter full name.")
+                suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
+                if suggestions:
+                    st.info("Select your correct name:")
+                    for s in suggestions:
+                        original_name = normalized_names[s]
+                        if st.button(original_name):
+                            st.session_state.logged_in_user = original_name
+                            st.experimental_rerun()
+                else:
+                    st.warning("Please enter full name.")
     st.stop()
 
 # ==================================
@@ -93,8 +75,6 @@ if st.button("Logout"):
     st.experimental_rerun()
 
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
-
-# KDHA and note
 st.markdown("<h4 style='color:red;'>KDHA</h4>", unsafe_allow_html=True)
 st.markdown("<i>Note: This app is under development and consideration.</i>", unsafe_allow_html=True)
 
@@ -134,16 +114,12 @@ log_df = log_df[["Technician","Floor","SetName"]]
 # ==================================
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
-
-# Press Enter or button
 search_pressed = st.button("Find Floor")
 
-# ===== Handle search =====
 if search_pressed or user_input:
     search = user_input.upper().strip()
     matched_set = None
 
-    # Exact match
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
@@ -158,7 +134,6 @@ if search_pressed or user_input:
                     st.session_state.current_set = s
                     matched_set = s
         else:
-            # If no match, still show input as set name
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
             matched_set = search
