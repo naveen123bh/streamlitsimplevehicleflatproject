@@ -1,11 +1,10 @@
 import os
-import re
 import streamlit as st
 import pandas as pd
 import difflib
 
 # ==================================
-# CSSD TECHNICIAN MASTER LIST (24)
+# CSSD TECHNICIAN MASTER LIST
 # ==================================
 TECHNICIAN_NAMES = [
     "MR. MANISH SHENVI",
@@ -43,6 +42,9 @@ if "logged_in_user" not in st.session_state:
 if "current_floor" not in st.session_state:
     st.session_state.current_floor = None
 
+if "current_set" not in st.session_state:
+    st.session_state.current_set = None
+
 # ==================================
 # LOGIN
 # ==================================
@@ -54,13 +56,11 @@ if st.session_state.logged_in_user is None:
     name_upper = name_input.strip().upper()
 
     if name_upper:
-
         if name_upper in TECHNICIAN_NAMES:
             st.session_state.logged_in_user = name_upper
             st.rerun()
         else:
             suggestions = difflib.get_close_matches(name_upper, TECHNICIAN_NAMES, n=5, cutoff=0.5)
-
             if suggestions:
                 st.info("Select your correct name:")
                 for s in suggestions:
@@ -84,26 +84,13 @@ if st.button("Logout"):
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
 
 # ==================================
-# SAFE CSV LOAD
+# LOAD SET CSV
 # ==================================
 if not os.path.exists("sets.csv"):
     st.error("sets.csv file not found.")
     st.stop()
 
-try:
-    df = pd.read_csv(
-        "sets.csv",
-        engine="python",
-        on_bad_lines="skip",
-        encoding="utf-8"
-    )
-except Exception:
-    st.error("Error reading sets.csv file.")
-    st.stop()
-
-if df.shape[1] < 2:
-    st.error("CSV must contain at least 2 columns (SetName, Floor).")
-    st.stop()
+df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip", encoding="utf-8")
 
 df = df.iloc[:, :2]
 df.columns = ["SetName", "Floor"]
@@ -114,17 +101,14 @@ df["Floor"] = df["Floor"].astype(str).str.upper().str.strip()
 set_floor_pairs = dict(zip(df["SetName"], df["Floor"]))
 
 # ==================================
-# ISSUE LOG SAFE LOAD
+# ISSUE LOG
 # ==================================
 LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
-    try:
-        log_df = pd.read_csv(LOG_FILE)
-    except:
-        log_df = pd.DataFrame(columns=["Technician", "Floor"])
+    log_df = pd.read_csv(LOG_FILE)
 else:
-    log_df = pd.DataFrame(columns=["Technician", "Floor"])
+    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName"])
 
 # ==================================
 # SEARCH
@@ -137,50 +121,36 @@ if user_input:
 
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
-
-    else:
-        suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
-
-        if suggestions:
-            st.warning("Did you mean:")
-            for s in suggestions:
-                if st.button(s):
-                    st.session_state.current_floor = set_floor_pairs[s]
+        st.session_state.current_set = search
 
 # ==================================
 # SHOW FLOOR + ISSUE BUTTON
 # ==================================
 if st.session_state.current_floor:
     floor_name = st.session_state.current_floor
+    set_name = st.session_state.current_set
+
     st.success(f"Floor ➜ {floor_name}")
 
     if st.button("Issue"):
         new_entry = {
             "Technician": st.session_state.logged_in_user,
-            "Floor": floor_name
+            "Floor": floor_name,
+            "SetName": set_name
         }
 
         log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
         log_df.to_csv(LOG_FILE, index=False)
 
-        st.success(f"{floor_name} issued successfully")
+        st.success(f"{set_name} issued successfully")
 
 # ==================================
 # ISSUE HISTORY
 # ==================================
 st.markdown("### Issue History")
 
-col1, col2 = st.columns([3,1])
-
-with col2:
-    if st.button("Clear Log"):
-        log_df = pd.DataFrame(columns=["Technician", "Floor"])
-        log_df.to_csv(LOG_FILE, index=False)
-        st.success("Issue history cleared")
-        st.rerun()
-
 if not log_df.empty:
     for index, row in log_df.iterrows():
-        st.write(f"{row['Floor']} issued by {row['Technician']}")
+        st.write(f"{row['Floor']} issued by {row['Technician']} (Set: {row['SetName']})")
 else:
     st.write("No issues recorded yet.")
