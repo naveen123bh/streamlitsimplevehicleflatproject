@@ -42,7 +42,7 @@ try:
         on_bad_lines="skip",    # skip broken rows
         encoding="utf-8"
     )
-    st.success(f"code scripted by naveen bhatt  '{raw_file}' app is at initial phase!")
+    st.success(f"code scripted by naveen bhatt  file'{raw_file}' app is at initial phase!")
 except Exception as e:
     st.error(f"Error reading file '{raw_file}': {e}")
     st.stop()
