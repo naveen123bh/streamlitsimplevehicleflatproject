@@ -2,7 +2,7 @@ import os
 import streamlit as st
 import pandas as pd
 import difflib
-from technician import technician_name
+from technician import TECHNICIAN_NAMES
 # ==================================
 # KDHA HEADER & NOTE
 # ==================================
