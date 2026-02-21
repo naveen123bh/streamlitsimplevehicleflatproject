@@ -119,7 +119,7 @@ if search_pressed or user_input:
                 matched_set = selected
         else:
             st.session_state.current_set = search
-            st.session_state.current_floor = "Unknown Floor"
+            st.session_state.current_floor = "please enter correct name"
             matched_set = search
 
 # ==============================
