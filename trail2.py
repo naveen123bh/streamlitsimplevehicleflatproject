@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import difflib
 from datetime import datetime
+import pytz  # for India time
 
 # ==================================
 # KDHA HEADER & NOTE
@@ -33,8 +34,6 @@ if "current_floor" not in st.session_state:
     st.session_state.current_floor = None
 if "current_set" not in st.session_state:
     st.session_state.current_set = None
-if "login_selected_name" not in st.session_state:
-    st.session_state.login_selected_name = None
 
 # ==================================
 # LOGIN
@@ -44,11 +43,12 @@ if st.session_state.logged_in_user is None:
     # Highlighted login box
     st.markdown(
         """
-        <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff; max-width:500px;">
+        <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff">
             <h3 style='color:blue;'>CSSD Technician Login</h3>
             <p>Enter your name below:</p>
         </div>
-        """, unsafe_allow_html=True
+        """,
+        unsafe_allow_html=True
     )
 
     name_input = st.text_input("Technician Name", key="login_name_input")
@@ -58,20 +58,20 @@ if st.session_state.logged_in_user is None:
         normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
 
         if cleaned_input in normalized_names:
-            st.session_state.login_selected_name = normalized_names[cleaned_input]
+            st.session_state.logged_in_user = normalized_names[cleaned_input]
+            st.experimental_rerun()
         else:
             suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
             if suggestions:
-                options = [normalized_names[s] for s in suggestions]
-                st.session_state.login_selected_name = st.selectbox("Did you mean:", options, key="login_suggest_select")
-
-    if st.button("Login"):
-        if st.session_state.login_selected_name:
-            st.session_state.logged_in_user = st.session_state.login_selected_name
-        else:
-            st.warning("Please enter full name or select from suggestions.")
-
-    st.stop()  # Wait until login complete
+                st.info("Select your correct name:")
+                for s in suggestions:
+                    original_name = normalized_names[s]
+                    if st.button(original_name):
+                        st.session_state.logged_in_user = original_name
+                        st.experimental_rerun()
+            else:
+                st.warning("Please enter full name or select from suggestions.")
+    st.stop()
 
 # ==================================
 # AFTER LOGIN
@@ -80,10 +80,7 @@ st.success(f"Logged in as: {st.session_state.logged_in_user}")
 
 if st.button("Logout"):
     st.session_state.logged_in_user = None
-    st.session_state.login_selected_name = None
-    st.session_state.current_floor = None
-    st.session_state.current_set = None
-    st.stop()
+    st.experimental_rerun()
 
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
 
@@ -110,25 +107,27 @@ LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE)
 else:
-    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName", "Timestamp"])
+    log_df = pd.DataFrame(columns=["Technician", "Floor", "SetName", "Sister", "Timestamp"])
 
-for col in ["Technician","Floor","SetName","Timestamp"]:
+for col in ["Technician","Floor","SetName","Sister","Timestamp"]:
     if col not in log_df.columns:
         log_df[col] = ""
 
-log_df = log_df[["Technician","Floor","SetName","Timestamp"]]
+log_df = log_df[["Technician","Floor","SetName","Sister","Timestamp"]]
 
 # ==================================
 # SEARCH SECTION
 # ==================================
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
+
 search_pressed = st.button("Find Floor")
 
 if search_pressed or user_input:
     search = user_input.upper().strip()
     matched_set = None
 
+    # Exact match
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
@@ -148,7 +147,7 @@ if search_pressed or user_input:
             matched_set = search
 
 # ==================================
-# SHOW FLOOR + ISSUE BUTTON
+# ENTER SISTER NAME + SHOW FLOOR + ISSUE BUTTON
 # ==================================
 if st.session_state.current_floor:
     floor_name = st.session_state.current_floor
@@ -157,17 +156,23 @@ if st.session_state.current_floor:
     st.success(f"Floor ➜ {floor_name}")
     st.info(f"Yah set {floor_name} bheja jata hai.")
 
+    sister_name = st.text_input("Enter Sister Name")
+
     if st.button("Issue"):
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Current India time
+        ist = pytz.timezone("Asia/Kolkata")
+        current_time = datetime.now(ist).strftime("%Y-%m-%d %I:%M:%S %p")
+
         new_entry = {
             "Technician": st.session_state.logged_in_user,
             "Floor": floor_name,
             "SetName": set_name,
+            "Sister": sister_name,
             "Timestamp": current_time
         }
         log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
         log_df.to_csv(LOG_FILE, index=False)
-        st.success(f"{set_name} issued successfully at {current_time}")
+        st.success(f"{set_name} issued successfully at {current_time} to Sister: {sister_name}")
 
 # ==================================
 # ISSUE HISTORY + CLEAR LOG
@@ -177,13 +182,13 @@ col1, col2 = st.columns([3,1])
 
 with col2:
     if st.button("Clear Log"):
-        log_df = pd.DataFrame(columns=["Technician","Floor","SetName","Timestamp"])
+        log_df = pd.DataFrame(columns=["Technician","Floor","SetName","Sister","Timestamp"])
         log_df.to_csv(LOG_FILE,index=False)
         st.success("Issue history cleared")
-        st.stop()
+        st.experimental_rerun()
 
 if not log_df.empty:
     for index,row in log_df.iterrows():
-        st.write(f"{row['Timestamp']} ➜ {row['Floor']} issued by {row['Technician']} (Set: {row['SetName']})")
+        st.write(f"{row['Timestamp']} ➜ {row['Floor']} issued by {row['Technician']} (Set: {row['SetName']}) to Sister: {row['Sister']})")
 else:
     st.write("No issues recorded yet.")
