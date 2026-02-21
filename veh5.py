@@ -143,7 +143,7 @@ if st.session_state.current_floor:
         st.success(f"{set_name} issued successfully")
 
 # ==============================
-# ISSUE HISTORY + CLEAR LOG
+# ISSUE HISTORY + CLEAR LOG 
 # ==============================
 st.markdown("### Issue History")
 col1, col2 = st.columns([3,1])
