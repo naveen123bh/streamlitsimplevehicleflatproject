@@ -34,21 +34,21 @@ if "current_floor" not in st.session_state:
     st.session_state.current_floor = None
 if "current_set" not in st.session_state:
     st.session_state.current_set = None
+if "login_selected_name" not in st.session_state:
+    st.session_state.login_selected_name = None
 
 # ==================================
 # LOGIN
 # ==================================
 if st.session_state.logged_in_user is None:
 
-    # Highlighted login box
     st.markdown(
         """
-        <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff">
+        <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff; max-width:500px;">
             <h3 style='color:blue;'>CSSD Technician Login</h3>
             <p>Enter your name below:</p>
         </div>
-        """,
-        unsafe_allow_html=True
+        """, unsafe_allow_html=True
     )
 
     name_input = st.text_input("Technician Name", key="login_name_input")
@@ -58,20 +58,20 @@ if st.session_state.logged_in_user is None:
         normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
 
         if cleaned_input in normalized_names:
-            st.session_state.logged_in_user = normalized_names[cleaned_input]
-            st.rerun()
+            st.session_state.login_selected_name = normalized_names[cleaned_input]
         else:
             suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
             if suggestions:
-                st.info("Select your correct name:")
-                for s in suggestions:
-                    original_name = normalized_names[s]
-                    if st.button(original_name):
-                        st.session_state.logged_in_user = original_name
-                        st.rerun()
-            else:
-                st.warning("Please enter full name.")
-    st.stop()
+                options = [normalized_names[s] for s in suggestions]
+                st.session_state.login_selected_name = st.selectbox("Did you mean:", options, key="login_suggest_select")
+
+    if st.button("Login"):
+        if st.session_state.login_selected_name:
+            st.session_state.logged_in_user = st.session_state.login_selected_name
+        else:
+            st.warning("Please enter full name or select from suggestions.")
+
+    st.stop()  # Wait until login complete
 
 # ==================================
 # AFTER LOGIN
@@ -80,7 +80,10 @@ st.success(f"Logged in as: {st.session_state.logged_in_user}")
 
 if st.button("Logout"):
     st.session_state.logged_in_user = None
-    st.rerun()
+    st.session_state.login_selected_name = None
+    st.session_state.current_floor = None
+    st.session_state.current_set = None
+    st.stop()
 
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
 
@@ -126,7 +129,6 @@ if search_pressed or user_input:
     search = user_input.upper().strip()
     matched_set = None
 
-    # Exact match
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
@@ -155,10 +157,11 @@ if st.session_state.current_floor:
     st.success(f"Floor ➜ {floor_name}")
     st.info(f"Yah set {floor_name} bheja jata hai.")
 
+    # Sister name input
     sister_name = st.text_input("Issued to Sister (type name)")
 
     if st.button("Issue"):
-        # Indian time
+        # Get Indian time
         india_tz = pytz.timezone("Asia/Kolkata")
         current_time = datetime.now(india_tz).strftime("%Y-%m-%d %I:%M:%S %p")
 
@@ -184,7 +187,7 @@ with col2:
         log_df = pd.DataFrame(columns=["Technician","Floor","SetName","Sister","DateTime"])
         log_df.to_csv(LOG_FILE,index=False)
         st.success("Issue history cleared")
-        st.rerun()
+        st.stop()
 
 if not log_df.empty:
     for index,row in log_df.iterrows():
