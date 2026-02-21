@@ -4,12 +4,6 @@ import pandas as pd
 import difflib
 
 # ==================================
-# KDHA HEADER & NOTE
-# ==================================
-st.markdown("<h2 style='color:purple; font-weight:bold;'>KDHA</h2>", unsafe_allow_html=True)
-st.markdown("<p style='color:orange; font-style:italic;'>Note: This app is under development and consideration</p>", unsafe_allow_html=True)
-
-# ==================================
 # CSSD TECHNICIAN MASTER LIST
 # ==================================
 TECHNICIAN_NAMES = [
@@ -75,7 +69,7 @@ if st.session_state.logged_in_user is None:
 
         if cleaned_input in normalized_names:
             st.session_state.logged_in_user = normalized_names[cleaned_input]
-            st.rerun()
+            st.experimental_rerun()
         else:
             suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
             if suggestions:
@@ -84,7 +78,7 @@ if st.session_state.logged_in_user is None:
                     original_name = normalized_names[s]
                     if st.button(original_name):
                         st.session_state.logged_in_user = original_name
-                        st.rerun()
+                        st.experimental_rerun()
             else:
                 st.warning("Please enter full name.")
     st.stop()
@@ -96,9 +90,13 @@ st.success(f"Logged in as: {st.session_state.logged_in_user}")
 
 if st.button("Logout"):
     st.session_state.logged_in_user = None
-    st.rerun()
+    st.experimental_rerun()
 
 st.markdown("<h1 style='color:blue;'>CSSD Set Floor Finder</h1>", unsafe_allow_html=True)
+
+# KDHA and note
+st.markdown("<h4 style='color:red;'>KDHA</h4>", unsafe_allow_html=True)
+st.markdown("<i>Note: This app is under development and consideration.</i>", unsafe_allow_html=True)
 
 # ==================================
 # LOAD CSV
@@ -196,7 +194,7 @@ with col2:
         log_df = pd.DataFrame(columns=["Technician","Floor","SetName"])
         log_df.to_csv(LOG_FILE,index=False)
         st.success("Issue history cleared")
-        st.rerun()
+        st.experimental_rerun()
 
 if not log_df.empty:
     for index,row in log_df.iterrows():
