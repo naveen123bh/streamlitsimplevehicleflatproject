@@ -40,6 +40,9 @@ TECHNICIAN_NAMES = [
 if "logged_in_user" not in st.session_state:
     st.session_state.logged_in_user = None
 
+if "selected_set" not in st.session_state:
+    st.session_state.selected_set = None
+
 # ==================================
 # LOGIN SECTION
 # ==================================
@@ -51,18 +54,14 @@ if st.session_state.logged_in_user is None:
     )
 
     name_input = st.text_input("Enter Your Name")
-
     name_upper = name_input.strip().upper()
 
     if name_upper:
 
-        # Exact match → direct login
         if name_upper in TECHNICIAN_NAMES:
             st.session_state.logged_in_user = name_upper
             st.success(f"Welcome {name_upper}")
             st.rerun()
-
-        # Suggestions
         else:
             suggestions = difflib.get_close_matches(
                 name_upper,
@@ -147,6 +146,12 @@ for set_name, floor in set_floor_pairs.items():
 st.markdown("<h3>Enter Set Name or Floor</h3>")
 user_input = st.text_input("Search Here")
 
+# If suggestion was clicked earlier
+if st.session_state.selected_set:
+    selected = st.session_state.selected_set
+    st.success(f"{selected} ➜ {set_floor_pairs[selected]}")
+    st.session_state.selected_set = None
+
 if st.button("Find Floor"):
 
     input_norm_set = normalize_set_input(user_input)
@@ -175,6 +180,7 @@ if st.button("Find Floor"):
             st.warning("Set not found. Did you mean:")
             for s in suggestions:
                 if st.button(s):
-                    st.success(f"{s} ➜ {set_floor_pairs[s]}")
+                    st.session_state.selected_set = s
+                    st.rerun()
         else:
             st.error("Set not found in database.")
