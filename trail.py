@@ -1,13 +1,11 @@
 import os
 import re
-import sys
-import openpyxl
 import streamlit as st
 import pandas as pd
 import difflib
 
 # ==================================
-# CSSD TECHNICIAN MASTER LIST
+# CSSD TECHNICIAN MASTER LIST (24)
 # ==================================
 TECHNICIAN_NAMES = [
     "MR. MANISH SHENVI",
@@ -43,7 +41,7 @@ if "logged_in_user" not in st.session_state:
     st.session_state.logged_in_user = None
 
 # ==================================
-# LOGIN SECTION (LIVE AUTOSUGGEST)
+# LOGIN SECTION
 # ==================================
 if st.session_state.logged_in_user is None:
 
@@ -64,7 +62,7 @@ if st.session_state.logged_in_user is None:
             st.success(f"Welcome {name_upper}")
             st.rerun()
 
-        # Show suggestions
+        # Suggestions
         else:
             suggestions = difflib.get_close_matches(
                 name_upper,
@@ -90,58 +88,45 @@ if st.session_state.logged_in_user is None:
 # ==================================
 st.success(f"Logged in as: {st.session_state.logged_in_user}")
 
-# Logout option
 if st.button("Logout"):
     st.session_state.logged_in_user = None
     st.rerun()
 
-# ==================================
-# APP HEADER
-# ==================================
 st.markdown(
-    "<h1 style='color:blue; font-size:50px;'>CSSD Set Floor Finder</h1>",
+    "<h1 style='color:blue; font-size:45px;'>CSSD Set Floor Finder</h1>",
     unsafe_allow_html=True,
 )
 
 # ==================================
 # HELPER FUNCTIONS
 # ==================================
-def normalize_set_input(set_name):
-    if pd.isna(set_name):
+def normalize_set_input(text):
+    if pd.isna(text):
         return ""
-    text = str(set_name).upper()
+    text = str(text).upper()
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
-def normalize_floor_input(floor_name):
-    if pd.isna(floor_name):
+def normalize_floor_input(text):
+    if pd.isna(text):
         return ""
-    text = str(floor_name).upper()
+    text = str(text).upper()
     text = re.sub(r"\s+", "", text)
     return text.strip()
 
 # ==================================
-# LOAD CSV SAFELY
+# LOAD CSV
 # ==================================
 raw_file = "sets.csv"
 
 if not os.path.exists(raw_file):
-    st.error(f"File not found: {raw_file}")
+    st.error("sets.csv file not found.")
     st.stop()
 
-try:
-    df = pd.read_csv(
-        raw_file,
-        engine="python",
-        on_bad_lines="skip",
-        encoding="utf-8"
-    )
-except Exception as e:
-    st.error(f"Error reading file: {e}")
-    st.stop()
+df = pd.read_csv(raw_file, engine="python", on_bad_lines="skip")
 
 if df.shape[1] < 2:
-    st.error("CSV must contain at least 2 columns.")
+    st.error("CSV must contain SetName and Floor columns.")
     st.stop()
 
 df = df.iloc[:, :2]
@@ -177,7 +162,7 @@ if st.button("Find Floor"):
         for s in floor_to_sets[input_norm_floor]:
             st.write(f"👉 {s}")
 
-    # Suggest Similar Sets
+    # Clickable Suggestions
     else:
         suggestions = difflib.get_close_matches(
             input_norm_set,
@@ -189,6 +174,7 @@ if st.button("Find Floor"):
         if suggestions:
             st.warning("Set not found. Did you mean:")
             for s in suggestions:
-                st.write(f"👉 {s}")
+                if st.button(s):
+                    st.success(f"{s} ➜ {set_floor_pairs[s]}")
         else:
             st.error("Set not found in database.")
