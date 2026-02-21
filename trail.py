@@ -4,6 +4,12 @@ import pandas as pd
 import difflib
 
 # ==================================
+# KDHA NOTE
+# ==================================
+st.markdown("<h3 style='color:purple;'>KDHA</h3>", unsafe_allow_html=True)
+st.markdown("<i>Note: This app is under development and consideration</i>", unsafe_allow_html=True)
+
+# ==================================
 # CSSD TECHNICIAN MASTER LIST
 # ==================================
 TECHNICIAN_NAMES = [
