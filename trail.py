@@ -54,13 +54,11 @@ if st.session_state.logged_in_user is None:
     name_upper = name_input.strip().upper()
 
     if name_upper:
-
         if name_upper in TECHNICIAN_NAMES:
             st.session_state.logged_in_user = name_upper
             st.rerun()
         else:
             suggestions = difflib.get_close_matches(name_upper, TECHNICIAN_NAMES, n=5, cutoff=0.5)
-
             if suggestions:
                 st.info("Select your correct name:")
                 for s in suggestions:
@@ -137,7 +135,6 @@ if user_input:
 
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
-
     else:
         suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
 
@@ -152,9 +149,11 @@ if user_input:
 # ==================================
 if st.session_state.current_floor:
     floor_name = st.session_state.current_floor
-    st.success(f"Floor ➜ {floor_name}")
 
-    if st.button("Issue"):
+    st.success(f"Floor ➜ {floor_name}")
+    st.info(f"Yah set {floor_name} bheja jata hai.")
+
+    if st.button("Issue kare"):
         new_entry = {
             "Technician": st.session_state.logged_in_user,
             "Floor": floor_name
