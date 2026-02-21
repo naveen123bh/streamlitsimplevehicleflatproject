@@ -49,27 +49,28 @@ if st.session_state.logged_in_user is None:
     )
 
     name_input = st.text_input("Technician Name", key="login_name_input")
-    login_pressed = st.button("Login", key="login_btn")  # big login button
+    cleaned_input = " ".join(name_input.upper().split())
+    normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
+    selected_name = None
 
-    if login_pressed and name_input:
-        cleaned_input = " ".join(name_input.upper().split())
-        normalized_names = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
+    # Exact match
+    if cleaned_input in normalized_names:
+        selected_name = normalized_names[cleaned_input]
+    else:
+        # suggestions using selectbox
+        suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
+        if suggestions:
+            options = [normalized_names[s] for s in suggestions]
+            selected_name = st.selectbox("Did you mean:", options, key="login_suggest_select")
 
-        if cleaned_input in normalized_names:
-            st.session_state.logged_in_user = normalized_names[cleaned_input]
-            st.experimental_rerun()  # move to main menu
+    if st.button("Login", key="login_btn"):
+        if selected_name:
+            st.session_state.logged_in_user = selected_name
+            st.experimental_rerun()
         else:
-            suggestions = difflib.get_close_matches(cleaned_input, normalized_names.keys(), n=5, cutoff=0.5)
-            if suggestions:
-                st.info("Select your correct name:")
-                for i, s in enumerate(suggestions):
-                    original_name = normalized_names[s]
-                    if st.button(original_name, key=f"login_suggest_{i}"):
-                        st.session_state.logged_in_user = original_name
-                        st.experimental_rerun()
-            else:
-                st.warning("Please enter full name.")
-    st.stop()  # stops everything below until login
+            st.warning("Please enter your full name or select from suggestions.")
+
+    st.stop()
 
 # ==================================
 # AFTER LOGIN
@@ -118,12 +119,16 @@ log_df = log_df[["Technician","Floor","SetName"]]
 # ==================================
 st.markdown("### Enter Set Name")
 user_input = st.text_input("Search Here", key="search_input")
-search_pressed = st.button("Find Floor", key="find_floor_btn")
 
+# Press Enter or button
+search_pressed = st.button("Find Floor")
+
+# ===== Handle search =====
 if search_pressed or user_input:
     search = user_input.upper().strip()
     matched_set = None
 
+    # Exact match
     if search in set_floor_pairs:
         st.session_state.current_floor = set_floor_pairs[search]
         st.session_state.current_set = search
@@ -132,12 +137,13 @@ if search_pressed or user_input:
         suggestions = difflib.get_close_matches(search, set_floor_pairs.keys(), n=5, cutoff=0.6)
         if suggestions:
             st.warning("Did you mean:")
-            for i, s in enumerate(suggestions):
-                if st.button(s, key=f"search_suggest_{i}"):
+            for s in suggestions:
+                if st.button(s):
                     st.session_state.current_floor = set_floor_pairs[s]
                     st.session_state.current_set = s
                     matched_set = s
         else:
+            # If no match, still show input as set name
             st.session_state.current_set = search
             st.session_state.current_floor = "Unknown Floor"
             matched_set = search
@@ -152,7 +158,7 @@ if st.session_state.current_floor:
     st.success(f"Floor ➜ {floor_name}")
     st.info(f"Yah set {floor_name} bheja jata hai.")
 
-    if st.button("Issue", key="issue_btn"):
+    if st.button("Issue"):
         new_entry = {
             "Technician": st.session_state.logged_in_user,
             "Floor": floor_name,
@@ -169,7 +175,7 @@ st.markdown("### Issue History")
 col1, col2 = st.columns([3,1])
 
 with col2:
-    if st.button("Clear Log", key="clear_log_btn"):
+    if st.button("Clear Log"):
         log_df = pd.DataFrame(columns=["Technician","Floor","SetName"])
         log_df.to_csv(LOG_FILE,index=False)
         st.success("Issue history cleared")
