@@ -111,7 +111,6 @@ if option == "Separate Pack":
 
         pack_names = sp_df["PackName"].tolist()
 
-        # Exact match
         if name in pack_names:
             row = sp_df[sp_df["PackName"] == name].iloc[0]
             st.session_state.found_pack = {
@@ -121,7 +120,6 @@ if option == "Separate Pack":
             }
 
         else:
-            # Fuzzy match
             suggestions = difflib.get_close_matches(name, pack_names, n=5, cutoff=0.4)
 
             if suggestions:
@@ -151,11 +149,18 @@ if option == "Separate Pack":
                 "Department": data["dept"]
             }
 
-            log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
-            log_df.to_csv(LOG_FILE, index=False)
+            if os.path.exists(LOG_FILE):
+                existing = pd.read_csv(LOG_FILE)
+                updated = pd.concat([existing, pd.DataFrame([new])], ignore_index=True)
+            else:
+                updated = pd.DataFrame([new])
+
+            updated.to_csv(LOG_FILE, index=False)
 
             st.success("Pack Issued Successfully")
+
             st.session_state.found_pack = None
+            st.rerun()
 
 
 # ==============================
@@ -175,7 +180,6 @@ else:
 
         set_names = df["SetName"].tolist()
 
-        # Exact match
         if name in set_names:
             row = df[df["SetName"] == name].iloc[0]
             st.session_state.found_set = {
@@ -212,11 +216,18 @@ else:
                 "Department": ""
             }
 
-            log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
-            log_df.to_csv(LOG_FILE, index=False)
+            if os.path.exists(LOG_FILE):
+                existing = pd.read_csv(LOG_FILE)
+                updated = pd.concat([existing, pd.DataFrame([new])], ignore_index=True)
+            else:
+                updated = pd.DataFrame([new])
+
+            updated.to_csv(LOG_FILE, index=False)
 
             st.success("Set Issued Successfully")
+
             st.session_state.found_set = None
+            st.rerun()
 
 
 # ==============================
@@ -224,7 +235,11 @@ else:
 # ==============================
 st.subheader("Issue History")
 
-if not log_df.empty:
-    st.dataframe(log_df)
+if os.path.exists(LOG_FILE):
+    history_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
+    if not history_df.empty:
+        st.dataframe(history_df)
+    else:
+        st.write("No issues recorded")
 else:
     st.write("No issues recorded")
