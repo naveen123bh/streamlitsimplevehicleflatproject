@@ -13,108 +13,85 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
 
     st.subheader("Separate Pack Section")
 
-    option = st.radio(
-        "Choose Method",
-        ["Search by Department", "Search by Pack Name"]
-    )
+    # initialize state safely
+    if "confirmed_pack" not in st.session_state:
+        st.session_state.confirmed_pack = None
 
-    # ==================================================
-    # OPTION 1 → Department
-    # ==================================================
-    if option == "Search by Department":
+    name_input = st.text_input("Enter Pack Name").upper().strip()
 
-        dept_input = st.text_input("Enter Department Name").upper().strip()
+    # ===============================
+    # SEARCH
+    # ===============================
+    if st.button("Search Pack"):
 
-        if st.button("Show Packs"):
+        st.session_state.confirmed_pack = None
 
-            result = sp_df[
-                sp_df["Department"].str.contains(dept_input, case=False, na=False)
-            ]
+        exact = sp_df[sp_df["PackName"] == name_input]
 
-            if not result.empty:
-                st.dataframe(result[["PackName", "Floor"]])
-            else:
-                st.error("No packs found")
+        if not exact.empty:
 
+            st.session_state.confirmed_pack = exact.iloc[0].to_dict()
 
-    # ==================================================
-    # OPTION 2 → Pack Name Flow
-    # ==================================================
-    else:
+        else:
 
-        name_input = st.text_input("Enter Pack Name").upper().strip()
-
-        # --------------------------
-        # STEP 1 → SEARCH
-        # --------------------------
-        if st.button("Search Pack"):
-
-            st.session_state.confirm_pack = None
-            st.session_state.found_pack = None
-
-            exact = sp_df[sp_df["PackName"] == name_input]
-
-            if not exact.empty:
-                st.session_state.confirm_pack = exact.iloc[0].to_dict()
-
-            else:
-                all_names = sp_df["PackName"].tolist()
-                matches = difflib.get_close_matches(
-                    name_input, all_names, n=3, cutoff=0.4
-                )
-
-                if matches:
-                    selected = st.selectbox("Did you mean:", matches)
-                    st.session_state.temp_selection = selected
-                else:
-                    st.error("No similar pack found")
-
-        # --------------------------
-        # STEP 2 → CONFIRM (for similar)
-        # --------------------------
-        if st.session_state.get("temp_selection"):
-
-            if st.button("Confirm Pack"):
-
-                row = sp_df[
-                    sp_df["PackName"] == st.session_state.temp_selection
-                ].iloc[0]
-
-                st.session_state.confirm_pack = row.to_dict()
-                st.session_state.temp_selection = None
-
-        # --------------------------
-        # SHOW CONFIRMED PACK
-        # --------------------------
-        if st.session_state.get("confirm_pack"):
-
-            data = st.session_state.confirm_pack
-
-            st.success(
-                f"{data['PackName']} ➜ Floor: {data['Floor']} | Dept: {data['Department']}"
+            all_names = sp_df["PackName"].tolist()
+            matches = difflib.get_close_matches(
+                name_input, all_names, n=3, cutoff=0.4
             )
 
-            # --------------------------
-            # STEP 3 → ISSUE
-            # --------------------------
-            if st.button("Issue Pack"):
+            if matches:
+                selected = st.selectbox("Select Correct Pack", matches)
+                st.session_state.selected_option = selected
+            else:
+                st.error("No similar pack found")
 
-                new = {
-                    "Technician": logged_user,
-                    "Floor": data["Floor"],
-                    "ItemName": data["PackName"],
-                    "Department": data["Department"]
-                }
+    # ===============================
+    # CONFIRM SIMILAR
+    # ===============================
+    if "selected_option" in st.session_state:
 
-                log_df = pd.concat(
-                    [log_df, pd.DataFrame([new])],
-                    ignore_index=True
-                )
+        if st.button("Confirm Pack"):
 
-                log_df.to_csv(LOG_FILE, index=False)
+            row = sp_df[
+                sp_df["PackName"] == st.session_state.selected_option
+            ].iloc[0]
 
-                st.success("Pack Issued Successfully")
+            st.session_state.confirmed_pack = row.to_dict()
+            del st.session_state.selected_option
 
-                st.session_state.confirm_pack = None
+    # ===============================
+    # SHOW CONFIRMED PACK
+    # ===============================
+    if st.session_state.confirmed_pack:
+
+        data = st.session_state.confirmed_pack
+
+        st.success(
+            f"{data['PackName']} ➜ Floor: {data['Floor']} | Dept: {data['Department']}"
+        )
+
+        # ===============================
+        # ISSUE (Only Confirmed One)
+        # ===============================
+        if st.button("Issue Pack"):
+
+            new = {
+                "Technician": logged_user,
+                "Floor": data["Floor"],
+                "ItemName": data["PackName"],
+                "Department": data["Department"]
+            }
+
+            log_df = pd.concat(
+                [log_df, pd.DataFrame([new])],
+                ignore_index=True
+            )
+
+            log_df.to_csv(LOG_FILE, index=False)
+
+            st.success("Pack Issued Successfully")
+
+            # clear after issuing
+            st.session_state.confirmed_pack = None
 
     return log_df
