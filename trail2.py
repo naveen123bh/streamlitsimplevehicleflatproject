@@ -6,28 +6,17 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-import requests
 
 # ==============================
-# AUTOMATIC HOSPITAL IMAGE DOWNLOAD + DISPLAY
+# HOSPITAL IMAGE + HEADER
 # ==============================
-if not os.path.exists("hospital.jpg"):
-    try:
-        file_id = "Rq9hqoaJVABzH74QL"  # Google Drive file ID
-        url = f"https://drive.google.com/uc?export=download&id={file_id}"
-        r = requests.get(url)
-        if r.status_code == 200:
-            with open("hospital.jpg", "wb") as f:
-                f.write(r.content)
-            print("Downloaded hospital.jpg successfully!")
-        else:
-            print("Failed to download hospital image. Status code:", r.status_code)
-    except Exception as e:
-        print("Error downloading hospital image:", e)
-
-# Display hospital image on login page
-if os.path.exists("hospital.jpg"):
-    st.image("hospital.jpg", width=400)
+# Direct public Google Drive link
+st.image(
+    "https://drive.google.com/uc?export=download&id=1ARNjR8PZnSXMZK6MllvxZE0JdoyH3DzE",
+    width=400
+)
+st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
+st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
 # SESSION STATE INIT
@@ -43,12 +32,6 @@ defaults = {
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
-
-# ==============================
-# HEADER
-# ==============================
-st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
-st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
 # LOGIN
