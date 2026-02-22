@@ -241,4 +241,4 @@ if not log_df.empty:
         dept_display = f" (Dept: {row['Department']})" if row['Department'] else ""
         st.write(f"{row['Floor']} issued by {row['Technician']} (Set/Pack: {row['SetName']}){dept_display}")
 else:
-    st.write("No issues recorded yet")
+    st.write("No issues recorded yet.")
