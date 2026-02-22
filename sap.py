@@ -22,9 +22,31 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
     if "similar_matches" not in st.session_state:
         st.session_state.similar_matches = None
 
-    # ------------------------------
-    # INPUT
-    # ------------------------------
+    # ======================================================
+    # 🟣 NEW → Department Input (Only Addition)
+    # ======================================================
+    st.markdown("### Search by Department")
+
+    dept_input = st.text_input("Enter Department Name").upper().strip()
+
+    if dept_input:
+        dept_result = sp_df[
+            sp_df["Department"].str.contains(dept_input, case=False, na=False)
+        ]
+
+        if not dept_result.empty:
+            st.write("Available Packs in Department:")
+            st.dataframe(dept_result[["PackName", "Floor"]])
+        else:
+            st.warning("No packs found for this department")
+
+    st.markdown("---")
+
+    # ======================================================
+    # Existing Pack Search Logic (UNCHANGED)
+    # ======================================================
+    st.markdown("### Search by Pack Name")
+
     name_input = st.text_input("Enter Pack Name").upper().strip()
 
     # ------------------------------
@@ -32,13 +54,11 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
     # ------------------------------
     if st.button("Search Pack"):
 
-        # Reset previous states
         st.session_state.confirmed_pack = None
         st.session_state.similar_matches = None
 
         exact = sp_df[sp_df["PackName"] == name_input]
 
-        # Exact Match
         if not exact.empty:
             st.session_state.confirmed_pack = exact.iloc[0].to_dict()
 
@@ -57,7 +77,7 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
                 st.error("No similar pack found")
 
     # ------------------------------
-    # SIMILAR DROPDOWN (Stable)
+    # SIMILAR DROPDOWN
     # ------------------------------
     if st.session_state.similar_matches:
 
@@ -87,9 +107,6 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
             f"{data['PackName']} ➜ Floor: {data['Floor']} | Dept: {data['Department']}"
         )
 
-        # ------------------------------
-        # ISSUE BUTTON
-        # ------------------------------
         if st.button("Issue Pack"):
 
             new = {
@@ -108,7 +125,6 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
 
             st.success("Pack Issued Successfully")
 
-            # Clear after issue
             st.session_state.confirmed_pack = None
 
     return log_df
