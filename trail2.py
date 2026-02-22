@@ -13,15 +13,14 @@ st.markdown("<p style='color:orange; font-style:italic;'>Note: This app is under
 # ==============================
 # SESSION STATE
 # ==============================
-for key in ["logged_in_user","current_floor","current_set","login_selected_name"]:
+for key in ["logged_in_user","current_floor","current_set","login_selected_name","query_option"]:
     if key not in st.session_state:
         st.session_state[key] = None
 
 # ==============================
-# LOGIN
+# LOGIN PAGE
 # ==============================
 if st.session_state.logged_in_user is None:
-
     st.markdown(
         """
         <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff; max-width:500px;">
@@ -53,27 +52,35 @@ if st.session_state.logged_in_user is None:
     st.stop()
 
 # ==============================
-# AFTER LOGIN - WELCOME PAGE & QUERY CHOICE
+# LOGOUT
 # ==============================
 st.success(f"Logged in as: {st.session_state.logged_in_user}")
-
 if st.button("Logout"):
-    for key in ["logged_in_user","login_selected_name","current_floor","current_set"]:
+    for key in ["logged_in_user","login_selected_name","current_floor","current_set","query_option"]:
         st.session_state[key] = None
     st.experimental_rerun()
     st.stop()
 
-st.markdown("<h3 style='color:green;'>I will help you issuing Separate pack and Set to right dept/floor</h3>", unsafe_allow_html=True)
+# ==============================
+# WELCOME / QUERY CHOICE PAGE
+# ==============================
+if st.session_state.query_option is None:
+    st.markdown("<h3 style='color:green;'>I will help you issuing Separate pack and Set to right dept/floor</h3>", unsafe_allow_html=True)
+    choice = st.radio("Choose what you want to query:", ["Separate Pack", "Set"])
+    if st.button("Continue"):
+        st.session_state.query_option = choice
+        st.experimental_rerun()
+    st.stop()
 
-option = st.radio("Choose what you want to query:", ["Separate Pack", "Set"], index=0)
+option = st.session_state.query_option
 
 # ==============================
-# LOAD SET CSV
+# LOAD CSV FILES
 # ==============================
+# Sets
 if not os.path.exists("sets.csv"):
     st.error("sets.csv file not found.")
     st.stop()
-
 df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
 df = df.iloc[:, :2]
 df.columns = ["SetName", "Floor"]
@@ -81,9 +88,7 @@ df["SetName"] = df["SetName"].astype(str).str.upper().str.strip()
 df["Floor"] = df["Floor"].astype(str).str.upper().str.strip()
 set_floor_pairs = dict(zip(df["SetName"], df["Floor"]))
 
-# ==============================
-# LOAD SEPARATE PACK CSV
-# ==============================
+# Separate Packs
 if option == "Separate Pack":
     if not os.path.exists("saperate_pack.csv"):
         st.error("saperate_pack.csv file not found.")
@@ -111,7 +116,7 @@ for col in ["Technician","Floor","SetName","Department"]:
 log_df = log_df[["Technician","Floor","SetName","Department"]]
 
 # ==============================
-# QUERY SECTION
+# SEPARATE PACK PAGE
 # ==============================
 if option == "Separate Pack":
     sp_choice = st.radio("Choose how to view:", ["View all packs by Department & Floor", "Search by Pack Name"], index=0)
@@ -125,7 +130,6 @@ if option == "Separate Pack":
         else:
             st.warning("No packs found for this Department and Floor.")
 
-        # Optional Issue Button for all filtered packs
         if st.button("Issue All Filtered Packs"):
             for _, row in filtered.iterrows():
                 new_entry = {
@@ -145,8 +149,6 @@ if option == "Separate Pack":
             if sp_input in pack_floor_dept_pairs:
                 floor, dept = pack_floor_dept_pairs[sp_input]
                 st.success(f"Pack '{sp_input}' ➜ Floor: {floor}, Department: {dept}")
-
-                # Issue button
                 if st.button("Issue This Pack"):
                     new_entry = {
                         "Technician": st.session_state.logged_in_user,
@@ -165,7 +167,6 @@ if option == "Separate Pack":
                     if selected:
                         floor, dept = pack_floor_dept_pairs[selected]
                         st.success(f"Pack '{selected}' ➜ Floor: {floor}, Department: {dept}")
-
                         if st.button("Issue This Pack Corrected"):
                             new_entry = {
                                 "Technician": st.session_state.logged_in_user,
@@ -176,13 +177,11 @@ if option == "Separate Pack":
                             log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
                             log_df.to_csv(LOG_FILE, index=False)
                             st.success(f"Pack '{selected}' issued successfully")
-                else:
-                    st.error("No matching pack found.")
 
+# ==============================
+# SET PAGE (existing logic)
+# ==============================
 else:  # option == "Set"
-    # ==============================
-    # SEARCH SECTION
-    # ==============================
     st.markdown("### Enter Set Name")
     user_input = st.text_input("Search Here", key="search_input")
     search_pressed = st.button("Find Floor")
@@ -190,7 +189,6 @@ else:  # option == "Set"
 
     if search_pressed or user_input:
         search = user_input.upper().strip()
-
         if search in set_floor_pairs:
             st.session_state.current_set = search
             st.session_state.current_floor = set_floor_pairs[search]
@@ -209,16 +207,11 @@ else:  # option == "Set"
                 st.session_state.current_floor = "please enter correct name"
                 matched_set = search
 
-    # ==============================
-    # SHOW FLOOR + ISSUE BUTTON
-    # ==============================
     if st.session_state.current_floor:
         floor_name = st.session_state.current_floor
         set_name = st.session_state.current_set
-
         st.success(f"Floor ➜ {floor_name}")
         st.info(f"Set '{set_name}' goes to {floor_name}")
-
         if st.button("Issue"):
             new_entry = {
                 "Technician": st.session_state.logged_in_user,
