@@ -8,7 +8,7 @@ from datetime import datetime
 import pytz
 import random
 
-# ==============================
+# =============================
 # HOSPITAL IMAGE + HEADER
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
