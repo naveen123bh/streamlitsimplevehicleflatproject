@@ -95,7 +95,7 @@ else:
 
 
 # ==============================
-# SEPARATE PACK
+# SEPARATE PACK (UNCHANGED)
 # ==============================
 if option == "Separate Pack":
 
@@ -156,7 +156,7 @@ if option == "Separate Pack":
 
 
 # ==============================
-# SET
+# SET (CORRECTED SUGGESTION LOGIC)
 # ==============================
 else:
 
@@ -172,26 +172,31 @@ else:
 
         set_names = df["SetName"].tolist()
 
+        # Exact match
         if name in set_names:
-            selected = name
-        else:
-            # 🔥 CHANGED HERE — 5 suggestions
-            suggestions = difflib.get_close_matches(name, set_names, n=5, cutoff=0.4)
-
-            if suggestions:
-                selected = st.selectbox("Did you mean:", suggestions)
-            else:
-                selected = None
-
-        if selected:
-            row = df[df["SetName"] == selected].iloc[0]
+            row = df[df["SetName"] == name].iloc[0]
             st.session_state.found_set = {
                 "name": row["SetName"],
                 "floor": row["Floor"]
             }
             st.rerun()
+
         else:
-            st.error("Please enter correct set name")
+            # 🔥 5 suggestions without auto-select
+            suggestions = difflib.get_close_matches(name, set_names, n=5, cutoff=0.3)
+
+            if suggestions:
+                selected_option = st.selectbox("Did you mean:", suggestions)
+
+                if st.button("Confirm Selection"):
+                    row = df[df["SetName"] == selected_option].iloc[0]
+                    st.session_state.found_set = {
+                        "name": row["SetName"],
+                        "floor": row["Floor"]
+                    }
+                    st.rerun()
+            else:
+                st.error("Please enter correct set name")
 
     if st.session_state.found_set:
 
