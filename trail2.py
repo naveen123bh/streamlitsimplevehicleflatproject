@@ -6,9 +6,10 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
+import random
 
 # ==============================
-# HOSPITAL IMAGE 
+# HOSPITAL IMAGE + HEADER
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
@@ -29,6 +30,20 @@ defaults = {
 for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
+
+# ==============================
+# RANDOM DEEP QUOTES (2 lines each)
+# ==============================
+QUOTES = [
+    "The mind is a mirror, see the reflection, not the shadow.\nPeace is the awareness of what is.",
+    "Everything happens by itself; the doer is an illusion.\nWitness the flow and be free.",
+    "Silence carries the answer; the world is but a play.\nBe the observer, not the actor.",
+    "When you stop chasing, you arrive.\nWhat is, is enough for this moment.",
+    "Nothing belongs to you, yet everything unfolds within you.\nLet love arise without effort."
+]
+
+def get_random_quote():
+    return random.choice(QUOTES)
 
 # ==============================
 # LOGIN
@@ -59,12 +74,13 @@ if st.session_state.logged_in_user is None:
     st.stop()
 
 # ==============================
-# GREETING + LOGOUT
+# GREETING + QUOTE + LOGOUT
 # ==============================
 ist = pytz.timezone("Asia/Kolkata")
 current_hour = datetime.now(ist).hour
 
-if 5 <= current_hour < 12:
+# Determine greeting based on your specification
+if 4 <= current_hour < 12:
     greeting = "Good Morning"
 elif 12 <= current_hour < 16:
     greeting = "Good Afternoon"
@@ -73,8 +89,11 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-st.success(f"{greeting}, {st.session_state.logged_in_user}! 👋\n\n"
-           "this app is just in starting phase so You can just view in your cssd department currently available sets and Separate Pack issuance details.")
+# Extract first name
+first_name = st.session_state.logged_in_user.strip().split()[0].title()
+
+# Display greeting + first name + random quote
+st.success(f"{greeting}, {first_name}!\n\n{get_random_quote()}")
 
 if st.button("Logout"):
     for key in defaults.keys():
