@@ -5,35 +5,38 @@ import difflib
 from technician import TECHNICIAN_NAMES
 
 # ==============================
-# HEADER
-# ==============================
-st.markdown("<h2 style='color:purple; font-weight:bold;'>KDAH</h2>", unsafe_allow_html=True)
-st.markdown("<p style='color:orange; font-style:italic;'>Note: This app is under development and consideration</p>", unsafe_allow_html=True)
-
-# ==============================
 # SESSION STATE INIT
 # ==============================
-for key in ["logged_in_user","login_selected_name","query_option"]:
-    if key not in st.session_state:
-        st.session_state[key] = None
+defaults = {
+    "logged_in_user": None,
+    "login_selected_name": None,
+    "query_option": None,
+    "found_pack": None,
+    "found_set": None
+}
+
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
 
 # ==============================
-# LOGIN PAGE
+# HEADER
+# ==============================
+st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
+st.markdown("<p style='color:orange;'>Note: App under development</p>", unsafe_allow_html=True)
+
+
+# ==============================
+# LOGIN
 # ==============================
 if st.session_state.logged_in_user is None:
-
-    st.markdown("""
-    <div style="border:3px solid blue; padding:20px; border-radius:15px; background-color:#f0f8ff; max-width:500px;">
-        <h3 style='color:blue;'>CSSD Technician Login</h3>
-        <p>Enter your name below:</p>
-    </div>
-    """, unsafe_allow_html=True)
 
     name_input = st.text_input("Technician Name")
 
     if name_input:
         cleaned = " ".join(name_input.upper().split())
-        normalized = { " ".join(name.upper().split()): name for name in TECHNICIAN_NAMES }
+        normalized = {" ".join(n.upper().split()): n for n in TECHNICIAN_NAMES}
 
         if cleaned in normalized:
             st.session_state.login_selected_name = normalized[cleaned]
@@ -48,9 +51,10 @@ if st.session_state.logged_in_user is None:
             st.session_state.logged_in_user = st.session_state.login_selected_name
             st.rerun()
         else:
-            st.warning("Enter correct full name.")
+            st.warning("Enter correct name")
 
     st.stop()
+
 
 # ==============================
 # LOGOUT
@@ -58,18 +62,17 @@ if st.session_state.logged_in_user is None:
 st.success(f"Logged in as: {st.session_state.logged_in_user}")
 
 if st.button("Logout"):
-    for key in st.session_state.keys():
+    for key in defaults.keys():
         st.session_state[key] = None
     st.rerun()
 
+
 # ==============================
-# WELCOME PAGE
+# OPTION SELECT
 # ==============================
 if st.session_state.query_option is None:
 
-    st.markdown("<h3 style='color:green;'>I will help you issuing Separate pack and Set to right dept/floor</h3>", unsafe_allow_html=True)
-
-    choice = st.radio("Choose what you want to query:", ["Separate Pack", "Set"])
+    choice = st.radio("Select Option", ["Separate Pack", "Set"])
 
     if st.button("Continue"):
         st.session_state.query_option = choice
@@ -79,8 +82,9 @@ if st.session_state.query_option is None:
 
 option = st.session_state.query_option
 
+
 # ==============================
-# ISSUE LOG INIT
+# ISSUE LOG
 # ==============================
 LOG_FILE = "issue_log.csv"
 
@@ -89,128 +93,105 @@ if os.path.exists(LOG_FILE):
 else:
     log_df = pd.DataFrame(columns=["Technician","Floor","ItemName","Department"])
 
+
 # ==============================
-# SEPARATE PACK PAGE
+# SEPARATE PACK
 # ==============================
 if option == "Separate Pack":
 
-    if not os.path.exists("saperate_pack.csv"):
-        st.error("saperate_pack.csv not found")
-        st.stop()
-
-    try:
-        sp_df = pd.read_csv(
-            "saperate_pack.csv",
-            engine="python",
-            on_bad_lines="skip"
-        )
-    except Exception as e:
-        st.error("Error reading saperate_pack.csv")
-        st.stop()
-
-    if sp_df.shape[1] < 3:
-        st.error("CSV must have 3 columns: PackName, Department, Floor")
-        st.stop()
-
-    sp_df = sp_df.iloc[:, :3]
+    sp_df = pd.read_csv("saperate_pack.csv", engine="python", on_bad_lines="skip")
     sp_df.columns = ["PackName","Department","Floor"]
     sp_df = sp_df.apply(lambda x: x.astype(str).str.upper().str.strip())
 
-    pack_dict = dict(zip(sp_df["PackName"], zip(sp_df["Floor"], sp_df["Department"])))
-
     st.subheader("Separate Pack Query")
 
-    mode = st.radio("Select Option", ["View by Department & Floor","Search by Pack Name"])
+    name = st.text_input("Enter Pack Name").upper().strip()
 
-    if mode == "View by Department & Floor":
+    if st.button("Search Pack"):
 
-        dept = st.selectbox("Department", sorted(sp_df["Department"].unique()))
-        floor = st.selectbox("Floor", sorted(sp_df["Floor"].unique()))
+        result = sp_df[sp_df["PackName"].str.contains(name, case=False, na=False)]
 
-        filtered = sp_df[(sp_df["Department"]==dept) & (sp_df["Floor"]==floor)]
+        if not result.empty:
+            row = result.iloc[0]
 
-        if not filtered.empty:
-            st.table(filtered)
-
-            if st.button("Issue All"):
-                for _, row in filtered.iterrows():
-                    new = {
-                        "Technician": st.session_state.logged_in_user,
-                        "Floor": row["Floor"],
-                        "ItemName": row["PackName"],
-                        "Department": row["Department"]
-                    }
-                    log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
-
-                log_df.to_csv(LOG_FILE,index=False)
-                st.success("Issued successfully")
+            st.session_state.found_pack = {
+                "name": row["PackName"],
+                "floor": row["Floor"],
+                "dept": row["Department"]
+            }
         else:
-            st.warning("No pack found")
+            st.error("Pack not found")
 
-    else:
+    if st.session_state.found_pack:
 
-        name = st.text_input("Enter Pack Name").upper().strip()
+        data = st.session_state.found_pack
+        st.success(f"{data['name']} ➜ Floor: {data['floor']} | Dept: {data['dept']}")
 
-        if st.button("Search"):
-            if name in pack_dict:
-                floor, dept = pack_dict[name]
-                st.success(f"{name} ➜ Floor: {floor}, Department: {dept}")
+        if st.button("Issue Pack"):
 
-                if st.button("Issue This Pack"):
-                    new = {
-                        "Technician": st.session_state.logged_in_user,
-                        "Floor": floor,
-                        "ItemName": name,
-                        "Department": dept
-                    }
-                    log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
-                    log_df.to_csv(LOG_FILE,index=False)
-                    st.success("Issued successfully")
-            else:
-                st.error("Pack not found")
+            new = {
+                "Technician": st.session_state.logged_in_user,
+                "Floor": data["floor"],
+                "ItemName": data["name"],
+                "Department": data["dept"]
+            }
+
+            log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
+            log_df.to_csv(LOG_FILE, index=False)
+
+            st.success("Pack Issued Successfully")
+
+            st.session_state.found_pack = None
+
 
 # ==============================
-# SET PAGE
+# SET
 # ==============================
 else:
 
-    if not os.path.exists("sets.csv"):
-        st.error("sets.csv not found")
-        st.stop()
-
     df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
-
-    if df.shape[1] < 2:
-        st.error("sets.csv must have 2 columns")
-        st.stop()
-
-    df = df.iloc[:, :2]
     df.columns = ["SetName","Floor"]
     df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
-
-    set_dict = dict(zip(df["SetName"], df["Floor"]))
 
     st.subheader("Set Query")
 
     name = st.text_input("Enter Set Name").upper().strip()
 
     if st.button("Search Set"):
-        if name in set_dict:
-            floor = set_dict[name]
-            st.success(f"{name} ➜ Floor: {floor}")
 
-            if st.button("Issue This Set"):
-                new = {
-                    "Technician": st.session_state.logged_in_user,
-                    "Floor": floor,
-                    "ItemName": name,
-                    "Department": ""
-                }
-                log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
-                log_df.to_csv(LOG_FILE,index=False)
-                st.success("Issued successfully")
+        result = df[df["SetName"].str.contains(name, case=False, na=False)]
+
+        if not result.empty:
+            row = result.iloc[0]
+
+            st.session_state.found_set = {
+                "name": row["SetName"],
+                "floor": row["Floor"]
+            }
         else:
             st.error("Set not found")
+
+    if st.session_state.found_set:
+
+        data = st.session_state.found_set
+        st.success(f"{data['name']} ➜ Floor: {data['floor']}")
+
+        if st.button("Issue Set"):
+
+            new = {
+                "Technician": st.session_state.logged_in_user,
+                "Floor": data["floor"],
+                "ItemName": data["name"],
+                "Department": ""
+            }
+
+            log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
+            log_df.to_csv(LOG_FILE, index=False)
+
+            st.success("Set Issued Successfully")
+
+            st.session_state.found_set = None
+
 
 # ==============================
 # ISSUE HISTORY
@@ -218,6 +199,6 @@ else:
 st.subheader("Issue History")
 
 if not log_df.empty:
-    st.table(log_df)
+    st.dataframe(log_df)
 else:
     st.write("No issues recorded")
