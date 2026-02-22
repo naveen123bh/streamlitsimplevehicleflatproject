@@ -88,19 +88,13 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-
-# Extract first name only (ignore title)
 full_name_parts = st.session_state.logged_in_user.strip().split()
 titles = ["MR", "MRS", "MS", "MISS"]
-first_name = None
-for part in full_name_parts:
-    if part.upper() not in titles:
-        first_name = part.title()
-        break
-# Skip title if present
 first_name = full_name_parts[0].title()  # default first word
+
+# If first word is a title, take the next word
 if full_name_parts[0].upper() in titles and len(full_name_parts) > 1:
-    first_name = full_name_parts[1].title()  # take second word as first name
+    first_name = full_name_parts[1].title()
 st.success(f"{greeting}, {first_name}!")
 
 # ==============================
