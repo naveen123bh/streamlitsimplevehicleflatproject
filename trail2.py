@@ -32,8 +32,23 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
-# RANDOM DEEP QUOTES (2 lines each)
+# GREETING + QUOTE (below header)
 # ==============================
+ist = pytz.timezone("Asia/Kolkata")
+now = datetime.now(ist)
+current_hour = now.hour
+
+# Determine greeting based on time
+if 4 <= current_hour < 12:
+    greeting = "Good Morning"
+elif 12 <= current_hour < 16:
+    greeting = "Good Afternoon"
+elif 16 <= current_hour < 21:
+    greeting = "Good Evening"
+else:
+    greeting = "Hello"
+
+# Generate a fresh random quote on each app refresh
 QUOTES = [
     "The mind is a mirror, see the reflection, not the shadow.\nPeace is the awareness of what is.",
     "Everything happens by itself; the doer is an illusion.\nWitness the flow and be free.",
@@ -42,8 +57,11 @@ QUOTES = [
     "Nothing belongs to you, yet everything unfolds within you.\nLet love arise without effort."
 ]
 
-def get_random_quote():
-    return random.choice(QUOTES)
+# Use current timestamp seconds as seed for pseudo-random to change each refresh
+random.seed(int(now.timestamp()))
+quote = random.choice(QUOTES)
+
+st.info(f"{quote}")
 
 # ==============================
 # LOGIN
@@ -74,27 +92,21 @@ if st.session_state.logged_in_user is None:
     st.stop()
 
 # ==============================
-# GREETING + QUOTE + LOGOUT
+# GREETING AFTER LOGIN (with first name)
 # ==============================
-ist = pytz.timezone("Asia/Kolkata")
-current_hour = datetime.now(ist).hour
-
-# Determine greeting based on your specification
-if 4 <= current_hour < 12:
-    greeting = "Good Morning"
-elif 12 <= current_hour < 16:
-    greeting = "Good Afternoon"
-elif 16 <= current_hour < 21:
-    greeting = "Good Evening"
+full_name = st.session_state.logged_in_user.strip().split()
+if full_name[0].lower() in ["mr", "ms", "mrs", "miss"]:
+    prefix = full_name[0].title()
+    first_name = full_name[1].title()
+    display_name = f"{prefix} {first_name}"
 else:
-    greeting = "Hello"
+    display_name = full_name[0].title()
 
-# Extract first name
-first_name = st.session_state.logged_in_user.strip().split()[0].title()
+st.success(f"{greeting}, {display_name}!")
 
-# Display greeting + first name + random quote
-st.success(f"{greeting}, {first_name}!\n\n{get_random_quote()}")
-
+# ==============================
+# LOGOUT
+# ==============================
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
