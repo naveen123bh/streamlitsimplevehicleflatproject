@@ -12,7 +12,7 @@ import pytz
 # ==============================
 # Direct Google Drive link (public download)
 st.image(
-    "https://drive.google.com/uc?export=download&id=1VojTLi8GmsgigN8pJcQXyXiqiLJFB1H8",
+    "https://drive.google.com/uc?export=view&id=1VojTLi8GmsgigN8pJcQXyXiqiLJFB1H8",
     width=400
 )
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
