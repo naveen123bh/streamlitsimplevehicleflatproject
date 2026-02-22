@@ -11,9 +11,9 @@ st.markdown("<h2 style='color:purple; font-weight:bold;'>KDAH</h2>", unsafe_allo
 st.markdown("<p style='color:orange; font-style:italic;'>Note: This app is under development and consideration</p>", unsafe_allow_html=True)
 
 # ==============================
-# SESSION STATE
+# SESSION STATE INIT
 # ==============================
-for key in ["logged_in_user","current_floor","current_set","login_selected_name","query_option"]:
+for key in ["logged_in_user","login_selected_name","query_option"]:
     if key not in st.session_state:
         st.session_state[key] = None
 
@@ -48,7 +48,7 @@ if st.session_state.logged_in_user is None:
             st.session_state.logged_in_user = st.session_state.login_selected_name
             st.rerun()
         else:
-            st.warning("Enter full correct name.")
+            st.warning("Enter correct full name.")
 
     st.stop()
 
@@ -80,12 +80,12 @@ if st.session_state.query_option is None:
 option = st.session_state.query_option
 
 # ==============================
-# ISSUE LOG
+# ISSUE LOG INIT
 # ==============================
 LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
-    log_df = pd.read_csv(LOG_FILE)
+    log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
 else:
     log_df = pd.DataFrame(columns=["Technician","Floor","ItemName","Department"])
 
@@ -98,7 +98,21 @@ if option == "Separate Pack":
         st.error("saperate_pack.csv not found")
         st.stop()
 
-    sp_df = pd.read_csv("saperate_pack.csv")
+    try:
+        sp_df = pd.read_csv(
+            "saperate_pack.csv",
+            engine="python",
+            on_bad_lines="skip"
+        )
+    except Exception as e:
+        st.error("Error reading saperate_pack.csv")
+        st.stop()
+
+    if sp_df.shape[1] < 3:
+        st.error("CSV must have 3 columns: PackName, Department, Floor")
+        st.stop()
+
+    sp_df = sp_df.iloc[:, :3]
     sp_df.columns = ["PackName","Department","Floor"]
     sp_df = sp_df.apply(lambda x: x.astype(str).str.upper().str.strip())
 
@@ -109,6 +123,7 @@ if option == "Separate Pack":
     mode = st.radio("Select Option", ["View by Department & Floor","Search by Pack Name"])
 
     if mode == "View by Department & Floor":
+
         dept = st.selectbox("Department", sorted(sp_df["Department"].unique()))
         floor = st.selectbox("Floor", sorted(sp_df["Floor"].unique()))
 
@@ -126,12 +141,14 @@ if option == "Separate Pack":
                         "Department": row["Department"]
                     }
                     log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
+
                 log_df.to_csv(LOG_FILE,index=False)
                 st.success("Issued successfully")
         else:
             st.warning("No pack found")
 
     else:
+
         name = st.text_input("Enter Pack Name").upper().strip()
 
         if st.button("Search"):
@@ -161,7 +178,13 @@ else:
         st.error("sets.csv not found")
         st.stop()
 
-    df = pd.read_csv("sets.csv")
+    df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
+
+    if df.shape[1] < 2:
+        st.error("sets.csv must have 2 columns")
+        st.stop()
+
+    df = df.iloc[:, :2]
     df.columns = ["SetName","Floor"]
     df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
 
