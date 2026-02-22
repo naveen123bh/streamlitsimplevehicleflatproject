@@ -10,9 +10,9 @@ import pytz
 # ==============================
 # HOSPITAL IMAGE + HEADER
 # ==============================
-# Direct public Google Drive link
+# Direct Google Drive link (public download)
 st.image(
-    "https://drive.google.com/uc?export=download&id=1ARNjR8PZnSXMZK6MllvxZE0JdoyH3DzE",
+    "https://drive.google.com/uc?export=download&id=1VojTLi8GmsgigN8pJcQXyXiqiLJFB1H8",
     width=400
 )
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
