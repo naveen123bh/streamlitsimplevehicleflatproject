@@ -3,6 +3,8 @@
 import pandas as pd
 import streamlit as st
 import difflib
+from datetime import datetime
+import pytz
 
 
 def separate_pack_section(log_df, LOG_FILE, logged_user):
@@ -23,7 +25,7 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
         st.session_state.similar_matches = None
 
     # ======================================================
-    # 🟣 NEW → Department Input (Only Addition)
+    # 🟣 Department Input
     # ======================================================
     st.markdown("### Search by Department")
 
@@ -43,7 +45,7 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
     st.markdown("---")
 
     # ======================================================
-    # Existing Pack Search Logic (UNCHANGED)
+    # Search by Pack Name
     # ======================================================
     st.markdown("### Search by Pack Name")
 
@@ -110,15 +112,16 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
         if st.button("Issue Pack"):
 
             ist = pytz.timezone("Asia/Kolkata")
-current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
+            current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
 
-new = {
-    "DateTime": current_time,
-    "Technician": logged_user,
-    "Floor": data["Floor"],
-    "ItemName": data["PackName"],
-    "Department": data["Department"]
-}
+            new = {
+                "DateTime": current_time,
+                "Technician": logged_user,
+                "Floor": data["Floor"],
+                "ItemName": data["PackName"],
+                "Department": data["Department"]
+            }
+
             log_df = pd.concat(
                 [log_df, pd.DataFrame([new])],
                 ignore_index=True
