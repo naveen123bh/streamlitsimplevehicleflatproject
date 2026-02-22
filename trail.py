@@ -33,7 +33,7 @@ st.markdown("<p style='color:orange;'>Note: App is under consideration and devel
 # ==============================
 if st.session_state.logged_in_user is None:
 
-    name_input = st.text_input("Technician Name")
+    name_input = st.text_input("Technician Name (please enter your name) ")
 
     if name_input:
         cleaned = " ".join(name_input.upper().split())
