@@ -23,8 +23,9 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
-# HEADER
+# HOSPITAL IMAGE + HEADER
 # ==============================
+st.image("hospital.jpg", width=400)  # Make sure hospital.jpg is in the same folder
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
