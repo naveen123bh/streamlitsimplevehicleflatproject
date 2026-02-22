@@ -4,7 +4,8 @@ import pandas as pd
 import difflib
 from technician import TECHNICIAN_NAMES
 from sap import separate_pack_section   # 👈 import here
-
+from datetime import datetime
+import pytz
 
 # ==============================
 # SESSION STATE INIT
@@ -93,8 +94,7 @@ LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
 else:
-    log_df = pd.DataFrame(columns=["Technician","Floor","ItemName","Department"])
-
+    log_df = pd.DataFrame(columns=["DateTime","Technician","Floor","ItemName","Department"])
 
 # ==============================
 # SEPARATE PACK (imported)
