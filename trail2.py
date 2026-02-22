@@ -14,7 +14,7 @@ import requests
 if not os.path.exists("hospital.jpg"):
     try:
         file_id = "Rq9hqoaJVABzH74QL"  # Google Drive file ID
-        url = f"https://drive.google.com/uc?export=download&id={file_id}"
+        url = f"https://drive.google.com/uc?export=download&id={https://share.google/Rq9hqoaJVABzH74QL}"
         r = requests.get(url)
         if r.status_code == 200:
             with open("hospital.jpg", "wb") as f:
