@@ -6,25 +6,14 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-import requests
-from io import BytesIO
 
 # ==============================
 # HOSPITAL IMAGE + HEADER
 # ==============================
-file_id = "1VojTLi8GmsgigN8pJcQXyXiqiLJFB1H8"  # Google Drive file ID
-url = f"https://drive.google.com/uc?export=download&id={file_id}"
+# Your hospital image URL from ibb.co
+hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 
-try:
-    r = requests.get(url)
-    if r.status_code == 200:
-        img_bytes = BytesIO(r.content)
-        st.image(img_bytes, width=400)
-    else:
-        st.warning("Unable to load hospital image.")
-except Exception as e:
-    st.warning(f"Error loading image: {e}")
-
+st.image(hospital_image_url, width=400)
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
