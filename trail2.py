@@ -6,6 +6,28 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
+import requests
+
+# ==============================
+# AUTOMATIC HOSPITAL IMAGE DOWNLOAD + DISPLAY
+# ==============================
+if not os.path.exists("hospital.jpg"):
+    try:
+        file_id = "Rq9hqoaJVABzH74QL"  # Google Drive file ID
+        url = f"https://drive.google.com/uc?export=download&id={file_id}"
+        r = requests.get(url)
+        if r.status_code == 200:
+            with open("hospital.jpg", "wb") as f:
+                f.write(r.content)
+            print("Downloaded hospital.jpg successfully!")
+        else:
+            print("Failed to download hospital image. Status code:", r.status_code)
+    except Exception as e:
+        print("Error downloading hospital image:", e)
+
+# Display hospital image on login page
+if os.path.exists("hospital.jpg"):
+    st.image("hospital.jpg", width=400)
 
 # ==============================
 # SESSION STATE INIT
@@ -23,9 +45,8 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
-# HOSPITAL IMAGE + HEADER
+# HEADER
 # ==============================
-st.image("hospital.jpg", width=400)  # Make sure hospital.jpg is in the same folder
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
