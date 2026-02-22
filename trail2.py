@@ -93,10 +93,9 @@ titles = ["MR", "MRS", "MS", "MISS"]
 full_name_parts = st.session_state.logged_in_user.strip().split()
 
 # Skip title if present
-first_name = full_name_parts[0].title()
+first_name = full_name_parts[0].title()  # default first word
 if full_name_parts[0].upper() in titles and len(full_name_parts) > 1:
-    first_name = full_name_parts[1].title()
-
+    first_name = full_name_parts[1].title()  # take second word as first name
 st.success(f"{greeting}, {first_name}!")
 
 # ==============================
