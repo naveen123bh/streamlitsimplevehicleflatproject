@@ -28,7 +28,7 @@ for k, v in defaults.items():
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
-# ==============================
+# =============================
 # LOGIN
 # ==============================
 if st.session_state.logged_in_user is None:
