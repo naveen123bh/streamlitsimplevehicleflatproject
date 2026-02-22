@@ -6,8 +6,8 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-from quotes import QUOTES
 import random
+from quotes import QUOTES  # import quotes from separate file
 
 # ==============================
 # HOSPITAL IMAGE + HEADER
@@ -15,6 +15,13 @@ import random
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
+
+# ==============================
+# RANDOM QUOTE BELOW HEADER
+# ==============================
+quote = random.choice(QUOTES)
+st.info(quote)
+
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
@@ -54,31 +61,6 @@ if st.session_state.logged_in_user is None:
     if st.button("Login"):
         if st.session_state.login_selected_name:
             st.session_state.logged_in_user = st.session_state.login_selected_name
-
-            # ==============================
-            # Greeting + Random Quote
-            # ==============================
-            full_name = st.session_state.logged_in_user
-            first_name = full_name.split()[1] if len(full_name.split()) > 1 else full_name.split()[0]
-
-            now = datetime.now(pytz.timezone("Asia/Kolkata"))
-            hour = now.hour
-
-            if 5 <= hour < 12:
-                greeting = f"Good morning {first_name}"
-            elif 12 <= hour < 16:
-                greeting = f"Good afternoon {first_name}"
-            elif 16 <= hour < 21:
-                greeting = f"Good evening {first_name}"
-            else:
-                greeting = f"Hello {first_name}"
-
-            st.success(greeting)
-
-            # Random quote from quotes.py
-            quote = random.choice(QUOTES)
-            st.info(quote)
-
             st.rerun()
         else:
             st.warning("Enter correct name")
@@ -86,10 +68,34 @@ if st.session_state.logged_in_user is None:
     st.stop()
 
 # ==============================
+# GREETING AFTER LOGIN (with first name)
+# ==============================
+ist = pytz.timezone("Asia/Kolkata")
+now = datetime.now(ist)
+current_hour = now.hour
+
+if 4 <= current_hour < 12:
+    greeting = "Good Morning"
+elif 12 <= current_hour < 16:
+    greeting = "Good Afternoon"
+elif 16 <= current_hour < 21:
+    greeting = "Good Evening"
+else:
+    greeting = "Hello"
+
+# Extract first name with title if present
+full_name_parts = st.session_state.logged_in_user.strip().split()
+titles = ["MR", "MRS", "MS", "MISS"]
+if full_name_parts[0].upper() in titles and len(full_name_parts) > 1:
+    display_name = f"{full_name_parts[0].title()} {full_name_parts[1].title()}"
+else:
+    display_name = full_name_parts[0].title()
+
+st.success(f"{greeting}, {display_name}!")
+
+# ==============================
 # LOGOUT
 # ==============================
-st.success(f"Logged in as: {st.session_state.logged_in_user}")
-
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
