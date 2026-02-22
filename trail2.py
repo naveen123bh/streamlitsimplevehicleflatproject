@@ -3,6 +3,9 @@ import streamlit as st
 import pandas as pd
 import difflib
 from technician import TECHNICIAN_NAMES
+from sapset import search_and_issue_sets
+from datetime import datetime
+import pytz
 
 # ==============================
 # SESSION STATE INIT
@@ -19,13 +22,11 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-
 # ==============================
 # HEADER
 # ==============================
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
-st.markdown("<p style='color:orange;'>Note: App under development</p>", unsafe_allow_html=True)
-
+st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
 # LOGIN
@@ -55,7 +56,6 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
-
 # ==============================
 # LOGOUT
 # ==============================
@@ -65,7 +65,6 @@ if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
     st.rerun()
-
 
 # ==============================
 # OPTION SELECT
@@ -82,154 +81,56 @@ if st.session_state.query_option is None:
 
 option = st.session_state.query_option
 
-
 # ==============================
-# ISSUE LOG FILE
+# ISSUE LOG
 # ==============================
 LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
 else:
-    log_df = pd.DataFrame(columns=["Technician","Floor","ItemName","Department"])
-
+    log_df = pd.DataFrame(
+        columns=["DateTime", "Technician", "Floor", "ItemName", "Department"]
+    )
 
 # ==============================
 # SEPARATE PACK
 # ==============================
 if option == "Separate Pack":
-
-    sp_df = pd.read_csv("saperate_pack.csv", engine="python", on_bad_lines="skip")
-    sp_df.columns = ["PackName","Department","Floor"]
-    sp_df = sp_df.apply(lambda x: x.astype(str).str.upper().str.strip())
-
-    st.subheader("Separate Pack Query")
-
-    name = st.text_input("Enter Pack Name").upper().strip()
-
-    if st.button("Search Pack"):
-
-        pack_names = sp_df["PackName"].tolist()
-
-        if name in pack_names:
-            selected = name
-        else:
-            suggestions = difflib.get_close_matches(name, pack_names, n=1, cutoff=0.4)
-            selected = suggestions[0] if suggestions else None
-
-        if selected:
-            row = sp_df[sp_df["PackName"] == selected].iloc[0]
-            st.session_state.found_pack = {
-                "name": row["PackName"],
-                "floor": row["Floor"],
-                "dept": row["Department"]
-            }
-            st.rerun()
-        else:
-            st.error("Please enter correct pack name")
-
-    if st.session_state.found_pack:
-
-        data = st.session_state.found_pack
-        st.success(f"{data['name']} ➜ Floor: {data['floor']} | Dept: {data['dept']}")
-
-        if st.button("Issue Pack"):
-
-            new = {
-                "Technician": st.session_state.logged_in_user,
-                "Floor": data["floor"],
-                "ItemName": data["name"],
-                "Department": data["dept"]
-            }
-
-            if os.path.exists(LOG_FILE):
-                existing = pd.read_csv(LOG_FILE)
-                updated = pd.concat([existing, pd.DataFrame([new])], ignore_index=True)
-            else:
-                updated = pd.DataFrame([new])
-
-            updated.to_csv(LOG_FILE, index=False)
-
-            st.session_state.found_pack = None
-            st.success("Pack Issued Successfully")
-            st.rerun()
-
+    from sap import separate_pack_section
+    log_df = separate_pack_section(
+        log_df,
+        LOG_FILE,
+        st.session_state.logged_in_user
+    )
 
 # ==============================
-# SET
+# SET SECTION
 # ==============================
 else:
-
-    df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
-    df.columns = ["SetName","Floor"]
-    df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
-
-    st.subheader("Set Query")
-
-    name = st.text_input("Enter Set Name").upper().strip()
-
-    if st.button("Search Set"):
-
-        set_names = df["SetName"].tolist()
-
-        if name in set_names:
-            selected = name
-        else:
-            # 🔥 CHANGED HERE — 5 suggestions
-            suggestions = difflib.get_close_matches(name, set_names, n=5, cutoff=0.4)
-
-            if suggestions:
-                selected = st.selectbox("Did you mean:", suggestions)
-            else:
-                selected = None
-
-        if selected:
-            row = df[df["SetName"] == selected].iloc[0]
-            st.session_state.found_set = {
-                "name": row["SetName"],
-                "floor": row["Floor"]
-            }
-            st.rerun()
-        else:
-            st.error("Please enter correct set name")
-
-    if st.session_state.found_set:
-
-        data = st.session_state.found_set
-        st.success(f"{data['name']} ➜ Floor: {data['floor']}")
-
-        if st.button("Issue Set"):
-
-            new = {
-                "Technician": st.session_state.logged_in_user,
-                "Floor": data["floor"],
-                "ItemName": data["name"],
-                "Department": ""
-            }
-
-            if os.path.exists(LOG_FILE):
-                existing = pd.read_csv(LOG_FILE)
-                updated = pd.concat([existing, pd.DataFrame([new])], ignore_index=True)
-            else:
-                updated = pd.DataFrame([new])
-
-            updated.to_csv(LOG_FILE, index=False)
-
-            st.session_state.found_set = None
-            st.success("Set Issued Successfully")
-            st.rerun()
-
+    log_df = search_and_issue_sets(
+        log_df,
+        LOG_FILE,
+        st.session_state.logged_in_user
+    )
 
 # ==============================
 # ISSUE HISTORY
 # ==============================
 st.subheader("Issue History")
 
-if os.path.exists(LOG_FILE):
-    history_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
-    if not history_df.empty:
-        st.dataframe(history_df)
-    else:
-        st.write("No issues recorded")
+if not log_df.empty:
+    st.dataframe(log_df)
 else:
     st.write("No issues recorded")
+
+if st.button("Clear Log History"):
+
+    empty_df = pd.DataFrame(
+        columns=["DateTime", "Technician", "Floor", "ItemName", "Department"]
+    )
+
+    empty_df.to_csv(LOG_FILE, index=False)
+
+    st.success("Log Cleared Successfully")
+    st.rerun()
