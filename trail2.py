@@ -10,9 +10,7 @@ import pytz
 # ==============================
 # HOSPITAL IMAGE + HEADER
 # ==============================
-# Your hospital image URL from ibb.co
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
-
 st.image(hospital_image_url, width=400)
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
@@ -61,9 +59,22 @@ if st.session_state.logged_in_user is None:
     st.stop()
 
 # ==============================
-# LOGOUT
+# GREETING + LOGOUT
 # ==============================
-st.success(f"Logged in as: {st.session_state.logged_in_user}")
+ist = pytz.timezone("Asia/Kolkata")
+current_hour = datetime.now(ist).hour
+
+if 5 <= current_hour < 12:
+    greeting = "Good Morning"
+elif 12 <= current_hour < 16:
+    greeting = "Good Afternoon"
+elif 16 <= current_hour < 21:
+    greeting = "Good Evening"
+else:
+    greeting = "Hello"
+
+st.success(f"{greeting}, {st.session_state.logged_in_user}! 👋\n\n"
+           "this app is just in starting phase so You can just view in your cssd department currently available sets and Separate Pack issuance details.")
 
 if st.button("Logout"):
     for key in defaults.keys():
