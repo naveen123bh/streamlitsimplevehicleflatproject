@@ -164,3 +164,13 @@ if not log_df.empty:
     st.dataframe(log_df)
 else:
     st.write("No issues recorded")
+if st.button("Clear Log History"):
+
+    empty_df = pd.DataFrame(
+        columns=["DateTime","Technician","Floor","ItemName","Department"]
+    )
+
+    empty_df.to_csv(LOG_FILE, index=False)
+
+    st.success("Log Cleared Successfully")
+    st.rerun()
