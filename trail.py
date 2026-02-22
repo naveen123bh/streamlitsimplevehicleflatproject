@@ -8,9 +8,9 @@ from datetime import datetime
 import pytz
 
 # ==============================
-# HOSPITAL IMAGE + HEADER
+# HOSPITAL code
 # ==============================
-# Your hospital image URL from ibb.co
+# 
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 
 st.image(hospital_image_url, width=400)
