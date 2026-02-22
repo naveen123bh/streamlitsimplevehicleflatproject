@@ -18,6 +18,9 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
         ["Search by Department", "Search by Pack Name"]
     )
 
+    # ==============================
+    # OPTION 1 → Department Wise
+    # ==============================
     if option == "Search by Department":
 
         dept_input = st.text_input("Enter Department Name").upper().strip()
@@ -33,6 +36,10 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
             else:
                 st.error("No packs found")
 
+
+    # ==============================
+    # OPTION 2 → Pack Name Search
+    # ==============================
     else:
 
         name_input = st.text_input("Enter Pack Name").upper().strip()
@@ -60,7 +67,7 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
                 if matches:
                     selected = st.selectbox("Did you mean:", matches)
 
-                    if st.button("Confirm Selection"):
+                    if st.button("Confirm Pack"):
 
                         row = sp_df[
                             sp_df["PackName"] == selected
@@ -74,32 +81,35 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
                 else:
                     st.error("No similar pack found")
 
-        if st.session_state.get("found_pack"):
+    # ==============================
+    # ISSUE BUTTON (Always visible if pack found)
+    # ==============================
+    if st.session_state.get("found_pack"):
 
-            data = st.session_state.found_pack
+        data = st.session_state.found_pack
 
-            st.success(
-                f"{data['name']} ➜ Floor: {data['floor']} | Dept: {data['dept']}"
+        st.success(
+            f"{data['name']} ➜ Floor: {data['floor']} | Dept: {data['dept']}"
+        )
+
+        if st.button("Issue Pack Now"):
+
+            new = {
+                "Technician": logged_user,
+                "Floor": data["floor"],
+                "ItemName": data["name"],
+                "Department": data["dept"]
+            }
+
+            log_df = pd.concat(
+                [log_df, pd.DataFrame([new])],
+                ignore_index=True
             )
 
-            if st.button("Issue Pack"):
+            log_df.to_csv(LOG_FILE, index=False)
 
-                new = {
-                    "Technician": logged_user,
-                    "Floor": data["floor"],
-                    "ItemName": data["name"],
-                    "Department": data["dept"]
-                }
+            st.success("Pack Issued Successfully")
 
-                log_df = pd.concat(
-                    [log_df, pd.DataFrame([new])],
-                    ignore_index=True
-                )
-
-                log_df.to_csv(LOG_FILE, index=False)
-
-                st.success("Pack Issued Successfully")
-
-                st.session_state.found_pack = None
+            st.session_state.found_pack = None
 
     return log_df
