@@ -175,8 +175,13 @@ else:
         if name in set_names:
             selected = name
         else:
-            suggestions = difflib.get_close_matches(name, set_names, n=1, cutoff=0.4)
-            selected = suggestions[0] if suggestions else None
+            # 🔥 CHANGED HERE — 5 suggestions
+            suggestions = difflib.get_close_matches(name, set_names, n=5, cutoff=0.4)
+
+            if suggestions:
+                selected = st.selectbox("Did you mean:", suggestions)
+            else:
+                selected = None
 
         if selected:
             row = df[df["SetName"] == selected].iloc[0]
