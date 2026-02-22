@@ -18,9 +18,9 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
         ["Search by Department", "Search by Pack Name"]
     )
 
-    # ==============================
-    # OPTION 1 → Department Wise
-    # ==============================
+    # ==================================================
+    # OPTION 1 → Department
+    # ==================================================
     if option == "Search by Department":
 
         dept_input = st.text_input("Enter Department Name").upper().strip()
@@ -37,28 +37,27 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
                 st.error("No packs found")
 
 
-    # ==============================
-    # OPTION 2 → Pack Name Search
-    # ==============================
+    # ==================================================
+    # OPTION 2 → Pack Name Flow
+    # ==================================================
     else:
 
         name_input = st.text_input("Enter Pack Name").upper().strip()
 
+        # --------------------------
+        # STEP 1 → SEARCH
+        # --------------------------
         if st.button("Search Pack"):
 
-            exact_match = sp_df[sp_df["PackName"] == name_input]
+            st.session_state.confirm_pack = None
+            st.session_state.found_pack = None
 
-            if not exact_match.empty:
+            exact = sp_df[sp_df["PackName"] == name_input]
 
-                row = exact_match.iloc[0]
-                st.session_state.found_pack = {
-                    "name": row["PackName"],
-                    "floor": row["Floor"],
-                    "dept": row["Department"]
-                }
+            if not exact.empty:
+                st.session_state.confirm_pack = exact.iloc[0].to_dict()
 
             else:
-
                 all_names = sp_df["PackName"].tolist()
                 matches = difflib.get_close_matches(
                     name_input, all_names, n=3, cutoff=0.4
@@ -66,50 +65,56 @@ def separate_pack_section(log_df, LOG_FILE, logged_user):
 
                 if matches:
                     selected = st.selectbox("Did you mean:", matches)
-
-                    if st.button("Confirm Pack"):
-
-                        row = sp_df[
-                            sp_df["PackName"] == selected
-                        ].iloc[0]
-
-                        st.session_state.found_pack = {
-                            "name": row["PackName"],
-                            "floor": row["Floor"],
-                            "dept": row["Department"]
-                        }
+                    st.session_state.temp_selection = selected
                 else:
                     st.error("No similar pack found")
 
-    # ==============================
-    # ISSUE BUTTON (Always visible if pack found)
-    # ==============================
-    if st.session_state.get("found_pack"):
+        # --------------------------
+        # STEP 2 → CONFIRM (for similar)
+        # --------------------------
+        if st.session_state.get("temp_selection"):
 
-        data = st.session_state.found_pack
+            if st.button("Confirm Pack"):
 
-        st.success(
-            f"{data['name']} ➜ Floor: {data['floor']} | Dept: {data['dept']}"
-        )
+                row = sp_df[
+                    sp_df["PackName"] == st.session_state.temp_selection
+                ].iloc[0]
 
-        if st.button("Issue Pack Now"):
+                st.session_state.confirm_pack = row.to_dict()
+                st.session_state.temp_selection = None
 
-            new = {
-                "Technician": logged_user,
-                "Floor": data["floor"],
-                "ItemName": data["name"],
-                "Department": data["dept"]
-            }
+        # --------------------------
+        # SHOW CONFIRMED PACK
+        # --------------------------
+        if st.session_state.get("confirm_pack"):
 
-            log_df = pd.concat(
-                [log_df, pd.DataFrame([new])],
-                ignore_index=True
+            data = st.session_state.confirm_pack
+
+            st.success(
+                f"{data['PackName']} ➜ Floor: {data['Floor']} | Dept: {data['Department']}"
             )
 
-            log_df.to_csv(LOG_FILE, index=False)
+            # --------------------------
+            # STEP 3 → ISSUE
+            # --------------------------
+            if st.button("Issue Pack"):
 
-            st.success("Pack Issued Successfully")
+                new = {
+                    "Technician": logged_user,
+                    "Floor": data["Floor"],
+                    "ItemName": data["PackName"],
+                    "Department": data["Department"]
+                }
 
-            st.session_state.found_pack = None
+                log_df = pd.concat(
+                    [log_df, pd.DataFrame([new])],
+                    ignore_index=True
+                )
+
+                log_df.to_csv(LOG_FILE, index=False)
+
+                st.success("Pack Issued Successfully")
+
+                st.session_state.confirm_pack = None
 
     return log_df
