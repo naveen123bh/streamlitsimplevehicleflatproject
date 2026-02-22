@@ -3,10 +3,9 @@ import streamlit as st
 import pandas as pd
 import difflib
 from technician import TECHNICIAN_NAMES
-from sap import separate_pack_section
+from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-
 
 # ==============================
 # SESSION STATE INIT
@@ -23,13 +22,11 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-
 # ==============================
 # HEADER
 # ==============================
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
-
 
 # ==============================
 # LOGIN
@@ -59,7 +56,6 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
-
 # ==============================
 # LOGOUT
 # ==============================
@@ -69,7 +65,6 @@ if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
     st.rerun()
-
 
 # ==============================
 # OPTION SELECT
@@ -86,7 +81,6 @@ if st.session_state.query_option is None:
 
 option = st.session_state.query_option
 
-
 # ==============================
 # ISSUE LOG
 # ==============================
@@ -99,68 +93,26 @@ else:
         columns=["DateTime", "Technician", "Floor", "ItemName", "Department"]
     )
 
-
 # ==============================
 # SEPARATE PACK
 # ==============================
 if option == "Separate Pack":
+    from sap import separate_pack_section
     log_df = separate_pack_section(
         log_df,
         LOG_FILE,
         st.session_state.logged_in_user
     )
 
-
 # ==============================
 # SET SECTION
 # ==============================
 else:
-
-    df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
-    df.columns = ["SetName", "Floor"]
-    df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
-
-    st.subheader("Set Query")
-
-    name = st.text_input("Enter Set Name").upper().strip()
-
-    if st.button("Search Set"):
-
-        result = df[df["SetName"].str.contains(name, case=False, na=False)]
-
-        if not result.empty:
-            row = result.iloc[0]
-            st.session_state.found_set = {
-                "name": row["SetName"],
-                "floor": row["Floor"]
-            }
-        else:
-            st.error("Set not found")
-
-    if st.session_state.found_set:
-
-        data = st.session_state.found_set
-        st.success(f"{data['name']} ➜ Floor: {data['floor']}")
-
-        if st.button("Issue Set"):
-
-            ist = pytz.timezone("Asia/Kolkata")
-            current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
-
-            new = {
-                "DateTime": current_time,
-                "Technician": st.session_state.logged_in_user,
-                "Floor": data["floor"],
-                "ItemName": data["name"],
-                "Department": ""
-            }
-
-            log_df = pd.concat([log_df, pd.DataFrame([new])], ignore_index=True)
-            log_df.to_csv(LOG_FILE, index=False)
-
-            st.success("Set Issued Successfully")
-            st.session_state.found_set = None
-
+    log_df = search_and_issue_sets(
+        log_df,
+        LOG_FILE,
+        st.session_state.logged_in_user
+    )
 
 # ==============================
 # ISSUE HISTORY
