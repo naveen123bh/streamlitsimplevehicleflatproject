@@ -1,12 +1,14 @@
 import pandas as pd
 import streamlit as st
+import difflib
 from datetime import datetime
 import pytz
 
-def search_and_issue_sets(log_df, log_file, logged_in_user):
+
+def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     """
-    Handles Set Query, Search, and Issue logic for Streamlit app.
-    Returns updated log_df.
+    Handles Set Query, Department-wise viewing, and Issue logic for Streamlit app.
+    Mimics separate_pack_section logic with close matches and dropdown selection.
     """
 
     # Load sets CSV
@@ -14,28 +16,97 @@ def search_and_issue_sets(log_df, log_file, logged_in_user):
     df.columns = ["SetName", "Department", "Floor"]
     df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
 
-    st.subheader("Set Query")
+    st.subheader("Set Section")
 
-    # Input
-    name = st.text_input("Enter Set Name").upper().strip()
+    # ------------------------------
+    # Safe Session Init
+    # ------------------------------
+    if "confirmed_set" not in st.session_state:
+        st.session_state.confirmed_set = None
+
+    if "similar_set_matches" not in st.session_state:
+        st.session_state.similar_set_matches = None
+
+    # ======================================================
+    # 🟣 Search by Department
+    # ======================================================
+    st.markdown("### Search by Department")
+
+    dept_input = st.text_input("Enter Department Name").upper().strip()
+
+    if dept_input:
+        dept_result = df[
+            df["Department"].str.contains(dept_input, case=False, na=False)
+        ]
+
+        if not dept_result.empty:
+            st.write("Available Sets in Department:")
+            st.dataframe(dept_result[["SetName", "Floor"]])
+        else:
+            st.warning("No sets found for this department")
+
+    st.markdown("---")
+
+    # ======================================================
+    # Search by Set Name
+    # ======================================================
+    st.markdown("### Search by Set Name")
+
+    name_input = st.text_input("Enter Set Name").upper().strip()
 
     if st.button("Search Set"):
-        result = df[df["SetName"].str.contains(name, case=False, na=False)]
 
-        if not result.empty:
-            row = result.iloc[0]
-            st.session_state.found_set = {
-                "name": row["SetName"],
-                "floor": row["Floor"],
-                "department": row["Department"]
-            }
+        st.session_state.confirmed_set = None
+        st.session_state.similar_set_matches = None
+
+        # exact match first
+        exact = df[df["SetName"] == name_input]
+
+        if not exact.empty:
+            st.session_state.confirmed_set = exact.iloc[0].to_dict()
+
         else:
-            st.error("Set not found")
+            # close matches
+            all_names = df["SetName"].tolist()
+            matches = difflib.get_close_matches(
+                name_input,
+                all_names,
+                n=5,
+                cutoff=0.4
+            )
 
-    if st.session_state.found_set:
+            if matches:
+                st.session_state.similar_set_matches = matches
+            else:
+                st.error("No similar set found")
 
-        data = st.session_state.found_set
-        st.success(f"{data['name']} ➜ Department: {data['department']} ➜ Floor: {data['floor']}")
+    # ------------------------------
+    # Similar dropdown
+    # ------------------------------
+    if st.session_state.similar_set_matches:
+
+        selected = st.selectbox(
+            "Select Correct Set",
+            st.session_state.similar_set_matches,
+            key="selected_set_option"
+        )
+
+        if st.button("Confirm Set"):
+
+            row = df[df["SetName"] == st.session_state.selected_set_option].iloc[0]
+            st.session_state.confirmed_set = row.to_dict()
+            st.session_state.similar_set_matches = None
+
+    # ------------------------------
+    # Show Confirmed Set & Issue
+    # ------------------------------
+    if st.session_state.confirmed_set:
+
+        data = st.session_state.confirmed_set
+
+        st.success(
+            f"{data['SetName']} ➜ Department: {data['Department']} | Floor: {data['Floor']}"
+        )
 
         if st.button("Issue Set"):
 
@@ -44,16 +115,17 @@ def search_and_issue_sets(log_df, log_file, logged_in_user):
 
             new_entry = {
                 "DateTime": current_time,
-                "Technician": logged_in_user,
-                "Floor": data["floor"],
-                "ItemName": data["name"],
-                "Department": data["department"]
+                "Technician": logged_user,
+                "Floor": data["Floor"],
+                "ItemName": data["SetName"],
+                "Department": data["Department"]
             }
 
             log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
-            log_df.to_csv(log_file, index=False)
+            log_df.to_csv(LOG_FILE, index=False)
 
             st.success("Set Issued Successfully")
-            st.session_state.found_set = None
+
+            st.session_state.confirmed_set = None
 
     return log_df
