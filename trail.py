@@ -3,9 +3,10 @@ import streamlit as st
 import pandas as pd
 import difflib
 from technician import TECHNICIAN_NAMES
-from sap import separate_pack_section   # 👈 import here
+from sap import separate_pack_section
 from datetime import datetime
 import pytz
+
 
 # ==============================
 # SESSION STATE INIT
@@ -94,10 +95,13 @@ LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
 else:
-    log_df = pd.DataFrame(columns=["DateTime","Technician","Floor","ItemName","Department"])
+    log_df = pd.DataFrame(
+        columns=["DateTime", "Technician", "Floor", "ItemName", "Department"]
+    )
+
 
 # ==============================
-# SEPARATE PACK (imported)
+# SEPARATE PACK
 # ==============================
 if option == "Separate Pack":
     log_df = separate_pack_section(
@@ -106,13 +110,14 @@ if option == "Separate Pack":
         st.session_state.logged_in_user
     )
 
+
 # ==============================
 # SET SECTION
 # ==============================
 else:
 
     df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
-    df.columns = ["SetName","Floor"]
+    df.columns = ["SetName", "Floor"]
     df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
 
     st.subheader("Set Query")
@@ -125,7 +130,6 @@ else:
 
         if not result.empty:
             row = result.iloc[0]
-
             st.session_state.found_set = {
                 "name": row["SetName"],
                 "floor": row["Floor"]
@@ -140,7 +144,11 @@ else:
 
         if st.button("Issue Set"):
 
+            ist = pytz.timezone("Asia/Kolkata")
+            current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
+
             new = {
+                "DateTime": current_time,
                 "Technician": st.session_state.logged_in_user,
                 "Floor": data["floor"],
                 "ItemName": data["name"],
@@ -151,7 +159,6 @@ else:
             log_df.to_csv(LOG_FILE, index=False)
 
             st.success("Set Issued Successfully")
-
             st.session_state.found_set = None
 
 
@@ -164,10 +171,11 @@ if not log_df.empty:
     st.dataframe(log_df)
 else:
     st.write("No issues recorded")
+
 if st.button("Clear Log History"):
 
     empty_df = pd.DataFrame(
-        columns=["DateTime","Technician","Floor","ItemName","Department"]
+        columns=["DateTime", "Technician", "Floor", "ItemName", "Department"]
     )
 
     empty_df.to_csv(LOG_FILE, index=False)
