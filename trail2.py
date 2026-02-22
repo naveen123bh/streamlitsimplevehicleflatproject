@@ -17,6 +17,19 @@ st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
+# RANDOM QUOTE BELOW HEADER
+# ==============================
+QUOTES = [
+    "The mind is a mirror, see the reflection, not the shadow.\nPeace is the awareness of what is.",
+    "Everything happens by itself; the doer is an illusion.\nWitness the flow and be free.",
+    "Silence carries the answer; the world is but a play.\nBe the observer, not the actor.",
+    "When you stop chasing, you arrive.\nWhat is, is enough for this moment.",
+    "Nothing belongs to you, yet everything unfolds within you.\nLet love arise without effort."
+]
+quote = random.choice(QUOTES)
+st.info(quote)
+
+# ==============================
 # SESSION STATE INIT
 # ==============================
 defaults = {
@@ -75,24 +88,16 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-# Extract only the first name (ignore any title like Mr/Mrs)
+# Extract first name after ignoring title
+titles = ["MR", "MRS", "MS", "MISS"]
 full_name_parts = st.session_state.logged_in_user.strip().split()
-display_name = full_name_parts[0].title()  # First word only
 
-st.success(f"{greeting}, {display_name}!")
+# Skip title if present
+first_name = full_name_parts[0].title()
+if full_name_parts[0].upper() in titles and len(full_name_parts) > 1:
+    first_name = full_name_parts[1].title()
 
-# ==============================
-# RANDOM QUOTE BELOW HEADER
-# ==============================
-QUOTES = [
-    "The mind is a mirror, see the reflection, not the shadow.\nPeace is the awareness of what is.",
-    "Everything happens by itself; the doer is an illusion.\nWitness the flow and be free.",
-    "Silence carries the answer; the world is but a play.\nBe the observer, not the actor.",
-    "When you stop chasing, you arrive.\nWhat is, is enough for this moment.",
-    "Nothing belongs to you, yet everything unfolds within you.\nLet love arise without effort."
-]
-quote = random.choice(QUOTES)
-st.info(quote)
+st.success(f"{greeting}, {first_name}!")
 
 # ==============================
 # LOGOUT
