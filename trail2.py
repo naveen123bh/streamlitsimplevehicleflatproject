@@ -84,7 +84,7 @@ option = st.session_state.query_option
 
 
 # ==============================
-# ISSUE LOG
+# ISSUE LOG FILE
 # ==============================
 LOG_FILE = "issue_log.csv"
 
@@ -112,28 +112,21 @@ if option == "Separate Pack":
         pack_names = sp_df["PackName"].tolist()
 
         if name in pack_names:
-            row = sp_df[sp_df["PackName"] == name].iloc[0]
+            selected = name
+        else:
+            suggestions = difflib.get_close_matches(name, pack_names, n=1, cutoff=0.4)
+            selected = suggestions[0] if suggestions else None
+
+        if selected:
+            row = sp_df[sp_df["PackName"] == selected].iloc[0]
             st.session_state.found_pack = {
                 "name": row["PackName"],
                 "floor": row["Floor"],
                 "dept": row["Department"]
             }
-
+            st.rerun()
         else:
-            suggestions = difflib.get_close_matches(name, pack_names, n=5, cutoff=0.4)
-
-            if suggestions:
-                selected = st.selectbox("Did you mean:", suggestions)
-
-                if st.button("Confirm Pack"):
-                    row = sp_df[sp_df["PackName"] == selected].iloc[0]
-                    st.session_state.found_pack = {
-                        "name": row["PackName"],
-                        "floor": row["Floor"],
-                        "dept": row["Department"]
-                    }
-            else:
-                st.error("Please enter correct pack name")
+            st.error("Please enter correct pack name")
 
     if st.session_state.found_pack:
 
@@ -157,9 +150,8 @@ if option == "Separate Pack":
 
             updated.to_csv(LOG_FILE, index=False)
 
-            st.success("Pack Issued Successfully")
-
             st.session_state.found_pack = None
+            st.success("Pack Issued Successfully")
             st.rerun()
 
 
@@ -181,26 +173,20 @@ else:
         set_names = df["SetName"].tolist()
 
         if name in set_names:
-            row = df[df["SetName"] == name].iloc[0]
+            selected = name
+        else:
+            suggestions = difflib.get_close_matches(name, set_names, n=1, cutoff=0.4)
+            selected = suggestions[0] if suggestions else None
+
+        if selected:
+            row = df[df["SetName"] == selected].iloc[0]
             st.session_state.found_set = {
                 "name": row["SetName"],
                 "floor": row["Floor"]
             }
-
+            st.rerun()
         else:
-            suggestions = difflib.get_close_matches(name, set_names, n=5, cutoff=0.4)
-
-            if suggestions:
-                selected = st.selectbox("Did you mean:", suggestions)
-
-                if st.button("Confirm Set"):
-                    row = df[df["SetName"] == selected].iloc[0]
-                    st.session_state.found_set = {
-                        "name": row["SetName"],
-                        "floor": row["Floor"]
-                    }
-            else:
-                st.error("Please enter correct set name")
+            st.error("Please enter correct set name")
 
     if st.session_state.found_set:
 
@@ -224,9 +210,8 @@ else:
 
             updated.to_csv(LOG_FILE, index=False)
 
-            st.success("Set Issued Successfully")
-
             st.session_state.found_set = None
+            st.success("Set Issued Successfully")
             st.rerun()
 
 
