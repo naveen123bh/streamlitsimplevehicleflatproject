@@ -8,6 +8,16 @@ from datetime import datetime
 import pytz
 
 # ==============================
+# HOSPITAL IMAGE + HEADER
+# ==============================
+# Your hospital image URL from ibb.co
+hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
+
+st.image(hospital_image_url, width=400)
+st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
+st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
+
+# ==============================
 # SESSION STATE INIT
 # ==============================
 defaults = {
@@ -23,17 +33,11 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
-# HEADER
-# ==============================
-st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
-st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
-
-# ==============================
 # LOGIN
 # ==============================
 if st.session_state.logged_in_user is None:
 
-    name_input = st.text_input("Technician Name (please enter your name) ")
+    name_input = st.text_input("Technician Name")
 
     if name_input:
         cleaned = " ".join(name_input.upper().split())
