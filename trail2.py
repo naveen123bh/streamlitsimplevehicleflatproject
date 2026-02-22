@@ -7,7 +7,6 @@ from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
 import random
-from quotes import QUOTES  # import quotes from separate file
 
 # ==============================
 # HOSPITAL IMAGE + HEADER
@@ -15,13 +14,6 @@ from quotes import QUOTES  # import quotes from separate file
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
-
-# ==============================
-# RANDOM QUOTE BELOW HEADER
-# ==============================
-quote = random.choice(QUOTES)
-st.info(quote)
-
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
@@ -83,15 +75,24 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-# Extract first name with title if present
+# Extract only the first name (ignore any title like Mr/Mrs)
 full_name_parts = st.session_state.logged_in_user.strip().split()
-titles = ["MR", "MRS", "MS", "MISS"]
-if full_name_parts[0].upper() in titles and len(full_name_parts) > 1:
-    display_name = f"{full_name_parts[0].title()} {full_name_parts[1].title()}"
-else:
-    display_name = full_name_parts[0].title()
+display_name = full_name_parts[0].title()  # First word only
 
 st.success(f"{greeting}, {display_name}!")
+
+# ==============================
+# RANDOM QUOTE BELOW HEADER
+# ==============================
+QUOTES = [
+    "The mind is a mirror, see the reflection, not the shadow.\nPeace is the awareness of what is.",
+    "Everything happens by itself; the doer is an illusion.\nWitness the flow and be free.",
+    "Silence carries the answer; the world is but a play.\nBe the observer, not the actor.",
+    "When you stop chasing, you arrive.\nWhat is, is enough for this moment.",
+    "Nothing belongs to you, yet everything unfolds within you.\nLet love arise without effort."
+]
+quote = random.choice(QUOTES)
+st.info(quote)
 
 # ==============================
 # LOGOUT
