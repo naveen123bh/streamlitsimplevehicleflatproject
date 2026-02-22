@@ -100,12 +100,11 @@ else:
 # SEPARATE PACK (imported)
 # ==============================
 if option == "Separate Pack":
-    separate_pack_section(
+    log_df = separate_pack_section(
         log_df,
         LOG_FILE,
         st.session_state.logged_in_user
     )
-
 
 # ==============================
 # SET SECTION
