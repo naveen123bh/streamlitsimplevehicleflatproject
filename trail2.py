@@ -109,10 +109,11 @@ if option == "Separate Pack":
 
     if st.button("Search Pack"):
 
-        exact_match = sp_df[sp_df["PackName"] == name]
+        pack_names = sp_df["PackName"].tolist()
 
-        if not exact_match.empty:
-            row = exact_match.iloc[0]
+        # Exact match
+        if name in pack_names:
+            row = sp_df[sp_df["PackName"] == name].iloc[0]
             st.session_state.found_pack = {
                 "name": row["PackName"],
                 "floor": row["Floor"],
@@ -120,11 +121,11 @@ if option == "Separate Pack":
             }
 
         else:
-            suggestions = sp_df[sp_df["PackName"].str.contains(name, case=False, na=False)]
+            # Fuzzy match
+            suggestions = difflib.get_close_matches(name, pack_names, n=5, cutoff=0.4)
 
-            if not suggestions.empty:
-                options = suggestions["PackName"].unique().tolist()
-                selected = st.selectbox("Did you mean:", options)
+            if suggestions:
+                selected = st.selectbox("Did you mean:", suggestions)
 
                 if st.button("Confirm Pack"):
                     row = sp_df[sp_df["PackName"] == selected].iloc[0]
@@ -172,21 +173,21 @@ else:
 
     if st.button("Search Set"):
 
-        exact_match = df[df["SetName"] == name]
+        set_names = df["SetName"].tolist()
 
-        if not exact_match.empty:
-            row = exact_match.iloc[0]
+        # Exact match
+        if name in set_names:
+            row = df[df["SetName"] == name].iloc[0]
             st.session_state.found_set = {
                 "name": row["SetName"],
                 "floor": row["Floor"]
             }
 
         else:
-            suggestions = df[df["SetName"].str.contains(name, case=False, na=False)]
+            suggestions = difflib.get_close_matches(name, set_names, n=5, cutoff=0.4)
 
-            if not suggestions.empty:
-                options = suggestions["SetName"].unique().tolist()
-                selected = st.selectbox("Did you mean:", options)
+            if suggestions:
+                selected = st.selectbox("Did you mean:", suggestions)
 
                 if st.button("Confirm Set"):
                     row = df[df["SetName"] == selected].iloc[0]
