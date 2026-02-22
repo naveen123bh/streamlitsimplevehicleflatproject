@@ -71,9 +71,8 @@ if st.session_state.logged_in_user is None:
             st.warning("Enter correct name")
 
     st.stop()
-
 # ==============================
-# GREETING AFTER LOGIN (with first name)
+# GREETING AFTER LOGIN (first name only)
 # ==============================
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
@@ -88,15 +87,14 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-full_name_parts = st.session_state.logged_in_user.strip().split()
-titles = ["MR", "MRS", "MS", "MISS"]
-first_name = full_name_parts[0].title()  # default first word
-
-# If first word is a title, take the next word
-if full_name_parts[0].upper() in titles and len(full_name_parts) > 1:
+# Only skip MR and MISS, take next word as first name
+full_name_parts = st.session_state.logged_in_user.strip().upper().split()
+if full_name_parts[0] in ["MR", "MISS"] and len(full_name_parts) > 1:
     first_name = full_name_parts[1].title()
-st.success(f"{greeting}, {first_name}!")
+else:
+    first_name = full_name_parts[0].title()
 
+st.success(f"{greeting}, {first_name}!")
 # ==============================
 # LOGOUT
 # ==============================
