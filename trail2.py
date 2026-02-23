@@ -10,8 +10,6 @@ import pytz
 from quotes import get_random_quote  # <- import quotes
 
 # ==============================
-
-# ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
 
@@ -23,7 +21,6 @@ st.markdown("<p style='color:orange;'>Note: App is under consideration and devel
 # RANDOM QUOTE 
 # ==============================
 st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
-
 quote = get_random_quote()
 st.info(quote)
 
@@ -72,7 +69,7 @@ if st.session_state.logged_in_user is None:
                 options = [normalized[s] for s in suggestions]
                 st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
 
-    # ===== GREEN + ENLARGED LOGIN BUTTON STYLE =====
+    # ===== GREEN + ENLARGED LOGIN BUTTON =====
     st.markdown("""
     <style>
     div.stButton > button:first-child {
@@ -132,16 +129,21 @@ if st.session_state.query_option is None:
     # ===== STYLE FOR SELECT OPTION + RADIO =====
     st.markdown("""
     <style>
-    div.row-widget.stRadio > div {
-        font-size: 18px;
-        font-weight: bold;
-        color: black;
-    }
+
+    /* Select Option Label */
     label[data-testid="stWidgetLabel"] {
         color: #28a745 !important;
-        font-size: 22px !important;
+        font-size: 26px !important;
         font-weight: bold !important;
     }
+
+    /* Radio Options */
+    div.row-widget.stRadio > div {
+        font-size: 22px !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -165,7 +167,6 @@ if os.path.exists(LOG_FILE):
 
     if "SisterName" not in log_df.columns:
         log_df["SisterName"] = ""
-
 else:
     log_df = pd.DataFrame(
         columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
