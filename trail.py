@@ -8,7 +8,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote  # <- import quotes
 # ==============================
-# HOSPITAL IMAGE + HEADER
+# HOSPITAL IMAGE
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
