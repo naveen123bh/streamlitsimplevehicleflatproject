@@ -40,7 +40,7 @@ BUDDHA = [
 
 GEETA = [
 "You have a right to action, but not to its fruits.",
-"The self is never born and never dies.",
+"The self is never born and never ceases to exist.",
 "When meditation is mastered, the mind is unwavering.",
 "Perform action without attachment.",
 "One who sees inaction in action is wise.",
@@ -59,16 +59,16 @@ GEETA = [
 ASHTAVAKRA = [
 "You are not the body nor the mind.",
 "You are pure awareness.",
-"The world is illusion; the Self alone is real.",
+"The world is illusion (quantum physics double slit experiment ) ; the Self alone is real.",
 "Freedom is knowing you are the witness.",
 "Abandon identification and be happy.",
 "You are the solitary witness of all.",
 "The mind alone is bondage.",
-"Rest as awareness.",
+"Rest as awareness,and you will untouched.",
 "Nothing binds you.",
 "You are ever free.",
 "The universe arises in you.",
-"You are not the doer.",
+"You are not the doer but the 3 gunas of prakriti satv ,rajas ,tamas are constantly in play inside you.",
 "Desirelessness is freedom.",
 "Know yourself as consciousness.",
 "Be still and know."
@@ -87,19 +87,19 @@ KRISHNAMURTI = [
 "Choiceless awareness is freedom.",
 "Desire breeds conflict.",
 "The observer is the observed.",
-"Knowledge is not wisdom.",
+"Knowledge is not wisdom,wisdom is more deeper than that .",
 "Listen completely.",
 "In awareness there is transformation."
 ]
 
 MEERA = [
 "I have found my true love within.",
-"Where there is love, there is no fear.",
+"Where there is devotion , there is no fear.",
 "I belong to the One alone.",
 "My heart sings only for the Divine.",
 "In devotion, I dissolve.",
 "I drink the nectar of love.",
-"The world fades before love.",
+"The world fades before devotion .",
 "My Lord lives in my breath.",
 "I seek nothing but Him.",
 "Love is my only path.",
@@ -107,7 +107,7 @@ MEERA = [
 "The Beloved is my refuge.",
 "I have given myself completely.",
 "In longing, I find union.",
-"Only love remains."
+"devine dance is the result of surrender."
 ]
 
 PATANJALI = [
@@ -157,7 +157,7 @@ KABIR = [
 "Do not go outside, turn inward.",
 "Truth is simple.",
 "The guest is within you.",
-"Awaken before death.",
+"Awaken before this body ceases to exist.",
 "The sky is inside you.",
 "Listen to the inner sound.",
 "The drop merges in the ocean.",
