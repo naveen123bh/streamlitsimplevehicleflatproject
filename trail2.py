@@ -51,6 +51,12 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
+    # ==============================
+    # AUDIO PLAYER
+    # ==============================
+    song_file = "mysong.mp3"  # Put your mp3 in the same folder
+    st.audio(song_file, format="audio/mp3")
+
     st.markdown("""
     <style>
     div.stButton > button[kind="primary"] {
