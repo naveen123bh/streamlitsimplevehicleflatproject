@@ -87,9 +87,8 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
-
 # ==============================
-# AFTER LOGIN — CLEAN PAGE
+# AFTER LOGIN
 # ==============================
 
 # GREETING
@@ -134,7 +133,19 @@ if st.session_state.query_option is None:
     </style>
     """, unsafe_allow_html=True)
 
-    choice = st.radio("", ["Separate Pack", "Set"])
+    choice = st.radio(
+        "",
+        [
+            "Separate Pack",
+            "Set",
+            "ETO Query",
+            "Plasma Query",
+            "Autoclave Query",
+            "5th Floor Handover",
+            "3rd Floor Handover",
+            "Set Identification"
+        ]
+    )
 
     if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
@@ -159,8 +170,9 @@ else:
     )
 
 # ==============================
-# SEPARATE PACK
+# FEATURE SECTIONS
 # ==============================
+
 if option == "Separate Pack":
     from sap import separate_pack_section
     log_df = separate_pack_section(
@@ -169,15 +181,15 @@ if option == "Separate Pack":
         st.session_state.logged_in_user
     )
 
-# ==============================
-# SET SECTION
-# ==============================
-else:
+elif option == "Set":
     log_df = search_and_issue_sets(
         log_df,
         LOG_FILE,
         st.session_state.logged_in_user
     )
+
+else:
+    st.info("Upcoming Feature")
 
 # ==============================
 # ISSUE HISTORY
