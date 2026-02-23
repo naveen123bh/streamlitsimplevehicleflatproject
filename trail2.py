@@ -25,30 +25,6 @@ quote = get_random_quote()
 st.info(quote)
 
 # ==============================
-# GLOBAL GREEN BUTTON STYLE
-# ==============================
-st.markdown("""
-<style>
-/* Login + Continue button */
-div.stButton > button {
-    background-color: #28a745;
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-    padding: 0.6em 1.2em;
-    border-radius: 8px;
-}
-
-/* Radio option text */
-div[role="radiogroup"] label {
-    font-size: 20px !important;
-    font-weight: bold !important;
-    color: black !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ==============================
 # SESSION STATE INIT
 # ==============================
 defaults = {
@@ -79,6 +55,26 @@ def clean_name(name):
 # ==============================
 if st.session_state.logged_in_user is None:
 
+    # Green style only for Login button
+    st.markdown("""
+    <style>
+    div.stButton > button[kind="primary"] {
+        background-color: #28a745;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 0.6em 1.2em;
+        border-radius: 8px;
+    }
+
+    div[role="radiogroup"] label {
+        font-size: 20px !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     name_input = st.text_input("Technician Name")
 
     if name_input:
@@ -93,7 +89,7 @@ if st.session_state.logged_in_user is None:
                 options = [normalized[s] for s in suggestions]
                 st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
 
-    if st.button("Login"):
+    if st.button("Login", type="primary"):
         if st.session_state.login_selected_name:
             st.session_state.logged_in_user = st.session_state.login_selected_name
             st.rerun()
@@ -124,7 +120,7 @@ first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR",
 st.success(f"{greeting}, {first_name}!")
 
 # ==============================
-# LOGOUT
+# LOGOUT (normal style)
 # ==============================
 if st.button("Logout"):
     for key in defaults.keys():
@@ -138,7 +134,8 @@ if st.session_state.query_option is None:
 
     choice = st.radio("Select Option", ["Separate Pack", "Set"])
 
-    if st.button("Continue"):
+    # Continue button green (same as Login)
+    if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
         st.rerun()
 
