@@ -55,7 +55,6 @@ def clean_name(name):
 # ==============================
 if st.session_state.logged_in_user is None:
 
-    # Green style only for Login button
     st.markdown("""
     <style>
     div.stButton > button[kind="primary"] {
@@ -68,7 +67,7 @@ if st.session_state.logged_in_user is None:
     }
 
     div[role="radiogroup"] label {
-        font-size: 20px !important;
+        font-size: 24px !important;
         font-weight: bold !important;
         color: black !important;
     }
@@ -120,7 +119,7 @@ first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR",
 st.success(f"{greeting}, {first_name}!")
 
 # ==============================
-# LOGOUT (normal style)
+# LOGOUT
 # ==============================
 if st.button("Logout"):
     for key in defaults.keys():
@@ -132,9 +131,22 @@ if st.button("Logout"):
 # ==============================
 if st.session_state.query_option is None:
 
-    choice = st.radio("Select Option", ["Separate Pack", "Set"])
+    # Enlarged and colored Select Option
+    st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
 
-    # Continue button green (same as Login)
+    # Enlarged radio buttons
+    st.markdown("""
+    <style>
+    div[role="radiogroup"] > label {
+        font-size: 26px !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    choice = st.radio("", ["Separate Pack", "Set"])
+
     if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
         st.rerun()
