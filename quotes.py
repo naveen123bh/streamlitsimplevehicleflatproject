@@ -128,18 +128,18 @@ PATANJALI = [
 OSHO = [
 "Be realistic: plan for a miracle.",
 "Courage is a love affair with the unknown.",
-"Life begins where fear ends.",
-"Meditation is a way of being.",
-"Truth is not something outside to be discovered.",
-"Awareness is the key.",
+" Celebrate small things — they are the real treasures.”,
+" The moment you accept yourself, you become beautiful.",
+"Don’t be serious about life; it is a cosmic play.”,
+"The more you share, the more you have.",
 "Drop the mind and be.",
 "Celebrate life.",
 "Silence is the language of existence.",
 "Love is the ultimate alchemy.",
 "Creativity is the fragrance of freedom.",
-"Be a light unto yourself.",
-"Watch your thoughts.",
-"Relax into being.",
+"If you love a flower, do not pick it up.",
+"Only laughter can cleanse the dust gathered by seriousness.",
+"Existence trusts you more than you trust yourself.",
 "Simplicity is the ultimate sophistication of the spirit."
 ]
 
