@@ -7,9 +7,9 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-from quotes import get_random_quote  # <- import quotes
+from quotes import get_random_quote
 
-# ============================
+# ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
 
@@ -40,7 +40,7 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
-# HELPER FUNCTION TO CLEAN NAMES
+# HELPER FUNCTION
 # ==============================
 def clean_name(name):
     name = name.upper().replace(".", "").replace("!", "").strip()
@@ -69,10 +69,10 @@ if st.session_state.logged_in_user is None:
                 options = [normalized[s] for s in suggestions]
                 st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
 
-    # ===== GREEN + ENLARGED LOGIN BUTTON =====
+    # ===== GREEN BUTTON STYLE (LOGIN + CONTINUE SAME) =====
     st.markdown("""
     <style>
-    div.stButton > button:first-child {
+    div.stButton > button {
         background-color: #28a745;
         color: white;
         font-size: 20px;
@@ -93,7 +93,7 @@ if st.session_state.logged_in_user is None:
     st.stop()
 
 # ==============================
-# GREETING AFTER LOGIN
+# GREETING
 # ==============================
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
@@ -126,29 +126,19 @@ if st.button("Logout"):
 # ==============================
 if st.session_state.query_option is None:
 
-    # ===== STYLE FOR SELECT OPTION + RADIO =====
+    # Slightly larger radio options
     st.markdown("""
     <style>
-
-    /* Select Option Label */
-    label[data-testid="stWidgetLabel"] {
-        color: #28a745 !important;
-        font-size: 26px !important;
-        font-weight: bold !important;
-    }
-
-    /* Radio Options */
     div.row-widget.stRadio > div {
-        font-size: 22px !important;
-        font-weight: bold !important;
-        color: black !important;
+        font-size: 19px;
+        font-weight: 600;
     }
-
     </style>
     """, unsafe_allow_html=True)
 
     choice = st.radio("Select Option", ["Separate Pack", "Set"])
 
+    # Continue button automatically same green style as Login
     if st.button("Continue"):
         st.session_state.query_option = choice
         st.rerun()
@@ -164,7 +154,6 @@ LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
-
     if "SisterName" not in log_df.columns:
         log_df["SisterName"] = ""
 else:
@@ -204,12 +193,9 @@ else:
     st.write("No issues recorded")
 
 if st.button("Clear Log History"):
-
     empty_df = pd.DataFrame(
         columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
     )
-
     empty_df.to_csv(LOG_FILE, index=False)
-
     st.success("Log Cleared Successfully")
     st.rerun()
