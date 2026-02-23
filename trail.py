@@ -88,7 +88,7 @@ if st.session_state.logged_in_user is None:
             st.session_state.logged_in_user = st.session_state.login_selected_name
             st.rerun()
         else:
-            st.warning("Enter correct name")
+            st.warning("Enter correct and full name")
 
     st.stop()
 
