@@ -9,7 +9,7 @@ import pytz
 from quotes import get_random_quote
 
 # ==============================
-# HOSPITAL IMAGE + HEADER
+# HEADER
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
@@ -17,7 +17,7 @@ st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
-# RANDOM QUOTE
+# QUOTE
 # ==============================
 st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
 st.info(get_random_quote())
@@ -28,7 +28,9 @@ st.info(get_random_quote())
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
-    "query_option": None
+    "query_option": None,
+    "found_pack": None,
+    "found_set": None
 }
 
 for k, v in defaults.items():
@@ -36,88 +38,44 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
-# CLEAN NAME
-# ==============================
-def clean_name(name):
-    name = name.upper().replace(".", "").replace("!", "").strip()
-    for title in ["MR", "MISS"]:
-        if name.startswith(title + " "):
-            name = name[len(title)+1:]
-    return " ".join(name.split())
-
-# ==============================
 # LOGIN
 # ==============================
+def clean_name(name):
+    return name.upper().replace(".", "").strip()
+
 if st.session_state.logged_in_user is None:
-
     name_input = st.text_input("Technician Name")
-    
     if name_input:
-        cleaned_input = clean_name(name_input)
         normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
-
-        if cleaned_input in normalized:
-            st.session_state.login_selected_name = normalized[cleaned_input]
-        else:
-            suggestions = difflib.get_close_matches(cleaned_input, normalized.keys(), n=5, cutoff=0.5)
-            if suggestions:
-                options = [normalized[s] for s in suggestions]
-                st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
-
-    if st.button("Login"):
-        if st.session_state.login_selected_name:
-            st.session_state.logged_in_user = st.session_state.login_selected_name
+        cleaned = clean_name(name_input)
+        if cleaned in normalized:
+            st.session_state.logged_in_user = normalized[cleaned]
             st.rerun()
         else:
             st.warning("Enter correct name")
-
     st.stop()
 
-# ==============================
-# GREETING
-# ==============================
-ist = pytz.timezone("Asia/Kolkata")
-now = datetime.now(ist)
+st.success(f"Welcome {st.session_state.logged_in_user}")
 
-if 4 <= now.hour < 12:
-    greeting = "Good Morning"
-elif 12 <= now.hour < 16:
-    greeting = "Good Afternoon"
-elif 16 <= now.hour < 21:
-    greeting = "Good Evening"
-else:
-    greeting = "Hello"
-
-full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
-first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
-
-st.success(f"{greeting}, {first_name}!")
-
-# ==============================
-# LOGOUT
-# ==============================
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
     st.rerun()
 
 # ==============================
-# OPTION SELECT
+# OPTION
 # ==============================
 if st.session_state.query_option is None:
-
     choice = st.radio("Select Option", ["Separate Pack", "Set"])
-
     if st.button("Continue"):
         st.session_state.query_option = choice
         st.rerun()
-
     st.stop()
 
 option = st.session_state.query_option
 
 # ==============================
-# ISSUE LOG INIT
+# LOG INIT
 # ==============================
 LOG_FILE = "issue_log.csv"
 
@@ -125,17 +83,17 @@ if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE)
 else:
     log_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
+        columns=["DateTime","Technician","SisterName","Floor","ItemName","Department"]
     )
 
 # ==============================
-# SISTER NAME INPUT (GLOBAL FOR ISSUE)
+# ISSUE DETAILS (Only Addition)
 # ==============================
 st.subheader("Issue Details")
 sister_name = st.text_input("Enter Sister Name")
 
 # ==============================
-# SEPARATE PACK
+# SEARCH FLOW (UNCHANGED)
 # ==============================
 if option == "Separate Pack":
     from sap import separate_pack_section
@@ -145,10 +103,6 @@ if option == "Separate Pack":
         st.session_state.logged_in_user,
         sister_name
     )
-
-# ==============================
-# SET SECTION
-# ==============================
 else:
     log_df = search_and_issue_sets(
         log_df,
@@ -163,34 +117,11 @@ else:
 st.subheader("Issue History")
 
 if not log_df.empty:
-
-    if "SisterName" not in log_df.columns:
-        log_df["SisterName"] = ""
-
-    filter_name = st.text_input("Filter by Sister Name")
-
-    if filter_name:
-        filtered_df = log_df[
-            log_df["SisterName"].str.contains(filter_name, case=False, na=False)
-        ]
-    else:
-        filtered_df = log_df
-
-    st.dataframe(filtered_df)
-
+    st.dataframe(log_df)
 else:
     st.write("No issues recorded")
 
-# ==============================
-# CLEAR HISTORY
-# ==============================
 if st.button("Clear Log History"):
-
-    empty_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
-    )
-
-    empty_df.to_csv(LOG_FILE, index=False)
-
+    pd.DataFrame(columns=log_df.columns).to_csv(LOG_FILE,index=False)
     st.success("Log Cleared Successfully")
     st.rerun()
