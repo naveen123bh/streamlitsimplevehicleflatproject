@@ -6,8 +6,7 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-import random
-
+from quote import get_random_quote  # <- import quotes
 # ==============================
 # HOSPITAL IMAGE + HEADER
 # ==============================
@@ -19,14 +18,7 @@ st.markdown("<p style='color:orange;'>Note: App is under consideration and devel
 # ==============================
 # RANDOM QUOTE BELOW HEADER
 # ==============================
-QUOTES = [
-    "The mind is a mirror, see the reflection, not the shadow.\nPeace is the awareness of what is.",
-    "Everything happens by itself; the doer is an illusion.\nWitness the flow and be free.",
-    "Silence carries the answer; the world is but a play.\nBe the observer, not the actor.",
-    "When you stop chasing, you arrive.\nWhat is, is enough for this moment.",
-    "Nothing belongs to you, yet everything unfolds within you.\nLet love arise without effort."
-]
-quote = random.choice(QUOTES)
+quote = get_random_quote()
 st.info(quote)
 
 # ==============================
