@@ -1,5 +1,4 @@
 # quotes.py
-
 import random
 
 LAO_TZU = [
