@@ -14,7 +14,9 @@ from quotes import get_random_quote  # <- import quotes
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
+
 st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
+st.markdown("<h4 style='color:green;'>Coded for CSSD Department</h4>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
@@ -131,7 +133,6 @@ LOG_FILE = "issue_log.csv"
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
 
-    # ✅ Add SisterName column safely if missing
     if "SisterName" not in log_df.columns:
         log_df["SisterName"] = ""
 
