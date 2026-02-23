@@ -9,7 +9,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =============================
+# ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
 
@@ -23,6 +23,30 @@ st.markdown("<p style='color:orange;'>Note: App is under consideration and devel
 st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
 quote = get_random_quote()
 st.info(quote)
+
+# ==============================
+# GLOBAL GREEN BUTTON STYLE
+# ==============================
+st.markdown("""
+<style>
+/* Login + Continue button */
+div.stButton > button {
+    background-color: #28a745;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 0.6em 1.2em;
+    border-radius: 8px;
+}
+
+/* Radio option text */
+div[role="radiogroup"] label {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: black !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ==============================
 # SESSION STATE INIT
@@ -69,20 +93,6 @@ if st.session_state.logged_in_user is None:
                 options = [normalized[s] for s in suggestions]
                 st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
 
-    # ===== GREEN BUTTON STYLE (LOGIN + CONTINUE SAME) =====
-    st.markdown("""
-    <style>
-    div.stButton > button {
-        background-color: #28a745;
-        color: white;
-        font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em 1.2em;
-        border-radius: 8px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     if st.button("Login"):
         if st.session_state.login_selected_name:
             st.session_state.logged_in_user = st.session_state.login_selected_name
@@ -126,19 +136,8 @@ if st.button("Logout"):
 # ==============================
 if st.session_state.query_option is None:
 
-    # Slightly larger radio options
-    st.markdown("""
-    <style>
-    div.row-widget.stRadio > div {
-        font-size: 19px;
-        font-weight: 600;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     choice = st.radio("Select Option", ["Separate Pack", "Set"])
 
-    # Continue button automatically same green style as Login
     if st.button("Continue"):
         st.session_state.query_option = choice
         st.rerun()
