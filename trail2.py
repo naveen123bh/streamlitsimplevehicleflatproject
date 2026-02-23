@@ -88,9 +88,17 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-# Extract first real name, skip titles like MR/MISS
+# # Extract first real name, skip any MR/MISS
 full_name_parts = st.session_state.logged_in_user.strip().split()
-first_name = next((part.title() for part in full_name_parts if part.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
+first_name = None
+
+for part in full_name_parts:
+    if part.upper() not in ["MR", "MISS"]:
+        first_name = part.title()
+        break
+
+if not first_name:
+    first_name = full_name_parts[0].title()  # fallback
 
 st.success(f"{greeting}, {first_name}!")
 
