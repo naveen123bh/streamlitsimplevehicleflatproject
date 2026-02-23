@@ -51,7 +51,7 @@ def clean_name(name):
     return name
 
 # ==============================
-# LOGIN
+# LOGIN PAGE
 # ==============================
 if st.session_state.logged_in_user is None:
 
@@ -64,12 +64,6 @@ if st.session_state.logged_in_user is None:
         font-weight: bold;
         padding: 0.6em 1.2em;
         border-radius: 8px;
-    }
-
-    div[role="radiogroup"] label {
-        font-size: 24px !important;
-        font-weight: bold !important;
-        color: black !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -95,11 +89,14 @@ if st.session_state.logged_in_user is None:
         else:
             st.warning("Enter correct name")
 
-    st.stop()
+    st.stop()   # 🔴 IMPORTANT — stops login page from rendering further
+
 
 # ==============================
-# GREETING
+# AFTER LOGIN — ONLY THIS PAGE CONTENT WILL SHOW
 # ==============================
+
+# GREETING
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
@@ -118,23 +115,19 @@ first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR",
 
 st.success(f"{greeting}, {first_name}!")
 
-# ==============================
 # LOGOUT
-# ==============================
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
     st.rerun()
 
 # ==============================
-# OPTION SELECT
+# OPTION SELECT PAGE
 # ==============================
 if st.session_state.query_option is None:
 
-    # Enlarged and colored Select Option
     st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
 
-    # Enlarged radio buttons
     st.markdown("""
     <style>
     div[role="radiogroup"] > label {
@@ -151,59 +144,7 @@ if st.session_state.query_option is None:
         st.session_state.query_option = choice
         st.rerun()
 
-    st.stop()
+    st.stop()   # 🔴 stops here so next page doesn't mix
+
 
 option = st.session_state.query_option
-
-# ==============================
-# ISSUE LOG
-# ==============================
-LOG_FILE = "issue_log.csv"
-
-if os.path.exists(LOG_FILE):
-    log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
-    if "SisterName" not in log_df.columns:
-        log_df["SisterName"] = ""
-else:
-    log_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
-    )
-
-# ==============================
-# SEPARATE PACK
-# ==============================
-if option == "Separate Pack":
-    from sap import separate_pack_section
-    log_df = separate_pack_section(
-        log_df,
-        LOG_FILE,
-        st.session_state.logged_in_user
-    )
-
-# ==============================
-# SET SECTION
-# ==============================
-else:
-    log_df = search_and_issue_sets(
-        log_df,
-        LOG_FILE,
-        st.session_state.logged_in_user
-    )
-
-# ==============================
-# ISSUE HISTORY
-# ==============================
-st.subheader("Issue History")
-
-if not log_df.empty:
-    st.dataframe(log_df)
-else:
-    st.write("No issues recorded")
-
-if st.button("Clear Log History"):
-    empty_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
-    )
-    empty_df.to_csv(LOG_FILE, index=False)
-    st.success("Log Cleared Successfully")
-    st.rerun()
