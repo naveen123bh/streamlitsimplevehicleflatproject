@@ -8,6 +8,7 @@ from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
 from quotes import get_random_quote  # <- import quotes
+
 # ==============================
 # 
 # ==============================
@@ -43,13 +44,10 @@ for k, v in defaults.items():
 # HELPER FUNCTION TO CLEAN NAMES
 # ==============================
 def clean_name(name):
-    # uppercase, strip spaces, remove punctuation
     name = name.upper().replace(".", "").replace("!", "").strip()
-    # remove MR/MISS from start
     for title in ["MR", "MISS"]:
         if name.startswith(title + " "):
             name = name[len(title)+1:]
-    # normalize extra spaces
     name = " ".join(name.split())
     return name
 
@@ -82,7 +80,7 @@ if st.session_state.logged_in_user is None:
     st.stop()
 
 # ==============================
-# GREETING AFTER LOGIN (first name only)
+# GREETING AFTER LOGIN
 # ==============================
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
@@ -97,7 +95,6 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-# first name extraction (skip MR/MISS)
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
@@ -133,9 +130,14 @@ LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
+
+    # ✅ Add SisterName column safely if missing
+    if "SisterName" not in log_df.columns:
+        log_df["SisterName"] = ""
+
 else:
     log_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "Floor", "ItemName", "Department"]
+        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
     )
 
 # ==============================
@@ -149,7 +151,7 @@ if option == "Separate Pack":
         st.session_state.logged_in_user
     )
 
-
+# ==============================
 # SET SECTION
 # ==============================
 else:
@@ -172,7 +174,7 @@ else:
 if st.button("Clear Log History"):
 
     empty_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "Floor", "ItemName", "Department"]
+        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
     )
 
     empty_df.to_csv(LOG_FILE, index=False)
