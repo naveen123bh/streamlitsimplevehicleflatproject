@@ -175,9 +175,6 @@ ALL_CATEGORIES = [
 ]
 
 def get_random_quote():
-    selected_quotes = []
-    for author, quotes in ALL_CATEGORIES:
-        selected_quotes.append((author, random.choice(quotes)))
-    
-    author, quote = random.choice(selected_quotes)
+    author, quotes = random.choice(ALL_CATEGORIES)
+    quote = random.choice(quotes)
     return f'"{quote}"\n\n— {author}'
