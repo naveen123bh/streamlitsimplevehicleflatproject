@@ -121,7 +121,7 @@ if st.button("Logout"):
         st.session_state[key] = None
     st.rerun()
 
-# ==============================
+# =============================
 # OPTION SELECT PAGE
 # ==============================
 if st.session_state.query_option is None:
