@@ -10,7 +10,7 @@ import pytz
 from quotes import get_random_quote  # <- import quotes
 
 # ==============================
-# 
+
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
@@ -71,6 +71,20 @@ if st.session_state.logged_in_user is None:
             if suggestions:
                 options = [normalized[s] for s in suggestions]
                 st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
+
+    # ===== GREEN + ENLARGED LOGIN BUTTON STYLE =====
+    st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        background-color: #28a745;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 0.6em 1.2em;
+        border-radius: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     if st.button("Login"):
         if st.session_state.login_selected_name:
