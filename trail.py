@@ -7,25 +7,7 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-from quotes import get_random_quote  # <- import quotes
-
-# ==============================
-
-# ==============================
-hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
-st.image(hospital_image_url, width=400)
-
-st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
-st.markdown("<h4 style='color:green;'>Coded for CSSD Department</h4>", unsafe_allow_html=True)
-st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
-
-# ==============================
-# RANDOM QUOTE 
-# ==============================
-st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
-
-quote = get_random_quote()
-st.info(quote)
+from quotes import get_random_quote
 
 # ==============================
 # SESSION STATE INIT
@@ -43,7 +25,7 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
-# HELPER FUNCTION TO CLEAN NAMES
+# HELPER FUNCTION
 # ==============================
 def clean_name(name):
     name = name.upper().replace(".", "").replace("!", "").strip()
@@ -54,9 +36,33 @@ def clean_name(name):
     return name
 
 # ==============================
-# LOGIN
+# LOGIN PAGE ONLY
 # ==============================
 if st.session_state.logged_in_user is None:
+
+    hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
+    st.image(hospital_image_url, width=400)
+
+    st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:green;'>Coded for CSSD Department</h4>", unsafe_allow_html=True)
+    st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
+
+    st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
+    quote = get_random_quote()
+    st.info(quote)
+
+    st.markdown("""
+    <style>
+    div.stButton > button[kind="primary"] {
+        background-color: #28a745;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 0.6em 1.2em;
+        border-radius: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     name_input = st.text_input("Technician Name")
 
@@ -72,7 +78,7 @@ if st.session_state.logged_in_user is None:
                 options = [normalized[s] for s in suggestions]
                 st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
 
-    if st.button("Login"):
+    if st.button("Login", type="primary"):
         if st.session_state.login_selected_name:
             st.session_state.logged_in_user = st.session_state.login_selected_name
             st.rerun()
@@ -81,9 +87,12 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
+
 # ==============================
-# GREETING AFTER LOGIN
+# AFTER LOGIN — CLEAN PAGE
 # ==============================
+
+# GREETING
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
@@ -102,22 +111,32 @@ first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR",
 
 st.success(f"{greeting}, {first_name}!")
 
-# ==============================
 # LOGOUT
-# ==============================
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
     st.rerun()
 
 # ==============================
-# OPTION SELECT
+# OPTION SELECT PAGE
 # ==============================
 if st.session_state.query_option is None:
 
-    choice = st.radio("Select Option", ["Separate Pack", "Set"])
+    st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
 
-    if st.button("Continue"):
+    st.markdown("""
+    <style>
+    div[role="radiogroup"] > label {
+        font-size: 26px !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    choice = st.radio("", ["Separate Pack", "Set"])
+
+    if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
         st.rerun()
 
@@ -132,10 +151,8 @@ LOG_FILE = "issue_log.csv"
 
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
-
     if "SisterName" not in log_df.columns:
         log_df["SisterName"] = ""
-
 else:
     log_df = pd.DataFrame(
         columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
@@ -173,12 +190,9 @@ else:
     st.write("No issues recorded")
 
 if st.button("Clear Log History"):
-
     empty_df = pd.DataFrame(
         columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
     )
-
     empty_df.to_csv(LOG_FILE, index=False)
-
     st.success("Log Cleared Successfully")
     st.rerun()
