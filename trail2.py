@@ -9,9 +9,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =============================
+# ==============================
 # SESSION STATE INIT
-# =============================
+# ==============================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -91,7 +91,6 @@ if st.session_state.logged_in_user is None:
 # AFTER LOGIN
 # ==============================
 
-# GREETING
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
@@ -154,6 +153,13 @@ if st.session_state.query_option is None:
     st.stop()
 
 option = st.session_state.query_option
+
+# ==============================
+# BACK BUTTON (FOR ALL OPTION PAGES)
+# ==============================
+if st.button("⬅ Back"):
+    st.session_state.query_option = None
+    st.rerun()
 
 # ==============================
 # ISSUE LOG
