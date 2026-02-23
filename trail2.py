@@ -8,7 +8,7 @@ from datetime import datetime
 import pytz
 import random
 
-# =============================
+# ==============================
 # HOSPITAL IMAGE + HEADER
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
@@ -71,6 +71,7 @@ if st.session_state.logged_in_user is None:
             st.warning("Enter correct name")
 
     st.stop()
+
 # ==============================
 # GREETING AFTER LOGIN (first name only)
 # ==============================
@@ -87,14 +88,12 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-# Only skip MR and MISS, take next word as first name
-full_name_parts = st.session_state.logged_in_user.strip().upper().split()
-if full_name_parts[0] in ["MR", "MISS"] and len(full_name_parts) > 1:
-    first_name = full_name_parts[1].title()
-else:
-    first_name = full_name_parts[0].title()
+# Extract first real name, skip titles like MR/MISS
+full_name_parts = st.session_state.logged_in_user.strip().split()
+first_name = next((part.title() for part in full_name_parts if part.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
 st.success(f"{greeting}, {first_name}!")
+
 # ==============================
 # LOGOUT
 # ==============================
