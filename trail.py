@@ -9,9 +9,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ==============================
+# =============================
 # SESSION STATE INIT
-# ==============================
+# =============================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -50,6 +50,12 @@ if st.session_state.logged_in_user is None:
     st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
     quote = get_random_quote()
     st.info(quote)
+
+    # ==============================
+    # AUDIO PLAYER
+    # ==============================
+    song_file = "mysong.mp3"  # Put your mp3 in the same folder
+    st.audio(song_file, format="audio/mp3")
 
     st.markdown("""
     <style>
@@ -115,7 +121,7 @@ if st.button("Logout"):
         st.session_state[key] = None
     st.rerun()
 
-# ==============================
+# =============================
 # OPTION SELECT PAGE
 # ==============================
 if st.session_state.query_option is None:
@@ -197,9 +203,9 @@ elif option == "Set":
 else:
     st.info("Upcoming Feature")
 
-# =============================
+# ==============================
 # ISSUE HISTORY
-# =============================
+# ==============================
 st.subheader("Issue History")
 
 if not log_df.empty:
