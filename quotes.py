@@ -128,9 +128,9 @@ PATANJALI = [
 OSHO = [
 "Be realistic: plan for a miracle.",
 "Courage is a love affair with the unknown.",
-" Celebrate small things — they are the real treasures.”,
-" The moment you accept yourself, you become beautiful.",
-"Don’t be serious about life; it is a cosmic play.”,
+"Celebrate small things — they are the real treasures.",
+"The moment you accept yourself, you become beautiful.",
+"Don’t be serious about life; it is a cosmic play.",
 "The more you share, the more you have.",
 "Drop the mind and be.",
 "Celebrate life.",
