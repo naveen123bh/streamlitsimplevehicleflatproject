@@ -1,3 +1,4 @@
+# this code is programmed  by naveen123
 import os
 import streamlit as st
 import pandas as pd
@@ -8,7 +9,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote  # <- import quotes
 # ==============================
-# HOSPITAL IMAGE
+# 
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
@@ -16,7 +17,7 @@ st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
 st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
 
 # ==============================
-# RANDOM QUOTE BELOW HEADER
+# RANDOM QUOTE 
 # ==============================
 st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
 
