@@ -10,7 +10,7 @@ import pytz
 from quotes import get_random_quote  # <- import quotes
 
 # ==============================
-# 
+
 # ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
