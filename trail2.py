@@ -6,7 +6,7 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
-from quote import get_random_quote  # <- import quotes
+from quotes import get_random_quote  # <- import quotes
 # ==============================
 # HOSPITAL IMAGE + HEADER
 # ==============================
