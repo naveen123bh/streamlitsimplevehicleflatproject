@@ -9,9 +9,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote  # <- import quotes
 
-# ========================
+# ==============================
 
-# =======================
+# ==============================
 hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
 st.image(hospital_image_url, width=400)
 
@@ -128,6 +128,22 @@ if st.button("Logout"):
 # OPTION SELECT
 # ==============================
 if st.session_state.query_option is None:
+
+    # ===== STYLE FOR SELECT OPTION + RADIO =====
+    st.markdown("""
+    <style>
+    div.row-widget.stRadio > div {
+        font-size: 18px;
+        font-weight: bold;
+        color: black;
+    }
+    label[data-testid="stWidgetLabel"] {
+        color: #28a745 !important;
+        font-size: 22px !important;
+        font-weight: bold !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     choice = st.radio("Select Option", ["Separate Pack", "Set"])
 
