@@ -9,9 +9,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =============================
+# ==============================
 # SESSION STATE INIT
-# =============================
+# ==============================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -87,12 +87,10 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
-
 # ==============================
-# AFTER LOGIN — CLEAN PAGE
+# AFTER LOGIN
 # ==============================
 
-# GREETING
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
@@ -134,7 +132,19 @@ if st.session_state.query_option is None:
     </style>
     """, unsafe_allow_html=True)
 
-    choice = st.radio("", ["Separate Pack", "Set"])
+    choice = st.radio(
+        "",
+        [
+            "Separate Pack",
+            "Set",
+            "ETO Query",
+            "Plasma Query",
+            "Autoclave Query",
+            "5th Floor Handover",
+            "3rd Floor Handover",
+            "Set Identification"
+        ]
+    )
 
     if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
@@ -143,6 +153,13 @@ if st.session_state.query_option is None:
     st.stop()
 
 option = st.session_state.query_option
+
+# ==============================
+# BACK BUTTON (FOR ALL OPTION PAGES)
+# ==============================
+if st.button("⬅ Back"):
+    st.session_state.query_option = None
+    st.rerun()
 
 # ==============================
 # ISSUE LOG
@@ -159,8 +176,9 @@ else:
     )
 
 # ==============================
-# SEPARATE PACK
+# FEATURE SECTIONS
 # ==============================
+
 if option == "Separate Pack":
     from sap import separate_pack_section
     log_df = separate_pack_section(
@@ -169,19 +187,19 @@ if option == "Separate Pack":
         st.session_state.logged_in_user
     )
 
-# ==============================
-# SET SECTION
-# ==============================
-else:
+elif option == "Set":
     log_df = search_and_issue_sets(
         log_df,
         LOG_FILE,
         st.session_state.logged_in_user
     )
 
-# ==============================
+else:
+    st.info("Upcoming Feature")
+
+# =============================
 # ISSUE HISTORY
-# ==============================
+# =============================
 st.subheader("Issue History")
 
 if not log_df.empty:
