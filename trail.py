@@ -52,7 +52,7 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYER
+    # AUDIO PLAYE
     # ==============================
     song_file = "mysong.mp3"  # Put your mp3 in the same folder
     st.audio(song_file, format="audio/mp3")
