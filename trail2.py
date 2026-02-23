@@ -45,20 +45,34 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # ==============================
+# HELPER FUNCTION TO CLEAN NAMES
+# ==============================
+def clean_name(name):
+    # uppercase, strip spaces, remove punctuation
+    name = name.upper().replace(".", "").replace("!", "").strip()
+    # remove MR/MISS from start
+    for title in ["MR", "MISS"]:
+        if name.startswith(title + " "):
+            name = name[len(title)+1:]
+    # normalize extra spaces
+    name = " ".join(name.split())
+    return name
+
+# ==============================
 # LOGIN
 # ==============================
 if st.session_state.logged_in_user is None:
 
     name_input = st.text_input("Technician Name")
-
+    
     if name_input:
-        cleaned = " ".join(name_input.upper().split())
-        normalized = {" ".join(n.upper().split()): n for n in TECHNICIAN_NAMES}
+        cleaned_input = clean_name(name_input)
+        normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
 
-        if cleaned in normalized:
-            st.session_state.login_selected_name = normalized[cleaned]
+        if cleaned_input in normalized:
+            st.session_state.login_selected_name = normalized[cleaned_input]
         else:
-            suggestions = difflib.get_close_matches(cleaned, normalized.keys(), n=5, cutoff=0.5)
+            suggestions = difflib.get_close_matches(cleaned_input, normalized.keys(), n=5, cutoff=0.5)
             if suggestions:
                 options = [normalized[s] for s in suggestions]
                 st.session_state.login_selected_name = st.selectbox("Did you mean:", options)
@@ -88,17 +102,9 @@ elif 16 <= current_hour < 21:
 else:
     greeting = "Hello"
 
-# # Extract first real name, skip any MR/MISS
-full_name_parts = st.session_state.logged_in_user.strip().split()
-first_name = None
-
-for part in full_name_parts:
-    if part.upper() not in ["MR", "MISS"]:
-        first_name = part.title()
-        break
-
-if not first_name:
-    first_name = full_name_parts[0].title()  # fallback
+# first name extraction (skip MR/MISS)
+full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
+first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
 st.success(f"{greeting}, {first_name}!")
 
