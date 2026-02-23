@@ -18,6 +18,8 @@ st.markdown("<p style='color:orange;'>Note: App is under consideration and devel
 # ==============================
 # RANDOM QUOTE BELOW HEADER
 # ==============================
+st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
+
 quote = get_random_quote()
 st.info(quote)
 
