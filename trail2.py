@@ -100,8 +100,8 @@ if st.session_state.logged_in_user is None:
     <h4 style="color:green; font-weight:bold; font-size:22px;">Technician Name</h4>
     """, unsafe_allow_html=True)
 
-    # text_input with empty label
-    name_input = st.text_input("", key="technician_name")
+    # text_input with empty label and placeholder
+    name_input = st.text_input("", key="technician_name", placeholder="Enter your name here")
 
     if name_input:
         cleaned_input = clean_name(name_input)
