@@ -1,7 +1,7 @@
 # this code is programmed by naveen123
 import os
 import random
-#import base64
+import base64
 import streamlit as st
 import pandas as pd
 import difflib
@@ -56,7 +56,7 @@ if st.session_state.logged_in_user is None:
     # AUTO PLAY RANDOM SONG
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    mp3_files = [
+#    mp3_files = [
         os.path.join(current_dir, f)
         for f in os.listdir(current_dir)
         if f.lower().endswith(".mp3")
