@@ -55,6 +55,7 @@ if st.session_state.logged_in_user is None:
 
     # AUTO PLAY RANDOM SONG (autoplay disabled)
     current_dir = os.path.dirname(os.path.abspath(__file__))
+
     mp3_files = [
         os.path.join(current_dir, f)
         for f in os.listdir(current_dir)
@@ -63,47 +64,42 @@ if st.session_state.logged_in_user is None:
 
     if mp3_files:
         random_song = random.choice(mp3_files)
+
         with open(random_song, "rb") as f:
             audio_bytes = f.read()
+
         b64 = base64.b64encode(audio_bytes).decode()
+
         audio_html = f"""
         <audio><!-- autoplay -->
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
         """
+
         st.markdown(audio_html, unsafe_allow_html=True)
+
     else:
         st.warning("No mp3 files found in this folder")
 
-    # ==============================
-    # GREEN + ENLARGED TECHNICIAN NAME LABEL
-    # ==============================
-    st.markdown(
-        """
-        <div style='
-            background-color:#e8f5e9;
-            padding:12px;
-            border-radius:10px;
-            text-align:center;
-            margin-bottom:10px;
-        '>
-            <span style='
-                color:#28a745;
-                font-size:28px;
-                font-weight:bold;
-            '>
-                Technician Name
-            </span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <style>
+    div.stButton > button[kind="primary"] {
+        background-color: #28a745;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 0.6em 1.2em;
+        border-radius: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    name_input = st.text_input("")
+    name_input = st.text_input("Technician Name")
 
     if name_input:
         cleaned_input = clean_name(name_input)
         normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
+
         if cleaned_input in normalized:
             st.session_state.login_selected_name = normalized[cleaned_input]
         else:
@@ -124,6 +120,7 @@ if st.session_state.logged_in_user is None:
 # ==============================
 # AFTER LOGIN
 # ==============================
+
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
@@ -140,7 +137,7 @@ else:
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
-# ✅ GREEN + ENLARGED TECHNICIAN NAME GREETING
+# ✅ GREEN + ENLARGED TECHNICIAN NAME
 st.markdown(
     f"""
     <div style='
@@ -185,7 +182,9 @@ if st.button("Logout"):
 # OPTION SELECT PAGE
 # =============================
 if st.session_state.query_option is None:
+
     st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
+
     st.markdown("""
     <style>
     div[role="radiogroup"] > label {
@@ -213,6 +212,7 @@ if st.session_state.query_option is None:
     if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
         st.rerun()
+
     st.stop()
 
 option = st.session_state.query_option
@@ -225,6 +225,7 @@ if st.button("⬅ Back"):
 # ISSUE LOG
 # ==============================
 LOG_FILE = "issue_log.csv"
+
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
     if "SisterName" not in log_df.columns:
@@ -240,17 +241,14 @@ else:
 if option == "Separate Pack":
     from sap import separate_pack_section
 
-    # --- Existing Pack Search Input and Button (unchanged) ---
-    pack_input = st.text_input("Search by Pack")
-    if st.button("Search Pack"):
-        log_df = separate_pack_section(
-            log_df,
-            LOG_FILE,
-            st.session_state.logged_in_user,
-            pack_name=pack_input
-        )
+    # --- Existing Separate Pack logic untouched ---
+    log_df = separate_pack_section(
+        log_df,
+        LOG_FILE,
+        st.session_state.logged_in_user
+    )
 
-    # --- NEW Department Search Input + Green Search Button ---
+    # --- ADD Search by Department BELOW existing logic ---
     st.markdown(
         """
         <div style='
@@ -296,6 +294,7 @@ else:
 # ISSUE HISTORY
 # ==============================
 st.subheader("Issue History")
+
 if not log_df.empty:
     st.dataframe(log_df)
 else:
