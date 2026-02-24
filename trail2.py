@@ -53,7 +53,6 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
-    # AUTO PLAY RANDOM SONG
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     mp3_files = [
@@ -137,20 +136,23 @@ else:
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
-# ✅ GREEN + ENLARGED TECHNICIAN NAME
+# ✅ STRONG GREEN + MORE NOTICEABLE TECHNICIAN NAME
 st.markdown(
     f"""
     <div style='
-        background-color:#e8f5e9;
-        padding:14px;
-        border-radius:10px;
+        background-color:#e6ffe6;
+        padding:16px;
+        border-radius:12px;
         text-align:center;
-        margin-bottom:15px;
+        margin-bottom:18px;
+        box-shadow: 0 0 12px rgba(0,128,0,0.3);
     '>
         <span style='
-            color:#28a745;
-            font-size:30px;
-            font-weight:bold;
+            color:#008000;
+            font-size:34px;
+            font-weight:900;
+            letter-spacing:1px;
+            text-shadow: 1px 1px 3px rgba(0,100,0,0.4);
         '>
             {greeting}, {first_name}!
         </span>
