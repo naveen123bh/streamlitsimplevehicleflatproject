@@ -75,7 +75,7 @@ if st.session_state.logged_in_user is None:
         </audio>
         """
 
-        st.markdown(audio_html, unsafe_allow_html=True)
+ #       st.markdown(audio_html, unsafe_allow_html=True)
 
     else:
         st.warning("No mp3 files found in this folder")
