@@ -1,5 +1,6 @@
 # this code is programmed  by naveen123
 import os
+import random
 import streamlit as st
 import pandas as pd
 import difflib
@@ -52,10 +53,15 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYER
+    # AUDIO PLAYER (RANDOM FROM SAME FOLDER)
     # ==============================
-    song_file = "mysong.mp3"  # Put your mp3 in the same folder
-    st.audio(song_file, format="audio/mp3")
+    mp3_files = [f for f in os.listdir() if f.lower().endswith(".mp3")]
+
+    if mp3_files:
+        random_song = random.choice(mp3_files)
+        st.audio(random_song, format="audio/mp3")
+    else:
+        st.warning("No mp3 files found in this folder")
 
     st.markdown("""
     <style>
@@ -161,7 +167,7 @@ if st.session_state.query_option is None:
 option = st.session_state.query_option
 
 # ==============================
-# BACK BUTTON (FOR ALL OPTION PAGES)
+# BACK BUTTON
 # ==============================
 if st.button("⬅ Back"):
     st.session_state.query_option = None
@@ -184,7 +190,6 @@ else:
 # ==============================
 # FEATURE SECTIONS
 # ==============================
-
 if option == "Separate Pack":
     from sap import separate_pack_section
     log_df = separate_pack_section(
