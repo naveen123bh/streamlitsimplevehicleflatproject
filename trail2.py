@@ -10,6 +10,7 @@ from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
 from quotes import get_random_quote
+import csv
 
 # ========================
 # SESSION STATE INIT
@@ -19,8 +20,7 @@ defaults = {
     "login_selected_name": None,
     "query_option": None,
     "found_pack": None,
-    "found_set": None,
-    "feedback_input": ""
+    "found_set": None
 }
 
 for k, v in defaults.items():
@@ -113,6 +113,33 @@ if st.session_state.logged_in_user is None:
         else:
             st.warning("Enter correct name")
 
+    # -------------------------------
+    # CSSD Staff Suggestion / Feedback (save to naveen.txt)
+    # -------------------------------
+    st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
+
+    # Persist textarea with session_state
+    if "feedback_input" not in st.session_state:
+        st.session_state.feedback_input = ""
+
+    st.session_state.feedback_input = st.text_area(
+        "Do you have any suggestion or idea to improve this app?",
+        value=st.session_state.feedback_input
+    )
+
+    SUGGESTION_FILE = "naveen.txt"  # <-- suggestions saved here
+
+    if st.button("Submit Suggestion"):
+        if st.session_state.feedback_input.strip() != "":
+            # Append suggestion to TXT
+            with open(SUGGESTION_FILE, mode="a", encoding="utf-8") as f:
+                f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {st.session_state.login_selected_name or 'Unknown'}: {st.session_state.feedback_input}\n")
+            # Clear input after submission
+            st.session_state.feedback_input = ""
+            st.success("Your suggestion has been recorded in naveen.txt.")
+        else:
+            st.warning("Please type something to submit.")
+
     st.stop()
 
 # ==============================
@@ -175,44 +202,9 @@ if st.button("Logout"):
         st.session_state[key] = None
     st.rerun()
 
-# ==============================
-# CSSD Staff Suggestion / Feedback (AFTER LOGIN, save in TXT)
-# ==============================
-st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
-
-st.session_state.feedback_input = st.text_area(
-    "Do you have any suggestion or idea to improve this app?",
-    value=st.session_state.feedback_input
-)
-
-SUGGESTION_FILE = "cssd_suggestions.txt"
-
-if st.button("Submit Suggestion"):
-    if st.session_state.feedback_input.strip() != "":
-        with open(SUGGESTION_FILE, mode="a", encoding="utf-8") as f:
-            f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {st.session_state.logged_in_user}: {st.session_state.feedback_input}\n")
-        st.success(f"Thank you {st.session_state.logged_in_user}! Your suggestion has been recorded.")
-        st.session_state.feedback_input = ""
-        st.rerun()
-    else:
-        st.warning("Please type something to submit.")
-
-# Display all previous suggestions from TXT
-if os.path.exists(SUGGESTION_FILE):
-    with open(SUGGESTION_FILE, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-    if lines:
-        st.subheader("All Submitted Suggestions")
-        for line in lines[::-1]:  # latest first
-            st.text(line.strip())
-    else:
-        st.write("No suggestions submitted yet.")
-else:
-    st.write("No suggestions submitted yet.")
-
 # =============================
 # OPTION SELECT PAGE
-# ==============================
+# =============================
 if st.session_state.query_option is None:
 
     st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
