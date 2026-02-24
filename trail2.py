@@ -55,7 +55,6 @@ if st.session_state.logged_in_user is None:
 
     # AUTO PLAY RANDOM SONG (autoplay disabled)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-
     mp3_files = [
         os.path.join(current_dir, f)
         for f in os.listdir(current_dir)
@@ -64,20 +63,15 @@ if st.session_state.logged_in_user is None:
 
     if mp3_files:
         random_song = random.choice(mp3_files)
-
         with open(random_song, "rb") as f:
             audio_bytes = f.read()
-
         b64 = base64.b64encode(audio_bytes).decode()
-
         audio_html = f"""
         <audio><!-- autoplay -->
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
         """
-
         st.markdown(audio_html, unsafe_allow_html=True)
-
     else:
         st.warning("No mp3 files found in this folder")
 
@@ -110,7 +104,6 @@ if st.session_state.logged_in_user is None:
     if name_input:
         cleaned_input = clean_name(name_input)
         normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
-
         if cleaned_input in normalized:
             st.session_state.login_selected_name = normalized[cleaned_input]
         else:
@@ -131,7 +124,6 @@ if st.session_state.logged_in_user is None:
 # ==============================
 # AFTER LOGIN
 # ==============================
-
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
@@ -193,9 +185,7 @@ if st.button("Logout"):
 # OPTION SELECT PAGE
 # =============================
 if st.session_state.query_option is None:
-
     st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
-
     st.markdown("""
     <style>
     div[role="radiogroup"] > label {
@@ -223,7 +213,6 @@ if st.session_state.query_option is None:
     if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
         st.rerun()
-
     st.stop()
 
 option = st.session_state.query_option
@@ -236,7 +225,6 @@ if st.button("⬅ Back"):
 # ISSUE LOG
 # ==============================
 LOG_FILE = "issue_log.csv"
-
 if os.path.exists(LOG_FILE):
     log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
     if "SisterName" not in log_df.columns:
@@ -250,19 +238,21 @@ else:
 # FEATURE SECTIONS
 # ==============================
 if option == "Separate Pack":
-    # --- GREEN LABEL: Search by Department ---
+    from sap import separate_pack_section
+
+    # --- Department Input ---
     st.markdown(
         """
         <div style='
             background-color:#e8f5e9;
             padding:12px;
             border-radius:10px;
-            text-align:center;
-            margin-bottom:10px;
+            text-align:left;
+            margin-bottom:5px;
         '>
             <span style='
                 color:#28a745;
-                font-size:28px;
+                font-size:26px;
                 font-weight:bold;
             '>
                 Search by Department
@@ -271,18 +261,16 @@ if option == "Separate Pack":
         """,
         unsafe_allow_html=True
     )
-
-    # --- Department name input ---
     department_input = st.text_input("Enter Department Name")
 
-    # Call your existing function (pass department_input if needed)
-    from sap import separate_pack_section
-    log_df = separate_pack_section(
-        log_df,
-        LOG_FILE,
-        st.session_state.logged_in_user,
-        department_name=department_input  # optional, only if function supports
-    )
+    # --- GREEN SEARCH BUTTON ---
+    if st.button("Search"):
+        log_df = separate_pack_section(
+            log_df,
+            LOG_FILE,
+            st.session_state.logged_in_user,
+            department_name=department_input  # pass department name to function
+        )
 
 elif option == "Set":
     log_df = search_and_issue_sets(
