@@ -1,6 +1,7 @@
 # this code is programmed by naveen123
 import os
 import random
+import base64
 import streamlit as st
 import pandas as pd
 import difflib
@@ -53,7 +54,7 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYER (STABLE METHOD)
+    # AUDIO PLAYER (FIRST LOAD AUTOPLAY)
     # ==============================
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -65,7 +66,29 @@ if st.session_state.logged_in_user is None:
 
     if mp3_files:
         random_song = random.choice(mp3_files)
-        st.audio(random_song, autoplay=True)
+
+        with open(random_song, "rb") as f:
+            audio_bytes = f.read()
+
+        b64 = base64.b64encode(audio_bytes).decode()
+
+        audio_html = f"""
+        <audio id="bgmusic" autoplay muted>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+
+        <script>
+            var audio = document.getElementById("bgmusic");
+            audio.play().then(() => {{
+                audio.muted = false;
+            }}).catch(() => {{
+                console.log("Autoplay blocked");
+            }});
+        </script>
+        """
+
+        st.markdown(audio_html, unsafe_allow_html=True)
+
     else:
         st.warning("No mp3 files found in this folder")
 
@@ -129,7 +152,6 @@ first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR",
 
 st.success(f"{greeting}, {first_name}!")
 
-# LOGOUT
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
@@ -174,9 +196,6 @@ if st.session_state.query_option is None:
 
 option = st.session_state.query_option
 
-# ==============================
-# BACK BUTTON
-# ==============================
 if st.button("⬅ Back"):
     st.session_state.query_option = None
     st.rerun()
