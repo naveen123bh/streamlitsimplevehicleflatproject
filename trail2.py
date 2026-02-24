@@ -11,7 +11,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =========================
+# ==========================
 # SESSION STATE INIT
 # =========================
 defaults = {
@@ -240,43 +240,11 @@ else:
 # ==============================
 if option == "Separate Pack":
     from sap import separate_pack_section
-    # --- Existing Separate Pack section untouched ---
     log_df = separate_pack_section(
         log_df,
         LOG_FILE,
         st.session_state.logged_in_user
     )
-    # --- Add "Search by Department" below existing logic ---
-    st.markdown(
-        """
-        <div style='
-            background-color:#e8f5e9;
-            padding:12px;
-            border-radius:10px;
-            text-align:left;
-            margin-top:10px;
-            margin-bottom:5px;
-        '>
-            <span style='
-                color:#28a745;
-                font-size:26px;
-                font-weight:bold;
-            '>
-                Search by Department
-            </span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    department_input = st.text_input("Enter Department Name")
-    if st.button("Search Department"):
-        # Use existing separate_pack_section function to handle department search if implemented
-        log_df = separate_pack_section(
-            log_df,
-            LOG_FILE,
-            st.session_state.logged_in_user,
-            department_name=department_input
-        )
 
 elif option == "Set":
     log_df = search_and_issue_sets(
