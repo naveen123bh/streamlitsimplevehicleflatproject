@@ -280,9 +280,9 @@ elif option == "Set":
 else:
     st.info("Upcoming Feature")
 
-# ==============================
+# =============================
 # ISSUE HISTORY
-# ==============================
+# =============================
 st.subheader("Issue History")
 
 if not log_df.empty:
