@@ -12,9 +12,9 @@ import pytz
 from quotes import get_random_quote
 import csv
 
-# =========================
+# ========================
 # SESSION STATE INIT
-# =========================
+# ========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
