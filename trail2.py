@@ -20,7 +20,8 @@ defaults = {
     "login_selected_name": None,
     "query_option": None,
     "found_pack": None,
-    "found_set": None
+    "found_set": None,
+    "feedback_input": ""
 }
 
 for k, v in defaults.items():
@@ -113,36 +114,6 @@ if st.session_state.logged_in_user is None:
         else:
             st.warning("Enter correct name")
 
-    # -------------------------------
-    # CSSD Staff Suggestion / Feedback
-    # -------------------------------
-    st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
-
-    # Persist textarea with session_state
-    if "feedback_input" not in st.session_state:
-        st.session_state.feedback_input = ""
-
-    st.session_state.feedback_input = st.text_area(
-        "Do you have any suggestion or idea to improve this app?",
-        value=st.session_state.feedback_input
-    )
-
-    if st.button("Submit Suggestion"):
-        if st.session_state.feedback_input.strip() != "":
-            FEEDBACK_FILE = "cssd_suggestions.csv"
-            with open(FEEDBACK_FILE, mode="a", newline="") as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    st.session_state.login_selected_name or "Unknown",
-                    st.session_state.feedback_input
-                ])
-            st.success("Thank you! Your suggestion has been recorded.")
-            # Clear input after submission
-            st.session_state.feedback_input = ""
-        else:
-            st.warning("Please type something to submit.")
-
     st.stop()
 
 # ==============================
@@ -185,6 +156,34 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# -------------------------------
+# CSSD Staff Suggestion / Feedback (AFTER LOGIN)
+# -------------------------------
+st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
+
+# Persist textarea with session_state
+st.session_state.feedback_input = st.text_area(
+    "Do you have any suggestion or idea to improve this app?",
+    value=st.session_state.feedback_input
+)
+
+if st.button("Submit Suggestion"):
+    if st.session_state.feedback_input.strip() != "":
+        FEEDBACK_FILE = "cssd_suggestions.csv"
+        with open(FEEDBACK_FILE, mode="a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                st.session_state.logged_in_user,
+                st.session_state.feedback_input
+            ])
+        st.success(f"Thank you {st.session_state.logged_in_user}! Your suggestion has been recorded.")
+        # Clear input after submission
+        st.session_state.feedback_input = ""
+        st.rerun()
+    else:
+        st.warning("Please type something to submit.")
 
 # GREEN + ENLARGED LOGOUT BUTTON
 st.markdown("""
