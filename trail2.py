@@ -13,7 +13,7 @@ from quotes import get_random_quote
 
 # ==========================
 # SESSION STATE INIT
-# ==========================
+# =========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -240,15 +240,13 @@ else:
 # ==============================
 if option == "Separate Pack":
     from sap import separate_pack_section
-
-    # --- Existing Separate Pack logic untouched ---
+    # --- Existing Separate Pack section untouched ---
     log_df = separate_pack_section(
         log_df,
         LOG_FILE,
         st.session_state.logged_in_user
     )
-
-    # --- ADD Search by Department BELOW existing logic ---
+    # --- Add "Search by Department" below existing logic ---
     st.markdown(
         """
         <div style='
@@ -271,8 +269,8 @@ if option == "Separate Pack":
         unsafe_allow_html=True
     )
     department_input = st.text_input("Enter Department Name")
-
     if st.button("Search Department"):
+        # Use existing separate_pack_section function to handle department search if implemented
         log_df = separate_pack_section(
             log_df,
             LOG_FILE,
