@@ -1,7 +1,6 @@
 # this code is programmed by naveen123
 import os
 import random
-import base64
 import streamlit as st
 import pandas as pd
 import difflib
@@ -11,7 +10,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ============================
+# =============================
 # SESSION STATE INIT
 # =============================
 defaults = {
@@ -54,9 +53,8 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # STRONGEST POSSIBLE AUTOPLAY
+    # SIMPLE AUDIO PLAYER (STABLE)
     # ==============================
-
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     mp3_files = [
@@ -67,38 +65,7 @@ if st.session_state.logged_in_user is None:
 
     if mp3_files:
         random_song = random.choice(mp3_files)
-
-        with open(random_song, "rb") as f:
-            audio_bytes = f.read()
-
-        b64 = base64.b64encode(audio_bytes).decode()
-
-        audio_html = f"""
-        <audio id="bgmusic" autoplay muted playsinline>
-            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-        </audio>
-
-        <script>
-        var audio = document.getElementById("bgmusic");
-
-        // ensure autoplay attempt
-        audio.play().catch(()=>{{}});
-
-        // unmute on first user interaction
-        function unmuteAudio() {{
-            audio.muted = false;
-            audio.play();
-            document.removeEventListener("click", unmuteAudio);
-            document.removeEventListener("touchstart", unmuteAudio);
-        }}
-
-        document.addEventListener("click", unmuteAudio);
-        document.addEventListener("touchstart", unmuteAudio);
-        </script>
-        """
-
-        st.markdown(audio_html, unsafe_allow_html=True)
-
+        st.audio(random_song)
     else:
         st.warning("No mp3 files found in this folder")
 
@@ -148,3 +115,8 @@ full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
 st.success(f"{greeting}, {first_name}!")
+
+if st.button("Logout"):
+    for key in defaults.keys():
+        st.session_state[key] = None
+    st.rerun()
