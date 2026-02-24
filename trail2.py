@@ -53,6 +53,7 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
+    # AUTO PLAY RANDOM SONG (autoplay disabled)
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     mp3_files = [
@@ -70,12 +71,12 @@ if st.session_state.logged_in_user is None:
         b64 = base64.b64encode(audio_bytes).decode()
 
         audio_html = f"""
-        <audio autoplay>
+        <audio><!-- autoplay -->
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
         """
 
- #       st.markdown(audio_html, unsafe_allow_html=True)
+        st.markdown(audio_html, unsafe_allow_html=True)
 
     else:
         st.warning("No mp3 files found in this folder")
@@ -93,15 +94,7 @@ if st.session_state.logged_in_user is None:
     </style>
     """, unsafe_allow_html=True)
 
-    # ==============================
-    # 'Technician Name' SAME STYLE AS 'Quote of the Moment'
-    # ==============================
-    st.markdown("""
-    <h4 style="color:green; font-weight:bold; font-size:22px;">Technician Name</h4>
-    """, unsafe_allow_html=True)
-
-    # text_input with empty label and placeholder
-    name_input = st.text_input("", key="technician_name", placeholder="Enter your name here")
+    name_input = st.text_input("Technician Name")
 
     if name_input:
         cleaned_input = clean_name(name_input)
@@ -144,23 +137,20 @@ else:
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
-# ✅ STRONG GREEN + MORE NOTICEABLE TECHNICIAN NAME GREETING
+# ✅ GREEN + ENLARGED TECHNICIAN NAME
 st.markdown(
     f"""
     <div style='
-        background-color:#e6ffe6;
-        padding:16px;
-        border-radius:12px;
+        background-color:#e8f5e9;
+        padding:14px;
+        border-radius:10px;
         text-align:center;
-        margin-bottom:18px;
-        box-shadow: 0 0 12px rgba(0,128,0,0.3);
+        margin-bottom:15px;
     '>
         <span style='
-            color:#008000;
-            font-size:34px;
-            font-weight:900;
-            letter-spacing:1px;
-            text-shadow: 1px 1px 3px rgba(0,100,0,0.4);
+            color:#28a745;
+            font-size:30px;
+            font-weight:bold;
         '>
             {greeting}, {first_name}!
         </span>
