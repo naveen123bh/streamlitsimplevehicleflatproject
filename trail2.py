@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =========================
+# ==========================
 # SESSION STATE INIT
-# =========================
+# ==========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -94,14 +94,15 @@ if st.session_state.logged_in_user is None:
     """, unsafe_allow_html=True)
 
     # ==============================
-    # MAKE 'TECHNICIAN NAME' LABEL NOTICEABLE GREEN
+    # MAKE 'TECHNICIAN NAME' LABEL VERY NOTICEABLE
     # ==============================
     st.markdown("""
     <style>
     label[for="technician_name"] {
-        color: #008000 !important;       /* strong green */
-        font-size: 22px !important;      /* slightly larger */
-        font-weight: bold !important;    /* bold */
+        color: #006400 !important;       /* deep green */
+        font-size: 28px !important;      /* bigger */
+        font-weight: bolder !important;  /* very bold */
+        text-shadow: 1px 1px 3px rgba(0,100,0,0.5); /* subtle glow */
     }
     </style>
     """, unsafe_allow_html=True)
