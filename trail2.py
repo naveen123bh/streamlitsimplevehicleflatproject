@@ -250,11 +250,38 @@ else:
 # FEATURE SECTIONS
 # ==============================
 if option == "Separate Pack":
+    # --- GREEN LABEL: Search by Department ---
+    st.markdown(
+        """
+        <div style='
+            background-color:#e8f5e9;
+            padding:12px;
+            border-radius:10px;
+            text-align:center;
+            margin-bottom:10px;
+        '>
+            <span style='
+                color:#28a745;
+                font-size:28px;
+                font-weight:bold;
+            '>
+                Search by Department
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # --- Department name input ---
+    department_input = st.text_input("Enter Department Name")
+
+    # Call your existing function (pass department_input if needed)
     from sap import separate_pack_section
     log_df = separate_pack_section(
         log_df,
         LOG_FILE,
-        st.session_state.logged_in_user
+        st.session_state.logged_in_user,
+        department_name=department_input  # optional, only if function supports
     )
 
 elif option == "Set":
