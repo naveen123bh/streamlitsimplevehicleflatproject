@@ -26,9 +26,9 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ==============================
+# =============================
 # HELPER FUNCTION
-# ==============================
+# =============================
 def clean_name(name):
     name = name.upper().replace(".", "").replace("!", "").strip()
     for title in ["MR", "MISS"]:
