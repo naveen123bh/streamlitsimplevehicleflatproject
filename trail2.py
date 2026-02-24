@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ============================
+# ===========================
 # SESSION STATE INIT
-# =============================
+# ===========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -56,34 +56,32 @@ if st.session_state.logged_in_user is None:
     # ==============================
     # AUTO PLAY RANDOM SONG
     # ==============================
-    if "just_logged_out" not in st.session_state:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
 
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+    mp3_files = [
+        os.path.join(current_dir, f)
+        for f in os.listdir(current_dir)
+        if f.lower().endswith(".mp3")
+    ]
 
-        mp3_files = [
-            os.path.join(current_dir, f)
-            for f in os.listdir(current_dir)
-            if f.lower().endswith(".mp3")
-        ]
+    if mp3_files:
+        random_song = random.choice(mp3_files)
 
-        if mp3_files:
-            random_song = random.choice(mp3_files)
+        with open(random_song, "rb") as f:
+            audio_bytes = f.read()
 
-            with open(random_song, "rb") as f:
-                audio_bytes = f.read()
+        b64 = base64.b64encode(audio_bytes).decode()
 
-            b64 = base64.b64encode(audio_bytes).decode()
+        audio_html = f"""
+        <audio autoplay>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        """
 
-            audio_html = f"""
-            <audio autoplay>
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-            """
+        st.markdown(audio_html, unsafe_allow_html=True)
 
-            st.markdown(audio_html, unsafe_allow_html=True)
-
-        else:
-            st.warning("No mp3 files found in this folder")
+    else:
+        st.warning("No mp3 files found in this folder")
 
     # ==============================
 
@@ -117,7 +115,6 @@ if st.session_state.logged_in_user is None:
     if st.button("Login", type="primary"):
         if st.session_state.login_selected_name:
             st.session_state.logged_in_user = st.session_state.login_selected_name
-            st.session_state.pop("just_logged_out", None)
             st.rerun()
         else:
             st.warning("Enter correct name")
@@ -146,10 +143,23 @@ first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR",
 
 st.success(f"{greeting}, {first_name}!")
 
+# 🔵 GREEN + ENLARGED LOGOUT BUTTON
+st.markdown("""
+<style>
+div.stButton > button {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-size: 22px !important;
+    font-weight: bold !important;
+    padding: 0.7em 1.5em !important;
+    border-radius: 8px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
-    st.session_state.just_logged_out = True
     st.rerun()
 
 # =============================
