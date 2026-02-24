@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ===========================
+# ==========================
 # SESSION STATE INIT
-# ===========================
+# ==========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -53,10 +53,7 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
-    # ==============================
-    # AUTO PLAY RANDOM SONG (FIXED)
-    # ==============================
-
+    # AUTO PLAY RANDOM SONG
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     mp3_files = [
@@ -83,8 +80,6 @@ if st.session_state.logged_in_user is None:
 
     else:
         st.warning("No mp3 files found in this folder")
-
-    # ==============================
 
     st.markdown("""
     <style>
@@ -142,7 +137,41 @@ else:
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
-st.success(f"{greeting}, {first_name}!")
+# ✅ GREEN + ENLARGED TECHNICIAN NAME
+st.markdown(
+    f"""
+    <div style='
+        background-color:#e8f5e9;
+        padding:14px;
+        border-radius:10px;
+        text-align:center;
+        margin-bottom:15px;
+    '>
+        <span style='
+            color:#28a745;
+            font-size:30px;
+            font-weight:bold;
+        '>
+            {greeting}, {first_name}!
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# GREEN + ENLARGED LOGOUT BUTTON
+st.markdown("""
+<style>
+div.stButton > button {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-size: 22px !important;
+    font-weight: bold !important;
+    padding: 0.7em 1.5em !important;
+    border-radius: 8px !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 if st.button("Logout"):
     for key in defaults.keys():
