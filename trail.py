@@ -11,7 +11,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ==========================
+# =========================
 # SESSION STATE INIT
 # =========================
 defaults = {
@@ -94,6 +94,9 @@ if st.session_state.logged_in_user is None:
     </style>
     """, unsafe_allow_html=True)
 
+    # -------------------------------
+    # Technician Name Input
+    # -------------------------------
     name_input = st.text_input("Technician Name")
 
     if name_input:
@@ -114,6 +117,26 @@ if st.session_state.logged_in_user is None:
             st.rerun()
         else:
             st.warning("Enter correct name")
+
+    # -------------------------------
+    # CSSD Staff Suggestion / Feedback
+    # -------------------------------
+    st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
+    feedback_input = st.text_area("Do you have any suggestion or idea to improve this app?")
+
+    if st.button("Submit Suggestion"):
+        if feedback_input.strip() != "":
+            FEEDBACK_FILE = "cssd_suggestions.csv"
+            import csv
+            with open(FEEDBACK_FILE, mode="a", newline="") as f:
+                writer = csv.writer(f)
+                # Record timestamp + technician name (if available) + feedback
+                writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                 st.session_state.login_selected_name or "Unknown",
+                                 feedback_input])
+            st.success("Thank you! Your suggestion has been recorded.")
+        else:
+            st.warning("Please type something to submit.")
 
     st.stop()
 
@@ -256,9 +279,9 @@ elif option == "Set":
 else:
     st.info("Upcoming Feature")
 
-# ==============================
+# =============================
 # ISSUE HISTORY
-# ==============================
+# =============================
 st.subheader("Issue History")
 
 if not log_df.empty:
