@@ -53,7 +53,7 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
-    # AUTO PLAY RANDOM SONG
+    # AUTO PLAY RANDOM SONG (autoplay disabled)
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     mp3_files = [
@@ -71,7 +71,7 @@ if st.session_state.logged_in_user is None:
         b64 = base64.b64encode(audio_bytes).decode()
 
         audio_html = f"""
-        <audio autoplay>
+        <audio><!-- autoplay -->
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
         """
