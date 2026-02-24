@@ -1,6 +1,7 @@
 # this code is programmed  by naveen123
 import os
 import random
+import base64
 import streamlit as st
 import pandas as pd
 import difflib
@@ -10,7 +11,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ============================
+# =============================
 # SESSION STATE INIT
 # =============================
 defaults = {
@@ -53,7 +54,7 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYER (AUTOPLAY + RANDOM)
+    # AUDIO PLAYER (FORCED AUTOPLAY)
     # ==============================
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -66,10 +67,18 @@ if st.session_state.logged_in_user is None:
     if mp3_files:
         random_song = random.choice(mp3_files)
 
-        with open(random_song, "rb") as audio_file:
-            audio_bytes = audio_file.read()
+        with open(random_song, "rb") as f:
+            audio_bytes = f.read()
 
-        st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+        b64 = base64.b64encode(audio_bytes).decode()
+
+        audio_html = f"""
+        <audio autoplay>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        """
+
+        st.markdown(audio_html, unsafe_allow_html=True)
     else:
         st.warning("No mp3 files found in this folder")
 
