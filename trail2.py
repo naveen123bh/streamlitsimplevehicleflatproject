@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =========================
+# ==========================
 # SESSION STATE INIT
-# =========================
+# ==========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -93,7 +93,21 @@ if st.session_state.logged_in_user is None:
     </style>
     """, unsafe_allow_html=True)
 
-    name_input = st.text_input("Technician Name")
+    # ==============================
+    # MAKE 'TECHNICIAN NAME' LABEL NOTICEABLE GREEN
+    # ==============================
+    st.markdown("""
+    <style>
+    label[for="technician_name"] {
+        color: #008000 !important;       /* strong green */
+        font-size: 22px !important;      /* slightly larger */
+        font-weight: bold !important;    /* bold */
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # text_input with key so CSS can target it
+    name_input = st.text_input("Technician Name", key="technician_name")
 
     if name_input:
         cleaned_input = clean_name(name_input)
@@ -136,7 +150,7 @@ else:
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
-# ✅ STRONG GREEN + MORE NOTICEABLE TECHNICIAN NAME
+# ✅ STRONG GREEN + MORE NOTICEABLE TECHNICIAN NAME GREETING
 st.markdown(
     f"""
     <div style='
