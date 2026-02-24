@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =========================
+# ==========================
 # SESSION STATE INIT
-# =========================
+# ==========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -94,21 +94,14 @@ if st.session_state.logged_in_user is None:
     """, unsafe_allow_html=True)
 
     # ==============================
-    # MAKE 'TECHNICIAN NAME' LABEL VERY NOTICEABLE
+    # 'Technician Name' SAME STYLE AS 'Quote of the Moment'
     # ==============================
     st.markdown("""
-    <style>
-    label[for="technician_name"] {
-        color: #006400 !important;       /* deep green */
-        font-size: 28px !important;      /* bigger */
-        font-weight: bolder !important;  /* very bold */
-        text-shadow: 1px 1px 3px rgba(0,100,0,0.5); /* subtle glow */
-    }
-    </style>
+    <h4 style="color:green; font-weight:bold; font-size:22px;">Technician Name</h4>
     """, unsafe_allow_html=True)
 
-    # text_input with key so CSS can target it
-    name_input = st.text_input("Technician Name", key="technician_name")
+    # text_input with empty label
+    name_input = st.text_input("", key="technician_name")
 
     if name_input:
         cleaned_input = clean_name(name_input)
