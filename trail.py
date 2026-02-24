@@ -63,7 +63,7 @@ if st.session_state.logged_in_user is None:
     ]
 
     if mp3_files:
-        random_song = random.choice(mp4_files)
+        random_song = random.choice(mp3_files)
 
         with open(random_song, "rb") as f:
             audio_bytes = f.read()
