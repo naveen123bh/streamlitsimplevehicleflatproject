@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =========================
+# ========================
 # SESSION STATE INIT
-# =========================
+# ========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -26,9 +26,9 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# =============================
+# ============================
 # HELPER FUNCTION
-# =============================
+# ============================
 def clean_name(name):
     name = name.upper().replace(".", "").replace("!", "").strip()
     for title in ["MR", "MISS"]:
@@ -37,9 +37,9 @@ def clean_name(name):
     name = " ".join(name.split())
     return name
 
-# ==============================
+# =============================
 # LOGIN PAGE ONLY
-# ==============================
+# =============================
 if st.session_state.logged_in_user is None:
 
     hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
@@ -94,9 +94,9 @@ if st.session_state.logged_in_user is None:
     </style>
     """, unsafe_allow_html=True)
 
-    # -------------------------------
+    # ------------------------------
     # Technician Name Input
-    # -------------------------------
+    # ------------------------------
     name_input = st.text_input("Technician Name")
 
     if name_input:
@@ -118,9 +118,9 @@ if st.session_state.logged_in_user is None:
         else:
             st.warning("Enter correct name")
 
-    # -------------------------------
+    # ------------------------------
     # CSSD Staff Suggestion / Feedback
-    # -------------------------------
+    # ------------------------------
     st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
     feedback_input = st.text_area("Do you have any suggestion or idea to improve this app?")
 
@@ -140,9 +140,9 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
-# ==============================
+# =============================
 # AFTER LOGIN
-# ==============================
+# =============================
 
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
