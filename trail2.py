@@ -240,7 +240,17 @@ else:
 if option == "Separate Pack":
     from sap import separate_pack_section
 
-    # --- Department Input ---
+    # --- Existing Pack Search Input and Button (unchanged) ---
+    pack_input = st.text_input("Search by Pack")
+    if st.button("Search Pack"):
+        log_df = separate_pack_section(
+            log_df,
+            LOG_FILE,
+            st.session_state.logged_in_user,
+            pack_name=pack_input
+        )
+
+    # --- NEW Department Search Input + Green Search Button ---
     st.markdown(
         """
         <div style='
@@ -248,6 +258,7 @@ if option == "Separate Pack":
             padding:12px;
             border-radius:10px;
             text-align:left;
+            margin-top:10px;
             margin-bottom:5px;
         '>
             <span style='
@@ -263,13 +274,12 @@ if option == "Separate Pack":
     )
     department_input = st.text_input("Enter Department Name")
 
-    # --- GREEN SEARCH BUTTON ---
-    if st.button("Search"):
+    if st.button("Search Department"):
         log_df = separate_pack_section(
             log_df,
             LOG_FILE,
             st.session_state.logged_in_user,
-            department_name=department_input  # pass department name to function
+            department_name=department_input
         )
 
 elif option == "Set":
@@ -286,7 +296,6 @@ else:
 # ISSUE HISTORY
 # ==============================
 st.subheader("Issue History")
-
 if not log_df.empty:
     st.dataframe(log_df)
 else:
