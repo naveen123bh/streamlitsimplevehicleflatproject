@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =============================
+# ============================
 # SESSION STATE INIT
-# =============================
+# ============================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -54,7 +54,7 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYER (PLAY ON FIRST TAP)
+    # AUTO PLAY RANDOM SONG (FIXED)
     # ==============================
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -74,20 +74,9 @@ if st.session_state.logged_in_user is None:
         b64 = base64.b64encode(audio_bytes).decode()
 
         audio_html = f"""
-        <audio id="bgmusic">
+        <audio autoplay>
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
-
-        <script>
-        var audio = document.getElementById("bgmusic");
-
-        function playAudioOnce() {{
-            audio.play();
-            document.removeEventListener("click", playAudioOnce);
-        }}
-
-        document.addEventListener("click", playAudioOnce);
-        </script>
         """
 
         st.markdown(audio_html, unsafe_allow_html=True)
@@ -162,7 +151,7 @@ if st.button("Logout"):
 
 # =============================
 # OPTION SELECT PAGE
-# ==============================
+# =============================
 if st.session_state.query_option is None:
 
     st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
