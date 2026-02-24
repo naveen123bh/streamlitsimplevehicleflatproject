@@ -1,5 +1,6 @@
 # this code is programmed  by naveen123
 import os
+import random
 import streamlit as st
 import pandas as pd
 import difflib
@@ -8,9 +9,10 @@ from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
 from quotes import get_random_quote
+
 # ============================
 # SESSION STATE INIT
-# ==========================
+# =============================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -51,10 +53,25 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYE
+    # AUDIO PLAYER (AUTOPLAY + RANDOM)
     # ==============================
-    song_file = "mysong.mp3"  # Put your mp3 in the same folder
-    st.audio(song_file, format="audio/mp3")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    mp3_files = [
+        os.path.join(current_dir, f)
+        for f in os.listdir(current_dir)
+        if f.lower().endswith(".mp3")
+    ]
+
+    if mp3_files:
+        random_song = random.choice(mp3_files)
+
+        with open(random_song, "rb") as audio_file:
+            audio_bytes = audio_file.read()
+
+        st.audio(audio_bytes, format="audio/mp3", autoplay=True)
+    else:
+        st.warning("No mp3 files found in this folder")
 
     st.markdown("""
     <style>
@@ -88,7 +105,7 @@ if st.session_state.logged_in_user is None:
             st.session_state.logged_in_user = st.session_state.login_selected_name
             st.rerun()
         else:
-            st.warning("Enter correct and full name")
+            st.warning("Enter correct name")
 
     st.stop()
 
@@ -160,7 +177,7 @@ if st.session_state.query_option is None:
 option = st.session_state.query_option
 
 # ==============================
-# BACK BUTTON (FOR ALL OPTION PAGES)
+# BACK BUTTON
 # ==============================
 if st.button("⬅ Back"):
     st.session_state.query_option = None
@@ -183,7 +200,6 @@ else:
 # ==============================
 # FEATURE SECTIONS
 # ==============================
-
 if option == "Separate Pack":
     from sap import separate_pack_section
     log_df = separate_pack_section(
