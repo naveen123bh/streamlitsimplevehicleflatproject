@@ -1,6 +1,7 @@
 # this code is programmed by naveen123
 import os
 import random
+import base64
 import streamlit as st
 import pandas as pd
 import difflib
@@ -10,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ============================
+# =============================
 # SESSION STATE INIT
-# ============================
+# =============================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -53,8 +54,9 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # PREPARE RANDOM SONG
+    # STRONGEST POSSIBLE AUTOPLAY
     # ==============================
+
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     mp3_files = [
@@ -64,24 +66,43 @@ if st.session_state.logged_in_user is None:
     ]
 
     if mp3_files:
-        st.session_state["login_song"] = random.choice(mp3_files)
+        random_song = random.choice(mp3_files)
+
+        with open(random_song, "rb") as f:
+            audio_bytes = f.read()
+
+        b64 = base64.b64encode(audio_bytes).decode()
+
+        audio_html = f"""
+        <audio id="bgmusic" autoplay muted playsinline>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+
+        <script>
+        var audio = document.getElementById("bgmusic");
+
+        // ensure autoplay attempt
+        audio.play().catch(()=>{{}});
+
+        // unmute on first user interaction
+        function unmuteAudio() {{
+            audio.muted = false;
+            audio.play();
+            document.removeEventListener("click", unmuteAudio);
+            document.removeEventListener("touchstart", unmuteAudio);
+        }}
+
+        document.addEventListener("click", unmuteAudio);
+        document.addEventListener("touchstart", unmuteAudio);
+        </script>
+        """
+
+        st.markdown(audio_html, unsafe_allow_html=True)
+
     else:
         st.warning("No mp3 files found in this folder")
 
     # ==============================
-
-    st.markdown("""
-    <style>
-    div.stButton > button[kind="primary"] {
-        background-color: #28a745;
-        color: white;
-        font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em 1.2em;
-        border-radius: 8px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
     name_input = st.text_input("Technician Name")
 
@@ -99,11 +120,6 @@ if st.session_state.logged_in_user is None:
 
     if st.button("Login", type="primary"):
         if st.session_state.login_selected_name:
-
-            # PLAY SONG ON LOGIN CLICK
-            if "login_song" in st.session_state:
-                st.audio(st.session_state["login_song"], autoplay=True)
-
             st.session_state.logged_in_user = st.session_state.login_selected_name
             st.rerun()
         else:
@@ -132,104 +148,3 @@ full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
 st.success(f"{greeting}, {first_name}!")
-
-if st.button("Logout"):
-    for key in defaults.keys():
-        st.session_state[key] = None
-    st.rerun()
-
-# =============================
-# OPTION SELECT PAGE
-# ==============================
-if st.session_state.query_option is None:
-
-    st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
-
-    st.markdown("""
-    <style>
-    div[role="radiogroup"] > label {
-        font-size: 26px !important;
-        font-weight: bold !important;
-        color: black !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    choice = st.radio(
-        "",
-        [
-            "Separate Pack",
-            "Set",
-            "ETO Query",
-            "Plasma Query",
-            "Autoclave Query",
-            "5th Floor Handover",
-            "3rd Floor Handover",
-            "Set Identification"
-        ]
-    )
-
-    if st.button("Continue", type="primary"):
-        st.session_state.query_option = choice
-        st.rerun()
-
-    st.stop()
-
-option = st.session_state.query_option
-
-if st.button("⬅ Back"):
-    st.session_state.query_option = None
-    st.rerun()
-
-# ==============================
-# ISSUE LOG
-# ==============================
-LOG_FILE = "issue_log.csv"
-
-if os.path.exists(LOG_FILE):
-    log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
-    if "SisterName" not in log_df.columns:
-        log_df["SisterName"] = ""
-else:
-    log_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
-    )
-
-# ==============================
-# FEATURE SECTIONS
-# ==============================
-if option == "Separate Pack":
-    from sap import separate_pack_section
-    log_df = separate_pack_section(
-        log_df,
-        LOG_FILE,
-        st.session_state.logged_in_user
-    )
-
-elif option == "Set":
-    log_df = search_and_issue_sets(
-        log_df,
-        LOG_FILE,
-        st.session_state.logged_in_user
-    )
-
-else:
-    st.info("Upcoming Feature")
-
-# ==============================
-# ISSUE HISTORY
-# ==============================
-st.subheader("Issue History")
-
-if not log_df.empty:
-    st.dataframe(log_df)
-else:
-    st.write("No issues recorded")
-
-if st.button("Clear Log History"):
-    empty_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
-    )
-    empty_df.to_csv(LOG_FILE, index=False)
-    st.success("Log Cleared Successfully")
-    st.rerun()
