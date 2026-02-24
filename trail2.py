@@ -10,6 +10,7 @@ from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
 from quotes import get_random_quote
+import csv
 
 # =========================
 # SESSION STATE INIT
@@ -64,20 +65,15 @@ if st.session_state.logged_in_user is None:
 
     if mp3_files:
         random_song = random.choice(mp3_files)
-
         with open(random_song, "rb") as f:
             audio_bytes = f.read()
-
         b64 = base64.b64encode(audio_bytes).decode()
-
         audio_html = f"""
         <audio><!-- autoplay -->
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
         """
-
         st.markdown(audio_html, unsafe_allow_html=True)
-
     else:
         st.warning("No mp3 files found in this folder")
 
@@ -102,7 +98,6 @@ if st.session_state.logged_in_user is None:
     if name_input:
         cleaned_input = clean_name(name_input)
         normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
-
         if cleaned_input in normalized:
             st.session_state.login_selected_name = normalized[cleaned_input]
         else:
@@ -127,13 +122,13 @@ if st.session_state.logged_in_user is None:
     if st.button("Submit Suggestion"):
         if feedback_input.strip() != "":
             FEEDBACK_FILE = "cssd_suggestions.csv"
-            import csv
             with open(FEEDBACK_FILE, mode="a", newline="") as f:
                 writer = csv.writer(f)
-                # Record timestamp + technician name (if available) + feedback
-                writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                 st.session_state.login_selected_name or "Unknown",
-                                 feedback_input])
+                writer.writerow([
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    st.session_state.login_selected_name or "Unknown",
+                    feedback_input
+                ])
             st.success("Thank you! Your suggestion has been recorded.")
         else:
             st.warning("Please type something to submit.")
@@ -143,7 +138,6 @@ if st.session_state.logged_in_user is None:
 # ==============================
 # AFTER LOGIN
 # ==============================
-
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
