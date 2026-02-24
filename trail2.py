@@ -10,7 +10,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ============================
+# =============================
 # SESSION STATE INIT
 # =============================
 defaults = {
@@ -53,13 +53,23 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYER (RANDOM FROM SAME FOLDER)
+    # AUDIO PLAYER (ROBUST RANDOM)
     # ==============================
-    mp3_files = [f for f in os.listdir() if f.lower().endswith(".mp3")]
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    mp3_files = [
+        os.path.join(current_dir, f)
+        for f in os.listdir(current_dir)
+        if f.lower().endswith(".mp3")
+    ]
 
     if mp3_files:
         random_song = random.choice(mp3_files)
-        st.audio(random_song, format="audio/mp3")
+
+        with open(random_song, "rb") as audio_file:
+            audio_bytes = audio_file.read()
+
+        st.audio(audio_bytes, format="audio/mp3")
     else:
         st.warning("No mp3 files found in this folder")
 
