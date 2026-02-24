@@ -1,7 +1,7 @@
 # this code is programmed by naveen123
 import os
 import random
-import base64
+#import base64
 import streamlit as st
 import pandas as pd
 import difflib
