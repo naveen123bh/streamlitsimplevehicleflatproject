@@ -12,7 +12,7 @@ import pytz
 from quotes import get_random_quote
 import csv
 
-# =========================
+# ========================
 # SESSION STATE INIT
 # =========================
 defaults = {
