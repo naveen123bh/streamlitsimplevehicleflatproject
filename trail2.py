@@ -53,7 +53,7 @@ if st.session_state.logged_in_user is None:
     st.info(quote)
 
     # ==============================
-    # AUDIO PLAYER (ROBUST RANDOM)
+    # AUDIO PLAYER (AUTOPLAY + RANDOM)
     # ==============================
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -69,7 +69,7 @@ if st.session_state.logged_in_user is None:
         with open(random_song, "rb") as audio_file:
             audio_bytes = audio_file.read()
 
-        st.audio(audio_bytes, format="audio/mp3")
+        st.audio(audio_bytes, format="audio/mp3", autoplay=True)
     else:
         st.warning("No mp3 files found in this folder")
 
