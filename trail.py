@@ -56,14 +56,14 @@ if st.session_state.logged_in_user is None:
     # AUTO PLAY RANDOM SONG
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-#    mp3_files = [
+    mp3_files = [
         os.path.join(current_dir, f)
         for f in os.listdir(current_dir)
         if f.lower().endswith(".mp3")
     ]
 
     if mp3_files:
-        random_song = random.choice(mp3_files)
+        random_song = random.choice(mp4_files)
 
         with open(random_song, "rb") as f:
             audio_bytes = f.read()
