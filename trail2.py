@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ======================
+# ==========================
 # SESSION STATE INIT
-# =====================
+# ==========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -81,20 +81,31 @@ if st.session_state.logged_in_user is None:
     else:
         st.warning("No mp3 files found in this folder")
 
-    st.markdown("""
-    <style>
-    div.stButton > button[kind="primary"] {
-        background-color: #28a745;
-        color: white;
-        font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em 1.2em;
-        border-radius: 8px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # ==============================
+    # GREEN + ENLARGED TECHNICIAN NAME LABEL
+    # ==============================
+    st.markdown(
+        """
+        <div style='
+            background-color:#e8f5e9;
+            padding:12px;
+            border-radius:10px;
+            text-align:center;
+            margin-bottom:10px;
+        '>
+            <span style='
+                color:#28a745;
+                font-size:28px;
+                font-weight:bold;
+            '>
+                Technician Name
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    name_input = st.text_input("Technician Name")
+    name_input = st.text_input("")
 
     if name_input:
         cleaned_input = clean_name(name_input)
@@ -137,7 +148,7 @@ else:
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
-# ✅ GREEN + ENLARGED TECHNICIAN NAME
+# ✅ GREEN + ENLARGED TECHNICIAN NAME GREETING
 st.markdown(
     f"""
     <div style='
