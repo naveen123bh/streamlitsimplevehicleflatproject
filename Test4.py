@@ -242,16 +242,19 @@ elif option == "Set":
 elif option == "Plasma Query":
     st.markdown("## Plasma / Instrument Recognition")
     from embeddings import InstrumentRecognizer  # your embeddings.py
-    recognizer = InstrumentRecognizer("instrument_embeddings.csv")
+    recognizer = InstrumentRecognizer("plasma.csv")  # use your CSV
 
     uploaded_file = st.file_uploader("Upload instrument image", type=["jpg","png","jpeg"])
     if uploaded_file is not None:
         st.image(uploaded_file, width=250)
         try:
             results = recognizer.recognize(uploaded_file, top_k=1)
-            top_file = results.iloc[0]["file"]
-            sim = results.iloc[0]["similarity"]
-            st.success(f"Best match: {top_file} (Similarity: {sim:.2f})")
+            if not results.empty:
+                top_file = results.iloc[0]["item_name"]
+                sim = results.iloc[0]["similarity"]
+                st.success(f"Best match: {top_file} (Similarity: {sim:.2f})")
+            else:
+                st.warning("No strong match found.")
         except Exception as e:
             st.error(f"Recognition failed: {e}")
 
