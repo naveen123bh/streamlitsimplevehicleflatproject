@@ -11,7 +11,7 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# ========================
+# =======================
 # SESSION STATE INIT
 # ========================
 defaults = {
