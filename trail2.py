@@ -9,7 +9,7 @@ import pandas as pd
 from datetime import datetime
 import pytz
 
-# Image Recognition Imports
+# Image Recognition Import
 import numpy as np
 import cv2
 from PIL import Image
