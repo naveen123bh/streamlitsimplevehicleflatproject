@@ -62,7 +62,7 @@ class InstrumentRecognizer:
         self.df = pd.concat([self.df, pd.DataFrame([row])], ignore_index=True)
         self.df.to_csv(self.csv_path, index=False)
 
-    # -------------------------------
+    # ------------------------------
     def recognize(self, image_file, top_k=1):
         """Compare uploaded image embedding with stored embeddings"""
         if self.df.empty:
