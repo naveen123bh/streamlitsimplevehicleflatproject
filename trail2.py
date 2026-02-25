@@ -174,8 +174,8 @@ if st.session_state.query_option is None:
         [
             "Separate Pack",
             "Set",
-            "ETO Query",
             "Plasma Query",
+            "ETO Query",
             "Autoclave Query",
             "5th Floor Handover",
             "3rd Floor Handover",
