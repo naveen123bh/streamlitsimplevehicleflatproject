@@ -14,15 +14,14 @@ import csv
 import requests
 from PIL import Image
 from io import BytesIO
-import imagehash
 
-# ✅ NEW IMPORTS FOR ORB
+# NEW IMPORTS
 import cv2
 import numpy as np
 
-# ======================
-# SESSION STATE INIT
 # =======================
+# SESSION STATE INIT
+# ========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -121,7 +120,7 @@ if st.button("⬅ Back"):
     st.rerun()
 
 # ==============================
-# PLASMA QUERY SECTION (ORB VERSION)
+# PLASMA QUERY SECTION (ORB + COLOR)
 # ==============================
 if option == "Plasma Query":
 
@@ -147,17 +146,21 @@ if option == "Plasma Query":
         query_gray = cv2.cvtColor(query_np, cv2.COLOR_RGB2GRAY)
 
         orb = cv2.ORB_create(nfeatures=1000)
-
         kp1, des1 = orb.detectAndCompute(query_gray, None)
 
         if des1 is None:
-            st.warning("Not enough features detected in uploaded image.")
+            st.warning("Not enough features detected.")
             st.stop()
 
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
+        # COLOR HISTOGRAM OF QUERY
+        query_hist = cv2.calcHist([query_np], [0,1,2], None, [8,8,8], [0,256,0,256,0,256])
+        cv2.normalize(query_hist, query_hist)
+
         best_match = None
         max_matches = 0
+        best_color_score = 0
         matched_item_img = None
 
         for _, row in df_plasma.iterrows():
@@ -180,24 +183,27 @@ if option == "Plasma Query":
             item_gray = cv2.cvtColor(item_np, cv2.COLOR_RGB2GRAY)
 
             kp2, des2 = orb.detectAndCompute(item_gray, None)
-
             if des2 is None:
                 continue
 
             matches = bf.match(des1, des2)
-
-            matches = sorted(matches, key=lambda x: x.distance)
-
             match_count = len(matches)
 
-            if match_count > max_matches:
+            # COLOR HISTOGRAM MATCH
+            item_hist = cv2.calcHist([item_np], [0,1,2], None, [8,8,8], [0,256,0,256,0,256])
+            cv2.normalize(item_hist, item_hist)
+
+            color_score = cv2.compareHist(query_hist, item_hist, cv2.HISTCMP_CORREL)
+
+            if match_count > max_matches and color_score > best_color_score:
                 max_matches = match_count
+                best_color_score = color_score
                 best_match = row["item_name"]
                 matched_item_img = item_img
 
-        if max_matches > 20:  # adjust 15-30 if needed
+        if max_matches > 15 and best_color_score > 0.7:
             st.success(f"Item Identified: {best_match}")
             st.image(matched_item_img, caption="Matched Image", width=250)
-            st.info(f"Feature Matches Found: {max_matches}")
+            st.info(f"Feature Matches: {max_matches} | Color Score: {round(best_color_score,2)}")
         else:
             st.warning("No strong match found. Try clearer image.")
