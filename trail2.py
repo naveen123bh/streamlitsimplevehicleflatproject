@@ -11,6 +11,10 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 import csv
+import requests
+from PIL import Image
+from io import BytesIO
+import imagehash
 
 # ========================
 # SESSION STATE INIT
@@ -118,7 +122,6 @@ if st.session_state.logged_in_user is None:
     # -------------------------------
     st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
 
-    # Persist textarea with session_state
     if "feedback_input" not in st.session_state:
         st.session_state.feedback_input = ""
 
@@ -127,14 +130,12 @@ if st.session_state.logged_in_user is None:
         value=st.session_state.feedback_input
     )
 
-    SUGGESTION_FILE = "naveen.txt"  # <-- suggestions saved here
+    SUGGESTION_FILE = "naveen.txt"
 
     if st.button("Submit Suggestion"):
         if st.session_state.feedback_input.strip() != "":
-            # Append suggestion to TXT
             with open(SUGGESTION_FILE, mode="a", encoding="utf-8") as f:
                 f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] {st.session_state.login_selected_name or 'Unknown'}: {st.session_state.feedback_input}\n")
-            # Clear input after submission
             st.session_state.feedback_input = ""
             st.success("Your suggestion has been recorded in naveen.txt.")
         else:
@@ -161,7 +162,6 @@ else:
 full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
-# ✅ GREEN + ENLARGED TECHNICIAN NAME
 st.markdown(
     f"""
     <div style='
@@ -183,7 +183,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# GREEN + ENLARGED LOGOUT BUTTON
 st.markdown("""
 <style>
 div.stButton > button {
@@ -276,6 +275,56 @@ elif option == "Set":
         LOG_FILE,
         st.session_state.logged_in_user
     )
+
+# ------------------------------
+# PLASMA QUERY FEATURE
+# ------------------------------
+elif option == "Plasma Query":
+
+    st.markdown("<h2 style='color:#FF33A6;'>Plasma Sterilization Item Recognition</h2>", unsafe_allow_html=True)
+
+    uploaded_file = st.file_uploader("Upload or capture item photo", type=["png","jpg","jpeg"])
+    camera_file = st.camera_input("Or take a photo")
+
+    img_file = uploaded_file if uploaded_file else camera_file
+
+    if img_file is not None:
+
+        query_img = Image.open(img_file)
+        query_hash = imagehash.phash(query_img)
+
+        CSV_URL = "https://drive.google.com/uc?export=download&id=17YHshrLdblSwyceN5dufRo2C_1WByxr5"
+        df_plasma = pd.read_csv(CSV_URL)
+
+        best_match = None
+        smallest_diff = None
+        matched_item_img = None
+        matched_item_desc = None
+
+        for _, row in df_plasma.iterrows():
+            if "/d/" in row['image_url']:
+                file_id = row['image_url'].split("/d/")[1].split("/")[0]
+                img_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+            else:
+                img_url = row['image_url']
+
+            response = requests.get(img_url)
+            item_img = Image.open(BytesIO(response.content))
+
+            diff = query_hash - imagehash.phash(item_img)
+
+            if smallest_diff is None or diff < smallest_diff:
+                smallest_diff = diff
+                best_match = row['item_name']
+                matched_item_img = item_img
+                matched_item_desc = row['description']
+
+        if smallest_diff is not None and smallest_diff <= 5:
+            st.success(f"Item Identified: {best_match}")
+            st.info(f"Description: {matched_item_desc}")
+            st.image(matched_item_img, width=300)
+        else:
+            st.warning("No close match found. Try again with a clearer photo.")
 
 else:
     st.info("Upcoming Feature")
