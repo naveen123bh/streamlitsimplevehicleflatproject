@@ -278,7 +278,7 @@ elif option == "Set":
 
 # ------------------------------
 # PLASMA QUERY FEATURE
-# ------------------------------
+# 
 elif option == "Plasma Query":
 
     st.markdown("<h2 style='color:#FF33A6;'>Plasma Sterilization Item Recognition</h2>", unsafe_allow_html=True)
@@ -294,7 +294,13 @@ elif option == "Plasma Query":
         query_hash = imagehash.phash(query_img)
 
         CSV_URL = "https://drive.google.com/uc?export=download&id=17YHshrLdblSwyceN5dufRo2C_1WByxr5"
-        df_plasma = pd.read_csv(CSV_URL)
+
+        # ✅ Use requests + StringIO to avoid UnicodeDecodeError
+        response = requests.get(CSV_URL)
+        response.raise_for_status()
+        from io import StringIO
+        csv_data = StringIO(response.text)
+        df_plasma = pd.read_csv(csv_data)
 
         best_match = None
         smallest_diff = None
@@ -308,8 +314,8 @@ elif option == "Plasma Query":
             else:
                 img_url = row['image_url']
 
-            response = requests.get(img_url)
-            item_img = Image.open(BytesIO(response.content))
+            response_img = requests.get(img_url)
+            item_img = Image.open(BytesIO(response_img.content))
 
             diff = query_hash - imagehash.phash(item_img)
 
@@ -325,10 +331,6 @@ elif option == "Plasma Query":
             st.image(matched_item_img, width=300)
         else:
             st.warning("No close match found. Try again with a clearer photo.")
-
-else:
-    st.info("Upcoming Feature")
-
 # =============================
 # ISSUE HISTORY
 # =============================
