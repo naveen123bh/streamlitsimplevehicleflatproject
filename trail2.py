@@ -11,9 +11,9 @@ from datetime import datetime
 import pytz
 from quotes import get_random_quote
 
-# =======================
+# ========================
 # SESSION STATE INIT
-# =======================
+# ========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -53,6 +53,9 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
+    # ------------------------------
+    # Song Section
+    # ------------------------------
     current_dir = os.path.dirname(os.path.abspath(__file__))
     mp3_files = [os.path.join(current_dir, f) for f in os.listdir(current_dir) if f.lower().endswith(".mp3")]
 
@@ -68,9 +71,10 @@ if st.session_state.logged_in_user is None:
         </audio>
         """
         st.markdown(audio_html, unsafe_allow_html=True)
-    else:
-        st.warning("No mp3 files found in this folder")
 
+    # ------------------------------
+    # Button Styling
+    # ------------------------------
     st.markdown("""
     <style>
     div.stButton > button[kind="primary"] {
@@ -84,6 +88,9 @@ if st.session_state.logged_in_user is None:
     </style>
     """, unsafe_allow_html=True)
 
+    # ------------------------------
+    # Technician Name Input
+    # ------------------------------
     name_input = st.text_input("Technician Name")
 
     if name_input:
@@ -104,6 +111,25 @@ if st.session_state.logged_in_user is None:
             st.rerun()
         else:
             st.warning("Enter correct name")
+
+    # ------------------------------
+    # Suggestion Box
+    # ------------------------------
+    st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
+    feedback_input = st.text_area("Do you have any suggestion or idea to improve this app?")
+
+    if st.button("Submit Suggestion"):
+        if feedback_input.strip() != "":
+            FEEDBACK_FILE = "cssd_suggestions.csv"
+            import csv
+            with open(FEEDBACK_FILE, mode="a", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                 st.session_state.login_selected_name or "Unknown",
+                                 feedback_input])
+            st.success("Thank you! Your suggestion has been recorded.")
+        else:
+            st.warning("Please type something to submit.")
 
     st.stop()
 
@@ -154,8 +180,8 @@ if st.session_state.query_option is None:
         [
             "Separate Pack",
             "Set",
-            "ETO Query",
-            "Plasma Query",
+            "Plasma Query",   # moved up
+            "ETO Query",      # below plasma
             "Autoclave Query",
             "5th Floor Handover",
             "3rd Floor Handover",
@@ -176,101 +202,20 @@ if st.button("⬅ Back"):
     st.rerun()
 
 # ==============================
-# PLASMA QUERY SECTION
+# FEATURE SECTIONS
 # ==============================
-if option == "Plasma Query":
+if option == "Separate Pack":
+    from sap import separate_pack_section
+    separate_pack_section(st.session_state.logged_in_user)
 
-    import numpy as np
-    import cv2
-    from PIL import Image
-    import requests
-    from io import BytesIO
+elif option == "Set":
+    search_and_issue_sets(st.session_state.logged_in_user)
 
-    st.markdown("## Plasma Sterilization Item Recognition")
+elif option == "Plasma Query":
+    st.info("Plasma Feature Working (Your Plasma Logic Here)")
 
-    try:
-        df_plasma = pd.read_csv("plasma.csv")
-    except:
-        st.error("plasma.csv not found.")
-        st.stop()
-
-    uploaded_file = st.file_uploader("Upload item photo", type=["png","jpg","jpeg"])
-    camera_file = st.camera_input("Or take a photo")
-
-    img_file = uploaded_file if uploaded_file else camera_file
-
-    if img_file is not None:
-
-        query_img = Image.open(img_file).convert("RGB").resize((400, 400))
-        st.image(query_img, width=250)
-
-        query_np = np.array(query_img)
-        query_gray = cv2.cvtColor(query_np, cv2.COLOR_RGB2GRAY)
-
-        orb = cv2.ORB_create(nfeatures=2000)
-        kp1, des1 = orb.detectAndCompute(query_gray, None)
-
-        if des1 is None:
-            st.warning("Not enough features detected.")
-            st.stop()
-
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
-        query_hist = cv2.calcHist([query_np],[0,1,2],None,[8,8,8],[0,256,0,256,0,256])
-        cv2.normalize(query_hist, query_hist)
-
-        best_score = 0
-        best_match = None
-        matched_img = None
-
-        for _, row in df_plasma.iterrows():
-
-            drive_link = row["image_url"]
-
-            if "/d/" in drive_link:
-                file_id = drive_link.split("/d/")[1].split("/")[0]
-                img_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-            else:
-                img_url = drive_link
-
-            try:
-                response = requests.get(img_url)
-                item_img = Image.open(BytesIO(response.content)).convert("RGB").resize((400,400))
-            except:
-                continue
-
-            item_np = np.array(item_img)
-            item_gray = cv2.cvtColor(item_np, cv2.COLOR_RGB2GRAY)
-
-            kp2, des2 = orb.detectAndCompute(item_gray, None)
-            if des2 is None:
-                continue
-
-            matches = bf.match(des1, des2)
-            match_count = len(matches)
-
-            item_hist = cv2.calcHist([item_np],[0,1,2],None,[8,8,8],[0,256,0,256,0,256])
-            cv2.normalize(item_hist, item_hist)
-
-            color_score = cv2.compareHist(query_hist, item_hist, cv2.HISTCMP_CORREL)
-
-            combined_score = (match_count * 0.6) + (color_score * 100 * 0.4)
-
-            if combined_score > best_score:
-                best_score = combined_score
-                best_match = row["item_name"]
-                matched_img = item_img
-
-        if best_score > 30:
-            st.success(f"Item Identified: {best_match}")
-            st.image(matched_img, width=250)
-        else:
-            st.warning("No strong match found.")
+elif option == "ETO Query":
+    st.info("ETO Feature Coming Soon")
 
 else:
     st.info("Upcoming Feature")
-
-# =============================
-# ISSUE HISTORY
-# =============================
-st.subheader("Issue History")
