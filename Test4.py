@@ -14,7 +14,7 @@ from technician import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from quotes import get_random_quote
 
-# ----------------------------
+# ---------------------------
 # SESSION STATE INIT
 # ----------------------------
 defaults = {
