@@ -1,8 +1,6 @@
 import streamlit as st
 from embedding_utils import get_embedding
 
-st.set_page_config(page_title="Instrument Recognition System")
-
 st.title("Instrument Recognition System")
 
 uploaded_file = st.file_uploader(
@@ -11,8 +9,7 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file is not None:
-    st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
-    st.success("Image received successfully")
+    st.image(uploaded_file, caption="Uploaded Image")
 
     try:
         embedding = get_embedding(uploaded_file)
@@ -22,4 +19,4 @@ if uploaded_file is not None:
 
     except Exception as e:
         st.error("Error generating embedding")
-        st.write(str(e))
+        st.write(e)
