@@ -11,8 +11,11 @@ def get_embedding(image_file):
     inputs = processor(images=image, return_tensors="pt")
 
     with torch.no_grad():
-        image_features = model.get_image_features(pixel_values=inputs["pixel_values"])
+        image_features = model.get_image_features(
+            pixel_values=inputs["pixel_values"]
+        )
 
-    image_features = image_features / image_features.norm(p=2, dim=-1, keepdim=True)
+    # Direct numpy conversion (no norm for now)
+    embedding = image_features[0].detach().cpu().numpy()
 
-    return image_features[0].numpy()
+    return embedding
