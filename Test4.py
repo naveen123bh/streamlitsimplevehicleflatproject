@@ -1,6 +1,4 @@
-# app.py
 # this code is programmed by naveen123
-
 import os
 import random
 import base64
@@ -12,7 +10,6 @@ from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
 from quotes import get_random_quote
-from embedding_utils import get_embedding  # CLIP embeddings
 
 # ========================
 # SESSION STATE INIT
@@ -56,14 +53,8 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
-    # AUTO PLAY RANDOM SONG (autoplay disabled)
     current_dir = os.path.dirname(os.path.abspath(__file__))
-
-    mp3_files = [
-        os.path.join(current_dir, f)
-        for f in os.listdir(current_dir)
-        if f.lower().endswith(".mp3")
-    ]
+    mp3_files = [os.path.join(current_dir, f) for f in os.listdir(current_dir) if f.lower().endswith(".mp3")]
 
     if mp3_files:
         random_song = random.choice(mp3_files)
@@ -71,7 +62,7 @@ if st.session_state.logged_in_user is None:
             audio_bytes = f.read()
         b64 = base64.b64encode(audio_bytes).decode()
         audio_html = f"""
-        <audio><!-- autoplay -->
+        <audio>
             <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
         </audio>
         """
@@ -92,15 +83,11 @@ if st.session_state.logged_in_user is None:
     </style>
     """, unsafe_allow_html=True)
 
-    # ------------------------------
-    # Technician Name Input
-    # ------------------------------
     name_input = st.text_input("Technician Name")
 
     if name_input:
         cleaned_input = clean_name(name_input)
         normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
-
         if cleaned_input in normalized:
             st.session_state.login_selected_name = normalized[cleaned_input]
         else:
@@ -128,11 +115,9 @@ if st.session_state.logged_in_user is None:
             import csv
             with open(FEEDBACK_FILE, mode="a", newline="") as f:
                 writer = csv.writer(f)
-                writer.writerow([
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    st.session_state.login_selected_name or "Unknown",
-                    feedback_input
-                ])
+                writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                 st.session_state.login_selected_name or "Unknown",
+                                 feedback_input])
             st.success("Thank you! Your suggestion has been recorded.")
         else:
             st.warning("Please type something to submit.")
@@ -209,7 +194,7 @@ if st.session_state.query_option is None:
         [
             "Separate Pack",
             "Set",
-            "Plasma Query",   # Plasma above ETO
+            "Plasma Query",
             "ETO Query",
             "Autoclave Query",
             "5th Floor Handover",
@@ -249,31 +234,26 @@ else:
 # ==============================
 if option == "Separate Pack":
     from sap import separate_pack_section
-    log_df = separate_pack_section(
-        log_df,
-        LOG_FILE,
-        st.session_state.logged_in_user
-    )
+    log_df = separate_pack_section(log_df, LOG_FILE, st.session_state.logged_in_user)
 
 elif option == "Set":
-    log_df = search_and_issue_sets(
-        log_df,
-        LOG_FILE,
-        st.session_state.logged_in_user
-    )
+    log_df = search_and_issue_sets(log_df, LOG_FILE, st.session_state.logged_in_user)
 
 elif option == "Plasma Query":
-    st.markdown("## Plasma Instrument Recognition")
-    uploaded_file = st.file_uploader("Upload instrument image", type=["jpg","jpeg","png"])
+    st.markdown("## Plasma / Instrument Recognition")
+    from embeddings import InstrumentRecognizer  # your embeddings.py
+    recognizer = InstrumentRecognizer("instrument_embeddings.csv")
+
+    uploaded_file = st.file_uploader("Upload instrument image", type=["jpg","png","jpeg"])
     if uploaded_file is not None:
         st.image(uploaded_file, width=250)
         try:
-            embedding = get_embedding(uploaded_file)
-            st.success(f"Embedding generated. Length: {len(embedding)}")
+            results = recognizer.recognize(uploaded_file, top_k=1)
+            top_file = results.iloc[0]["file"]
+            sim = results.iloc[0]["similarity"]
+            st.success(f"Best match: {top_file} (Similarity: {sim:.2f})")
         except Exception as e:
-            st.error(f"Error generating embedding: {e}")
-    else:
-        st.info("Upload an image to generate embedding.")
+            st.error(f"Recognition failed: {e}")
 
 else:
     st.info("Upcoming Feature")
@@ -282,16 +262,13 @@ else:
 # ISSUE HISTORY
 # =============================
 st.subheader("Issue History")
-
 if not log_df.empty:
     st.dataframe(log_df)
 else:
     st.write("No issues recorded")
 
 if st.button("Clear Log History"):
-    empty_df = pd.DataFrame(
-        columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]
-    )
+    empty_df = pd.DataFrame(columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"])
     empty_df.to_csv(LOG_FILE, index=False)
     st.success("Log Cleared Successfully")
     st.rerun()
