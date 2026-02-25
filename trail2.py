@@ -16,9 +16,9 @@ from PIL import Image
 from io import BytesIO
 import imagehash
 
-# ========================
+# =======================
 # SESSION STATE INIT
-# =========================
+# ========================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
