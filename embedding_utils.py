@@ -13,4 +13,4 @@ def get_embedding(image_file):
     with torch.no_grad():
         outputs = model.get_image_features(**inputs)
     
-    return outputs[0].numpy()
+    return outputs[0].cpu().numpy().flatten()
