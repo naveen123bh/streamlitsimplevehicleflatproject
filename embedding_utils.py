@@ -18,4 +18,4 @@ def get_embedding(image_file):
 
     image_features = image_features / image_features.norm()
 
-    return image_features.numpy()
+    return image_features.detach().cpu().numpy().flatten()
