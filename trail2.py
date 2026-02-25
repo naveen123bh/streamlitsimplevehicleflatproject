@@ -16,6 +16,10 @@ from PIL import Image
 from io import BytesIO
 import imagehash
 
+# ✅ NEW IMPORTS FOR ORB
+import cv2
+import numpy as np
+
 # =======================
 # SESSION STATE INIT
 # ========================
@@ -117,7 +121,7 @@ if st.button("⬅ Back"):
     st.rerun()
 
 # ==============================
-# PLASMA QUERY SECTION
+# PLASMA QUERY SECTION (ORB VERSION)
 # ==============================
 if option == "Plasma Query":
 
@@ -136,13 +140,24 @@ if option == "Plasma Query":
 
     if img_file is not None:
 
-        query_img = Image.open(img_file)
+        query_img = Image.open(img_file).convert("RGB")
         st.image(query_img, caption="Uploaded Image", width=250)
 
-        query_hash = imagehash.phash(query_img)
+        query_np = np.array(query_img)
+        query_gray = cv2.cvtColor(query_np, cv2.COLOR_RGB2GRAY)
+
+        orb = cv2.ORB_create(nfeatures=1000)
+
+        kp1, des1 = orb.detectAndCompute(query_gray, None)
+
+        if des1 is None:
+            st.warning("Not enough features detected in uploaded image.")
+            st.stop()
+
+        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
         best_match = None
-        smallest_diff = None
+        max_matches = 0
         matched_item_img = None
 
         for _, row in df_plasma.iterrows():
@@ -157,19 +172,32 @@ if option == "Plasma Query":
 
             try:
                 response_img = requests.get(img_url)
-                item_img = Image.open(BytesIO(response_img.content))
+                item_img = Image.open(BytesIO(response_img.content)).convert("RGB")
             except:
                 continue
 
-            diff = query_hash - imagehash.phash(item_img)
+            item_np = np.array(item_img)
+            item_gray = cv2.cvtColor(item_np, cv2.COLOR_RGB2GRAY)
 
-            if smallest_diff is None or diff < smallest_diff:
-                smallest_diff = diff
+            kp2, des2 = orb.detectAndCompute(item_gray, None)
+
+            if des2 is None:
+                continue
+
+            matches = bf.match(des1, des2)
+
+            matches = sorted(matches, key=lambda x: x.distance)
+
+            match_count = len(matches)
+
+            if match_count > max_matches:
+                max_matches = match_count
                 best_match = row["item_name"]
                 matched_item_img = item_img
 
-        if smallest_diff is not None and smallest_diff <= 5:
+        if max_matches > 20:  # adjust 15-30 if needed
             st.success(f"Item Identified: {best_match}")
             st.image(matched_item_img, caption="Matched Image", width=250)
+            st.info(f"Feature Matches Found: {max_matches}")
         else:
-            st.warning("No close match found. Try clearer image.")
+            st.warning("No strong match found. Try clearer image.")
