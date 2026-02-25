@@ -16,8 +16,7 @@ def get_embedding(image_file):
             pixel_values=inputs["pixel_values"]
         )
 
-    # Convert to numpy and flatten properly
-    embedding = image_features.detach().cpu().numpy()
-    embedding = np.squeeze(embedding)   # remove batch dimension
+    # Convert properly to numpy
+    embedding = image_features.cpu().numpy()
 
-    return embedding
+    return embedding[0]
