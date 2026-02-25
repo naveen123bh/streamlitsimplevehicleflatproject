@@ -11,3 +11,7 @@ transformers
 Pillow
 scikit-learn
 numpy
+torchvision
+tqdm
+open_clip_torch
+requests
