@@ -1,4 +1,6 @@
+# app.py
 # this code is programmed by naveen123
+
 import os
 import random
 import base64
@@ -241,8 +243,8 @@ elif option == "Set":
 
 elif option == "Plasma Query":
     st.markdown("## Plasma / Instrument Recognition")
-    from embeddings import InstrumentRecognizer  # your embeddings.py
-    recognizer = InstrumentRecognizer("plasma.csv")  # use your CSV
+    from embeddings import InstrumentRecognizer  # new embeddings.py
+    recognizer = InstrumentRecognizer("plasma.csv")  # your CSV with item_name & image_url
 
     uploaded_file = st.file_uploader("Upload instrument image", type=["jpg","png","jpeg"])
     if uploaded_file is not None:
@@ -254,7 +256,7 @@ elif option == "Plasma Query":
                 sim = results.iloc[0]["similarity"]
                 st.success(f"Best match: {top_file} (Similarity: {sim:.2f})")
             else:
-                st.warning("No strong match found.")
+                st.warning("No match found.")
         except Exception as e:
             st.error(f"Recognition failed: {e}")
 
