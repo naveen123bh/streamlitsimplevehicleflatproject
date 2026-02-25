@@ -10,16 +10,8 @@ from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
 from quotes import get_random_quote
-import csv
-import requests
-from PIL import Image
-from io import BytesIO
 
-# NEW IMPORTS
-import cv2
-import numpy as np
-
-# =======================
+# ========================
 # SESSION STATE INIT
 # ========================
 defaults = {
@@ -34,9 +26,9 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# =============================
+# ============================
 # HELPER FUNCTION
-# =============================
+# ============================
 def clean_name(name):
     name = name.upper().replace(".", "").replace("!", "").strip()
     for title in ["MR", "MISS"]:
@@ -45,9 +37,9 @@ def clean_name(name):
     name = " ".join(name.split())
     return name
 
-# ==============================
+# =============================
 # LOGIN PAGE ONLY
-# ==============================
+# =============================
 if st.session_state.logged_in_user is None:
 
     hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
@@ -61,11 +53,43 @@ if st.session_state.logged_in_user is None:
     quote = get_random_quote()
     st.info(quote)
 
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    mp3_files = [os.path.join(current_dir, f) for f in os.listdir(current_dir) if f.lower().endswith(".mp3")]
+
+    if mp3_files:
+        random_song = random.choice(mp3_files)
+        with open(random_song, "rb") as f:
+            audio_bytes = f.read()
+        b64 = base64.b64encode(audio_bytes).decode()
+
+        audio_html = f"""
+        <audio>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        """
+        st.markdown(audio_html, unsafe_allow_html=True)
+    else:
+        st.warning("No mp3 files found in this folder")
+
+    st.markdown("""
+    <style>
+    div.stButton > button[kind="primary"] {
+        background-color: #28a745;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 0.6em 1.2em;
+        border-radius: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     name_input = st.text_input("Technician Name")
 
     if name_input:
         cleaned_input = clean_name(name_input)
         normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
+
         if cleaned_input in normalized:
             st.session_state.login_selected_name = normalized[cleaned_input]
         else:
@@ -83,10 +107,35 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
-# ==============================
+# =============================
 # AFTER LOGIN
-# ==============================
-st.title("CSSD Application")
+# =============================
+ist = pytz.timezone("Asia/Kolkata")
+now = datetime.now(ist)
+current_hour = now.hour
+
+if 4 <= current_hour < 12:
+    greeting = "Good Morning"
+elif 12 <= current_hour < 16:
+    greeting = "Good Afternoon"
+elif 16 <= current_hour < 21:
+    greeting = "Good Evening"
+else:
+    greeting = "Hello"
+
+full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
+first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
+
+st.markdown(
+    f"""
+    <div style='background-color:#e8f5e9;padding:14px;border-radius:10px;text-align:center;margin-bottom:15px;'>
+        <span style='color:#28a745;font-size:30px;font-weight:bold;'>
+            {greeting}, {first_name}!
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 if st.button("Logout"):
     for key in defaults.keys():
@@ -98,16 +147,23 @@ if st.button("Logout"):
 # =============================
 if st.session_state.query_option is None:
 
+    st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
+
     choice = st.radio(
-        "Select Option",
+        "",
         [
             "Separate Pack",
             "Set",
-            "Plasma Query"
+            "ETO Query",
+            "Plasma Query",
+            "Autoclave Query",
+            "5th Floor Handover",
+            "3rd Floor Handover",
+            "Set Identification"
         ]
     )
 
-    if st.button("Continue"):
+    if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
         st.rerun()
 
@@ -120,16 +176,22 @@ if st.button("⬅ Back"):
     st.rerun()
 
 # ==============================
-# PLASMA QUERY SECTION (ORB + COLOR)
+# PLASMA QUERY SECTION
 # ==============================
 if option == "Plasma Query":
+
+    import numpy as np
+    import cv2
+    from PIL import Image
+    import requests
+    from io import BytesIO
 
     st.markdown("## Plasma Sterilization Item Recognition")
 
     try:
         df_plasma = pd.read_csv("plasma.csv")
     except:
-        st.error("plasma.csv not found in project folder.")
+        st.error("plasma.csv not found.")
         st.stop()
 
     uploaded_file = st.file_uploader("Upload item photo", type=["png","jpg","jpeg"])
@@ -139,13 +201,13 @@ if option == "Plasma Query":
 
     if img_file is not None:
 
-        query_img = Image.open(img_file).convert("RGB")
-        st.image(query_img, caption="Uploaded Image", width=250)
+        query_img = Image.open(img_file).convert("RGB").resize((400, 400))
+        st.image(query_img, width=250)
 
         query_np = np.array(query_img)
         query_gray = cv2.cvtColor(query_np, cv2.COLOR_RGB2GRAY)
 
-        orb = cv2.ORB_create(nfeatures=1000)
+        orb = cv2.ORB_create(nfeatures=2000)
         kp1, des1 = orb.detectAndCompute(query_gray, None)
 
         if des1 is None:
@@ -154,14 +216,12 @@ if option == "Plasma Query":
 
         bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
-        # COLOR HISTOGRAM OF QUERY
-        query_hist = cv2.calcHist([query_np], [0,1,2], None, [8,8,8], [0,256,0,256,0,256])
+        query_hist = cv2.calcHist([query_np],[0,1,2],None,[8,8,8],[0,256,0,256,0,256])
         cv2.normalize(query_hist, query_hist)
 
+        best_score = 0
         best_match = None
-        max_matches = 0
-        best_color_score = 0
-        matched_item_img = None
+        matched_img = None
 
         for _, row in df_plasma.iterrows():
 
@@ -174,8 +234,8 @@ if option == "Plasma Query":
                 img_url = drive_link
 
             try:
-                response_img = requests.get(img_url)
-                item_img = Image.open(BytesIO(response_img.content)).convert("RGB")
+                response = requests.get(img_url)
+                item_img = Image.open(BytesIO(response.content)).convert("RGB").resize((400,400))
             except:
                 continue
 
@@ -189,21 +249,28 @@ if option == "Plasma Query":
             matches = bf.match(des1, des2)
             match_count = len(matches)
 
-            # COLOR HISTOGRAM MATCH
-            item_hist = cv2.calcHist([item_np], [0,1,2], None, [8,8,8], [0,256,0,256,0,256])
+            item_hist = cv2.calcHist([item_np],[0,1,2],None,[8,8,8],[0,256,0,256,0,256])
             cv2.normalize(item_hist, item_hist)
 
             color_score = cv2.compareHist(query_hist, item_hist, cv2.HISTCMP_CORREL)
 
-            if match_count > max_matches and color_score > best_color_score:
-                max_matches = match_count
-                best_color_score = color_score
-                best_match = row["item_name"]
-                matched_item_img = item_img
+            combined_score = (match_count * 0.6) + (color_score * 100 * 0.4)
 
-        if max_matches > 15 and best_color_score > 0.7:
+            if combined_score > best_score:
+                best_score = combined_score
+                best_match = row["item_name"]
+                matched_img = item_img
+
+        if best_score > 30:
             st.success(f"Item Identified: {best_match}")
-            st.image(matched_item_img, caption="Matched Image", width=250)
-            st.info(f"Feature Matches: {max_matches} | Color Score: {round(best_color_score,2)}")
+            st.image(matched_img, width=250)
         else:
-            st.warning("No strong match found. Try clearer image.")
+            st.warning("No strong match found.")
+
+else:
+    st.info("Upcoming Feature")
+
+# =============================
+# ISSUE HISTORY
+# =============================
+st.subheader("Issue History")
