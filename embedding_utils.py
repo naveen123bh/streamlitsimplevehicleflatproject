@@ -1,25 +1,23 @@
-import streamlit as st
-from embedding_utils import get_embedding
+import torch
+from transformers import CLIPProcessor, CLIPModel
+from PIL import Image
+import numpy as np
 
-st.set_page_config(page_title="Instrument Recognition System")
+model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
-st.title("Instrument Recognition System")
+def get_embedding(image_file):
+    image = Image.open(image_file).convert("RGB")
 
-uploaded_file = st.file_uploader(
-    "Upload instrument image",
-    type=["jpg", "jpeg", "png"]
-)
+    inputs = processor(images=image, return_tensors="pt")
 
-if uploaded_file is not None:
-    st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
-    st.success("Image received successfully")
+    with torch.no_grad():
+        image_features = model.get_image_features(
+            pixel_values=inputs["pixel_values"]
+        )
 
-    try:
-        embedding = get_embedding(uploaded_file)
+    # Convert to numpy and flatten properly
+    embedding = image_features.detach().cpu().numpy()
+    embedding = np.squeeze(embedding)   # remove batch dimension
 
-        st.write("Shape:", embedding.shape)
-        st.write("Embedding length:", len(embedding))
-
-    except Exception as e:
-        st.error("Error generating embedding")
-        st.write(str(e))
+    return embedding
