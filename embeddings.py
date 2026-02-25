@@ -66,7 +66,7 @@ class InstrumentRecognizer:
     def recognize(self, image_file, top_k=1):
         """Compare uploaded image embedding with stored embeddings"""
         if self.df.empty:
-            raise ValueError("memory full unable to load ,freing space !")
+            raise ValueError("the cosine similirary matrix  the cos theta of relation of embeddings to each other  is in progress ! soon available  !")
 
         query_emb = self.generate_embedding(image_file)  # (512,)
         similarities = []
