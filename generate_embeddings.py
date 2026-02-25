@@ -1,8 +1,12 @@
 from embeddings import InstrumentRecognizer
 
-recognizer = InstrumentRecognizer("plasma.csv")
+# Naya CSV path
+CSV_FILE = "plasma.csv"
 
-# list of your items
+# Recognizer init
+recognizer = InstrumentRecognizer(CSV_FILE)
+
+# List of items with direct downloadable links
 items = [
     ("harmonic cable", "https://drive.google.com/uc?export=download&id=17YHshrLdblSwyceN5dufRo2C_1WByxr5"),
     ("Arthrex remote pump (Arthoscopy)3rd floor", "https://drive.google.com/uc?export=download&id=1Dm_c-tKqtuDb5HpH4dfav4jIGOLZ3HZN"),
@@ -10,5 +14,11 @@ items = [
     ("Smith and nephew light cable 3rd floor", "https://drive.google.com/uc?export=download&id=1MCJLCDVlwxbmBwONi3k8yTyjVYEzgWn3")
 ]
 
+# Loop through and add embeddings to CSV
 for name, url in items:
-    recognizer.add_to_database(url, name=name)
+    try:
+        print(f"Processing: {name}")
+        recognizer.add_to_database(url, name=name)
+        print("Done ✅")
+    except Exception as e:
+        print(f"Failed ❌: {name} -> {e}")
