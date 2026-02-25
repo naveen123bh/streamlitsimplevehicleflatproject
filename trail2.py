@@ -300,7 +300,7 @@ elif option == "Plasma Query":
         response.raise_for_status()
         from io import StringIO
         csv_data = StringIO(response.text)
-        df_plasma = pd.read_csv(csv_data)
+        df_plasma = pd.read_csv(csv_data, encoding='ISO-8859-1')
 
         best_match = None
         smallest_diff = None
