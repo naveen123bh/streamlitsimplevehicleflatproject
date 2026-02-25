@@ -20,9 +20,9 @@ import imagehash
 import cv2
 import numpy as np
 
-# =======================
+# ======================
 # SESSION STATE INIT
-# ========================
+# =======================
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
