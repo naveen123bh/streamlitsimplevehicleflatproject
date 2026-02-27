@@ -3,6 +3,7 @@ import streamlit as st
 import difflib
 from datetime import datetime
 import pytz
+from streamlit_mic_recorder import mic_recorder
 
 
 def search_and_issue_sets(log_df, LOG_FILE, logged_user):
@@ -40,44 +41,26 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     st.markdown("---")
 
     # ======================================================
-    # Search by Set Name
+    # Search by Set Name + Voice
     # ======================================================
     st.markdown("### Search by Set Name")
 
-    name_input = st.text_input("Enter Set Name", key="set_text")
+    col1, col2 = st.columns([4, 1])
 
-    # 🎤 Voice Button
-    st.markdown("""
-        <button onclick="startDictation()">🎤 Speak</button>
+    with col1:
+        name_input = st.text_input("Enter Set Name", key="set_text")
 
-        <script>
-        function startDictation() {
+    with col2:
+        voice = mic_recorder(
+            start_prompt="🎤",
+            stop_prompt="⏹",
+            key="set_mic"
+        )
 
-            if (window.hasOwnProperty('webkitSpeechRecognition')) {
-
-                var recognition = new webkitSpeechRecognition();
-
-                recognition.continuous = false;
-                recognition.interimResults = false;
-
-                recognition.lang = "en-US";
-
-                recognition.start();
-
-                recognition.onresult = function(e) {
-                    document.querySelector('input[aria-label="Enter Set Name"]').value
-                        = e.results[0][0].transcript;
-                    recognition.stop();
-                };
-
-                recognition.onerror = function(e) {
-                    recognition.stop();
-                }
-
-            }
-        }
-        </script>
-    """, unsafe_allow_html=True)
+    # Voice text auto-fill
+    if voice and voice.get("text"):
+        st.session_state.set_text = voice["text"].upper().strip()
+        name_input = st.session_state.set_text
 
     name_input = name_input.upper().strip()
 
