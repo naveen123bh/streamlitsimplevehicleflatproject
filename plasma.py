@@ -25,18 +25,21 @@ def plasma_section():
     # Search by Name
     # -----------------------------
     search_input = st.text_input("Enter Item Name to Search").upper().strip()
+
     confirmed_item = None
-    if search_input:
-        exact = df[df["ItemName"] == search_input]
-        if not exact.empty:
-            confirmed_item = exact.iloc[0]
-        else:
-            matches = difflib.get_close_matches(
-                search_input, df["ItemName"].tolist(), n=5, cutoff=0.4
-            )
-            if matches:
-                selected_name = st.selectbox("Did you mean:", matches)
-                confirmed_item = df[df["ItemName"] == selected_name].iloc[0]
+    if st.button("Search Item"):
+        if search_input:
+            exact = df[df["ItemName"] == search_input]
+            if not exact.empty:
+                confirmed_item = exact.iloc[0]
+            else:
+                matches = difflib.get_close_matches(
+                    search_input, df["ItemName"].tolist(), n=5, cutoff=0.4
+                )
+                if matches:
+                    selected_name = st.selectbox("Did you mean:", matches)
+                    if selected_name:
+                        confirmed_item = df[df["ItemName"] == selected_name].iloc[0]
 
     # -----------------------------
     # Show Selected Item
