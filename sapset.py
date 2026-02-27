@@ -17,7 +17,7 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     if "confirmed_set" not in st.session_state:
         st.session_state.confirmed_set = None
 
-    # ====================================================
+    # ======================================================
     # Search by Department
     # ======================================================
     st.markdown("### Search by Department")
@@ -42,8 +42,9 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     # ======================================================
     st.markdown("### Search by Set Name")
 
-    name_input = st.text_input("Enter Set Name", key="set_text")
+    name_input = st.text_input("Enter Set Name", key="set_text").upper().strip()
 
+    # 🎤 Voice Button
     components.html("""
     <script>
     function startDictation() {
@@ -78,27 +79,28 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     </button>
     """, height=80)
 
-    name_input = name_input.upper().strip()
-
-    # ======================================================
-    # LIVE FILTERING (No Search Button)
-    # ======================================================
+    # ================= LIVE FILTER =================
     if name_input:
 
-        filtered = df[df["SetName"].str.contains(name_input, na=False)]
+        filtered = df[df["SetName"].str.contains(name_input, case=False, na=False)]
 
         if not filtered.empty:
 
-            selected = st.selectbox(
+            selected_set = st.selectbox(
                 "Select Set",
-                filtered["SetName"].tolist()
+                filtered["SetName"].unique(),
+                key="live_select"
             )
 
-            row = df[df["SetName"] == selected].iloc[0]
+            row = df[df["SetName"] == selected_set].iloc[0]
             st.session_state.confirmed_set = row.to_dict()
 
         else:
             st.warning("No matching set found")
+            st.session_state.confirmed_set = None
+
+    else:
+        st.session_state.confirmed_set = None
 
     # ======================================================
     # Confirmed Set & Issue
