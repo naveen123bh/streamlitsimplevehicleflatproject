@@ -1,19 +1,22 @@
-# this code is programmed by naveen123
+# app.py
+# ✅ Full updated Streamlit app for KDAH + Instrument Recognition
+# programmed by naveen123
+
 import os
 import random
 import base64
 import streamlit as st
 import pandas as pd
 import difflib
-from technician import TECHNICIAN_NAMES
-from sapset import search_and_issue_sets
 from datetime import datetime
 import pytz
+from technician import TECHNICIAN_NAMES
+from sapset import search_and_issue_sets
 from quotes import get_random_quote
 
-# =======================
+# ---------------------------
 # SESSION STATE INIT
-# ========================
+# ----------------------------
 defaults = {
     "logged_in_user": None,
     "login_selected_name": None,
@@ -26,39 +29,31 @@ for k, v in defaults.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ============================
+# -----------------------------
 # HELPER FUNCTION
-# ============================
+# -----------------------------
 def clean_name(name):
     name = name.upper().replace(".", "").replace("!", "").strip()
     for title in ["MR", "MISS"]:
         if name.startswith(title + " "):
             name = name[len(title)+1:]
-    name = " ".join(name.split())
-    return name
+    return " ".join(name.split())
 
-# =============================
-# LOGIN PAGE ONLY
-# =============================
+# -----------------------------
+# LOGIN PAGE
+# -----------------------------
 if st.session_state.logged_in_user is None:
 
     hospital_image_url = "https://i.ibb.co/7NYqvcHz/hospital.jpg"
     st.image(hospital_image_url, width=400)
-
     st.markdown("<h2 style='color:purple;'>KDAH</h2>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:green;'>Coded for CSSD Department</h4>", unsafe_allow_html=True)
-    st.markdown("<p style='color:orange;'>Note: App is under consideration and development </p>", unsafe_allow_html=True)
-
+    st.markdown("<p style='color:orange;'>App is under development</p>", unsafe_allow_html=True)
     st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
-    quote = get_random_quote()
-    st.info(quote)
+    st.info(get_random_quote())
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    mp3_files = [
-        os.path.join(current_dir, f)
-        for f in os.listdir(current_dir)
-        if f.lower().endswith(".mp3")
-    ]
+    mp3_files = [os.path.join(current_dir, f) for f in os.listdir(current_dir) if f.lower().endswith(".mp3")]
 
     if mp3_files:
         random_song = random.choice(mp3_files)
@@ -71,8 +66,6 @@ if st.session_state.logged_in_user is None:
         </audio>
         """
         st.markdown(audio_html, unsafe_allow_html=True)
-    else:
-        st.warning("No mp3 files found in this folder")
 
     st.markdown("""
     <style>
@@ -92,7 +85,6 @@ if st.session_state.logged_in_user is None:
     if name_input:
         cleaned_input = clean_name(name_input)
         normalized = {clean_name(n): n for n in TECHNICIAN_NAMES}
-
         if cleaned_input in normalized:
             st.session_state.login_selected_name = normalized[cleaned_input]
         else:
@@ -108,15 +100,14 @@ if st.session_state.logged_in_user is None:
         else:
             st.warning("Enter correct name")
 
-    # Suggestions
+    # Feedback Section
     st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
-    feedback_input = st.text_area("Do you have any suggestion or idea to improve this app?")
-
+    feedback_input = st.text_area("Any suggestion or idea to improve this app?")
     if st.button("Submit Suggestion"):
         if feedback_input.strip() != "":
             FEEDBACK_FILE = "cssd_suggestions.csv"
             import csv
-            with open(FEEDBACK_FILE, mode="a", newline="") as f:
+            with open(FEEDBACK_FILE, "a", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                  st.session_state.login_selected_name or "Unknown",
@@ -124,16 +115,14 @@ if st.session_state.logged_in_user is None:
             st.success("Thank you! Your suggestion has been recorded.")
         else:
             st.warning("Please type something to submit.")
-
     st.stop()
 
-# =============================
+# -----------------------------
 # AFTER LOGIN
-# =============================
+# -----------------------------
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
-
 if 4 <= current_hour < 12:
     greeting = "Good Morning"
 elif 12 <= current_hour < 16:
@@ -147,27 +136,43 @@ full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split
 first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
 
 st.markdown(
-    f"""
-    <div style='background-color:#e8f5e9;padding:14px;border-radius:10px;text-align:center;margin-bottom:15px;'>
-        <span style='color:#28a745;font-size:30px;font-weight:bold;'>
-            {greeting}, {first_name}!
-        </span>
-    </div>
-    """,
-    unsafe_allow_html=True
+    f"<div style='background-color:#e8f5e9;padding:14px;border-radius:10px;text-align:center;margin-bottom:15px;'>"
+    f"<span style='color:#28a745;font-size:30px;font-weight:bold;'>{greeting}, {first_name}!</span>"
+    f"</div>", unsafe_allow_html=True
 )
+
+st.markdown("""
+<style>
+div.stButton > button {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-size: 22px !important;
+    font-weight: bold !important;
+    padding: 0.7em 1.5em !important;
+    border-radius: 8px !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
     st.rerun()
 
-# =============================
+# -----------------------------
 # OPTION SELECT PAGE
-# =============================
+# -----------------------------
 if st.session_state.query_option is None:
-
     st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
+    st.markdown("""
+    <style>
+    div[role="radiogroup"] > label {
+        font-size: 26px !important;
+        font-weight: bold !important;
+        color: black !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     choice = st.radio(
         "",
@@ -182,107 +187,68 @@ if st.session_state.query_option is None:
             "Set Identification"
         ]
     )
-
     if st.button("Continue", type="primary"):
         st.session_state.query_option = choice
         st.rerun()
-
     st.stop()
 
 option = st.session_state.query_option
-
 if st.button("⬅ Back"):
     st.session_state.query_option = None
     st.rerun()
 
-# ==============================
+# -----------------------------
+# ISSUE LOG
+# -----------------------------
+LOG_FILE = "issue_log.csv"
+if os.path.exists(LOG_FILE):
+    log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
+    if "SisterName" not in log_df.columns:
+        log_df["SisterName"] = ""
+else:
+    log_df = pd.DataFrame(columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"])
+
+# -----------------------------
 # FEATURE SECTIONS
-# ==============================
+# -----------------------------
 if option == "Separate Pack":
     from sap import separate_pack_section
-    separate_pack_section(None, None, st.session_state.logged_in_user)
+    log_df = separate_pack_section(log_df, LOG_FILE, st.session_state.logged_in_user)
 
 elif option == "Set":
-    search_and_issue_sets(None, None, st.session_state.logged_in_user)
+    log_df = search_and_issue_sets(log_df, LOG_FILE, st.session_state.logged_in_user)
 
 elif option == "Plasma Query":
+    st.markdown("## Plasma / Instrument Recognition")
+    from embeddings import InstrumentRecognizer  # new embeddings.py
+    recognizer = InstrumentRecognizer("plasma.csv")  # your CSV with item_name & image_url
 
-    import numpy as np
-    import cv2
-    from PIL import Image
-    import requests
-    from io import BytesIO
+    uploaded_file = st.file_uploader("Upload instrument image", type=["jpg","png","jpeg"])
+    if uploaded_file is not None:
+        from PIL import Image
+        img = Image.open(uploaded_file).convert("RGB")  # ← convert UploadedFile to PIL Image
+        st.image(img, width=250)
+        try:
+            results = recognizer.recognize(img, top_k=1)  # ← pass PIL Image
+            if not results.empty:
+                top_file = results.iloc[0]["item_name"]
+                sim = results.iloc[0]["similarity"]
+                st.success(f"Best match: {top_file} (Similarity: {sim:.2f})")
+            else:
+                st.warning("No match found.")
+        except Exception as e:
+            st.error(f"Recognition failed: {e}")
 
-    st.markdown("## Plasma Sterilization Item Recognition")
-
-    df_plasma = pd.read_csv("plasma.csv")
-
-    uploaded_file = st.file_uploader("Upload item photo", type=["png","jpg","jpeg"])
-    camera_file = st.camera_input("Or take a photo")
-
-    img_file = uploaded_file if uploaded_file else camera_file
-
-    if img_file is not None:
-
-        query_img = Image.open(img_file).convert("RGB").resize((400, 400))
-        st.image(query_img, width=250)
-
-        query_np = np.array(query_img)
-        query_gray = cv2.cvtColor(query_np, cv2.COLOR_RGB2GRAY)
-
-        orb = cv2.ORB_create(nfeatures=2500)
-        kp1, des1 = orb.detectAndCompute(query_gray, None)
-
-        if des1 is None:
-            st.warning("Not enough features detected.")
-            st.stop()
-
-        bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-
-        query_hsv = cv2.cvtColor(query_np, cv2.COLOR_RGB2HSV)
-        query_hist = cv2.calcHist([query_hsv],[0,1],None,[50,60],[0,180,0,256])
-        cv2.normalize(query_hist, query_hist)
-
-        best_score = 0
-        best_match = None
-        matched_img = None
-
-        for _, row in df_plasma.iterrows():
-
-            try:
-                response = requests.get(row["image_url"], timeout=10)
-                item_img = Image.open(BytesIO(response.content)).convert("RGB").resize((400,400))
-            except:
-                continue
-
-            item_np = np.array(item_img)
-            item_gray = cv2.cvtColor(item_np, cv2.COLOR_RGB2GRAY)
-
-            kp2, des2 = orb.detectAndCompute(item_gray, None)
-            if des2 is None:
-                continue
-
-            matches = bf.match(des1, des2)
-            match_count = len(matches)
-
-            item_hsv = cv2.cvtColor(item_np, cv2.COLOR_RGB2HSV)
-            item_hist = cv2.calcHist([item_hsv],[0,1],None,[50,60],[0,180,0,256])
-            cv2.normalize(item_hist, item_hist)
-
-            color_score = cv2.compareHist(query_hist, item_hist, cv2.HISTCMP_CORREL)
-
-            combined_score = (match_count * 0.3) + (color_score * 100 * 0.7)
-
-            if combined_score > best_score:
-                best_score = combined_score
-                best_match = row["item_name"]
-                matched_img = item_img
-
-        if best_score > 20:
-            st.success(f"Item Identified: {best_match}")
-            st.image(matched_img, width=250)
-        else:
-            st.warning("No strong match found.")
-
+# ----------------------------
+# ISSUE HISTORY
+# ----------------------------
+st.subheader("Issue History")
+if not log_df.empty:
+    st.dataframe(log_df)
 else:
-    st.info("Upcoming Feature")
+    st.write("No issues recorded")
+
+if st.button("Clear Log History"):
+    pd.DataFrame(columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]).to_csv(LOG_FILE, index=False)
+    st.success("Log Cleared Successfully")
+    st.rerun()
