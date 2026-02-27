@@ -121,7 +121,9 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
             row = df[df["SetName"] == selected].iloc[0]
             st.session_state.confirmed_set = row.to_dict()
             st.session_state.similar_set_matches = None
+set_voice = mic_recorder(key="set_mic")
 
+st.write(set_voice)
     # ======================================================
     # Confirmed Set & Issue
     # ======================================================
