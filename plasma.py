@@ -7,7 +7,7 @@ import os
 # -----------------------------
 # Load plasma CSV
 # -----------------------------
-PLASMA_CSV = "plasmacsv.csv"
+PLASMA_CSV = "plasma.csv"
 IMAGE_FOLDER = "plasma_image"
 
 df = pd.read_csv(PLASMA_CSV, engine="python", on_bad_lines="skip")
