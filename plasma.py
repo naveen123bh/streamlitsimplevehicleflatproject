@@ -25,14 +25,12 @@ def plasma_section():
     # Search by Name
     # -----------------------------
     search_input = st.text_input("Enter Item Name to Search").upper().strip()
-
     confirmed_item = None
     if search_input:
         exact = df[df["ItemName"] == search_input]
         if not exact.empty:
             confirmed_item = exact.iloc[0]
         else:
-            # Close match
             matches = difflib.get_close_matches(
                 search_input, df["ItemName"].tolist(), n=5, cutoff=0.4
             )
@@ -52,23 +50,24 @@ def plasma_section():
             st.error(f"Image not found: {confirmed_item['ImageFile']}")
 
     # -----------------------------
-    # View Full Plasma Inventory (Paginated)
+    # Inventory Option Button
     # -----------------------------
-    st.markdown("### View Full Plasma Inventory")
-    ITEMS_PER_PAGE = 10
-    total_items = len(df)
-    total_pages = (total_items // ITEMS_PER_PAGE) + (1 if total_items % ITEMS_PER_PAGE != 0 else 0)
+    if st.button("View Full Plasma Inventory"):
+        st.markdown("### Plasma Inventory (Paginated)")
+        ITEMS_PER_PAGE = 10
+        total_items = len(df)
+        total_pages = (total_items // ITEMS_PER_PAGE) + (1 if total_items % ITEMS_PER_PAGE != 0 else 0)
 
-    page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1)
+        page = st.number_input("Page", min_value=1, max_value=total_pages, value=1, step=1)
 
-    start_idx = (page - 1) * ITEMS_PER_PAGE
-    end_idx = start_idx + ITEMS_PER_PAGE
-    page_items = df.iloc[start_idx:end_idx]
+        start_idx = (page - 1) * ITEMS_PER_PAGE
+        end_idx = start_idx + ITEMS_PER_PAGE
+        page_items = df.iloc[start_idx:end_idx]
 
-    for _, row in page_items.iterrows():
-        st.markdown(f"**{row['ItemName']}**")
-        img_path = os.path.join(IMAGE_FOLDER, row['ImageFile'])
-        if os.path.exists(img_path):
-            st.image(img_path, width=150)
-        else:
-            st.error(f"Image not found: {row['ImageFile']}")
+        for _, row in page_items.iterrows():
+            st.markdown(f"**{row['ItemName']}**")
+            img_path = os.path.join(IMAGE_FOLDER, row['ImageFile'])
+            if os.path.exists(img_path):
+                st.image(img_path, width=150)
+            else:
+                st.error(f"Image not found: {row['ImageFile']}")
