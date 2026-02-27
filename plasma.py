@@ -7,10 +7,10 @@ import os
 # -----------------------------
 # Load plasma CSV
 # -----------------------------
-PLASMA_CSV = "plasma.csv"
+pla_CSV = "plasma.csv"
 IMAGE_FOLDER = "plasma_images"
 
-df = pd.read_csv(PLASMA_CSV, engine="python", on_bad_lines="skip")
+df = pd.read_csv(PLA_CSV, engine="python", on_bad_lines="skip")
 df.columns = ["ItemName", "ImageFile"]
 
 # Only uppercase ItemName for search, keep ImageFile intact
