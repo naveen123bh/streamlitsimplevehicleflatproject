@@ -3,39 +3,30 @@ import streamlit as st
 import difflib
 from datetime import datetime
 import pytz
-from streamlit_mic_recorder import mic_recorder   # ✅ added
+from streamlit_mic_recorder import mic_recorder
 
 
 def search_and_issue_sets(log_df, LOG_FILE, logged_user):
-    """
-    Handles Set Query, Department-wise viewing, and Issue logic for Streamlit app.
-    Mimics separate_pack_section logic with close matches and dropdown selection.
-    """
 
-    # Load sets CSV
     df = pd.read_csv("sets.csv", engine="python", on_bad_lines="skip")
     df.columns = ["SetName", "Department", "Floor"]
     df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
 
     st.subheader("Set Section")
 
-    # ------------------------------
-    # Safe Session Init
-    # ------------------------------
     if "confirmed_set" not in st.session_state:
         st.session_state.confirmed_set = None
 
     if "similar_set_matches" not in st.session_state:
         st.session_state.similar_set_matches = None
 
-    # ======================================================
-    # 🟣 Search by Department
-    # ======================================================
+    # ==========================
+    # Search by Department
+    # ==========================
     st.markdown("### Search by Department")
 
-    dept_input = st.text_input("Enter Department Name")
+    dept_input = st.text_input("Enter Department Name", key="dept_text")
 
-    # 🎤 Voice for Department
     st.write("🎤 Speak Department Name")
     voice_dept = mic_recorder(
         start_prompt="Start Recording",
@@ -43,9 +34,11 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
         key="dept_mic"
     )
 
-    if voice_dept and voice_dept["text"]:
-        dept_input = voice_dept["text"]
-        st.text_input("Enter Department Name", value=dept_input, key="dept_voice_fill")
+    if voice_dept and isinstance(voice_dept, dict):
+        spoken_text = voice_dept.get("text")
+        if spoken_text:
+            dept_input = spoken_text
+            st.session_state.dept_text = spoken_text
 
     dept_input = dept_input.upper().strip()
 
@@ -62,14 +55,13 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
 
     st.markdown("---")
 
-    # ======================================================
+    # ==========================
     # Search by Set Name
-    # ======================================================
+    # ==========================
     st.markdown("### Search by Set Name")
 
-    name_input = st.text_input("Enter Set Name")
+    name_input = st.text_input("Enter Set Name", key="set_text")
 
-    # 🎤 Voice for Set Name
     st.write("🎤 Speak Set Name")
     voice_set = mic_recorder(
         start_prompt="Start Recording",
@@ -77,9 +69,11 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
         key="set_mic"
     )
 
-    if voice_set and voice_set["text"]:
-        name_input = voice_set["text"]
-        st.text_input("Enter Set Name", value=name_input, key="set_voice_fill")
+    if voice_set and isinstance(voice_set, dict):
+        spoken_text = voice_set.get("text")
+        if spoken_text:
+            name_input = spoken_text
+            st.session_state.set_text = spoken_text
 
     name_input = name_input.upper().strip()
 
@@ -88,14 +82,12 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
         st.session_state.confirmed_set = None
         st.session_state.similar_set_matches = None
 
-        # exact match first
         exact = df[df["SetName"] == name_input]
 
         if not exact.empty:
             st.session_state.confirmed_set = exact.iloc[0].to_dict()
 
         else:
-            # close matches
             all_names = df["SetName"].tolist()
             matches = difflib.get_close_matches(
                 name_input,
@@ -109,9 +101,9 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
             else:
                 st.error("No similar set found")
 
-    # ------------------------------
+    # ==========================
     # Similar dropdown
-    # ------------------------------
+    # ==========================
     if st.session_state.similar_set_matches:
 
         selected = st.selectbox(
@@ -122,13 +114,13 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
 
         if st.button("Confirm Set"):
 
-            row = df[df["SetName"] == st.session_state.selected_set_option].iloc[0]
+            row = df[df["SetName"] == selected].iloc[0]
             st.session_state.confirmed_set = row.to_dict()
             st.session_state.similar_set_matches = None
 
-    # ------------------------------
-    # Show Confirmed Set & Issue
-    # ------------------------------
+    # ==========================
+    # Confirmed & Issue
+    # ==========================
     if st.session_state.confirmed_set:
 
         data = st.session_state.confirmed_set
@@ -154,7 +146,6 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
             log_df.to_csv(LOG_FILE, index=False)
 
             st.success("Set Issued Successfully")
-
             st.session_state.confirmed_set = None
 
     return log_df
