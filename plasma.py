@@ -7,16 +7,17 @@ import math
 
 def plasma_section():
     """
-    Plasma / Instrument Recognition Smart Search with Pagination
+    Plasma / Instrument Recognition with Search + Confirm + Paginated Inventory
     """
 
     # Load CSV
     df = pd.read_csv("plasma.csv", engine="python", on_bad_lines="skip")
-    df.columns = ["ItemName", "ImageURL"]
+    df.columns = ["ItemName", "ImageFile"]
     df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
 
     st.subheader("Plasma / Instrument Section")
 
+    # Initialize session states
     if "confirmed_item" not in st.session_state:
         st.session_state.confirmed_item = None
     if "similar_item_matches" not in st.session_state:
@@ -29,15 +30,16 @@ def plasma_section():
     # -----------------------------
     item_input = st.text_input("Enter Item Name", key="plasma_text").upper().strip()
 
-    # Optional Search Button
     if st.button("Search Item") or item_input:
         st.session_state.confirmed_item = None
         st.session_state.similar_item_matches = None
 
+        # Exact match
         exact = df[df["ItemName"] == item_input]
         if not exact.empty:
             st.session_state.confirmed_item = exact.iloc[0].to_dict()
         else:
+            # Close matches
             matches = difflib.get_close_matches(item_input, df["ItemName"].tolist(), n=5, cutoff=0.4)
             if matches:
                 st.session_state.similar_item_matches = matches
@@ -64,12 +66,12 @@ def plasma_section():
     if st.session_state.confirmed_item:
         data = st.session_state.confirmed_item
         st.success(f"Selected Item: {data['ItemName']}")
-        img_path = os.path.join("plasma_image", data['ImageURL'])
+        img_path = os.path.join("plasma_image", data['ImageFile'])
         if os.path.exists(img_path):
             img = Image.open(img_path)
             st.image(img, width=300)
         else:
-            st.warning(f"Image not found: {data['ImageURL']}")
+            st.warning(f"Image not found: {data['ImageFile']}")
 
     # -----------------------------
     # Full Inventory with Pagination
@@ -80,7 +82,6 @@ def plasma_section():
     items_per_page = 10
     total_items = len(df)
     total_pages = math.ceil(total_items / items_per_page)
-
     page = st.session_state.plasma_inventory_page
 
     start_idx = (page - 1) * items_per_page
@@ -89,12 +90,12 @@ def plasma_section():
 
     for _, row in page_items.iterrows():
         st.markdown(f"**{row['ItemName']}**")
-        img_path = os.path.join("plasma_image", row['ImageURL'])
+        img_path = os.path.join("plasma_image", row['ImageFile'])
         if os.path.exists(img_path):
             img = Image.open(img_path)
             st.image(img, width=200)
         else:
-            st.warning(f"Image not found: {row['ImageURL']}")
+            st.warning(f"Image not found: {row['ImageFile']}")
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
