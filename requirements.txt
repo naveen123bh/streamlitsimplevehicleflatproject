@@ -1,11 +1,10 @@
-#streamlit==1.38.0
-#pandas==2.2.2
-#openpyxl==3.1.5
-#Pillow
-#ImageHash
-#opencv-python-headless
+streamlit==1.38.0
+pandas==2.2.2
+openpyxl==3.1.5
+
+#ImageHasopencv-python-headless
 #numpy
-streamlit
+
 torch
 transformers
 Pillow
@@ -15,3 +14,4 @@ torchvision
 tqdm
 open_clip_torch
 requests
+streamlit-mic-recorder
