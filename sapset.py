@@ -17,7 +17,7 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     if "confirmed_set" not in st.session_state:
         st.session_state.confirmed_set = None
 
-    # ======================================================
+    # ====================================================
     # Search by Department
     # ======================================================
     st.markdown("### Search by Department")
