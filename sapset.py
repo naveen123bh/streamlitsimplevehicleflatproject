@@ -8,7 +8,7 @@ import tempfile
 import whisper
 
 
-# Load Whisper once
+# Load Whisper onc
 @st.cache_resource
 def load_model():
     return whisper.load_model("base")
