@@ -4,6 +4,16 @@ import difflib
 from datetime import datetime
 import pytz
 from streamlit_mic_recorder import mic_recorder
+import tempfile
+import whisper
+
+
+# Load Whisper once
+@st.cache_resource
+def load_model():
+    return whisper.load_model("base")
+
+model = load_model()
 
 
 def search_and_issue_sets(log_df, LOG_FILE, logged_user):
@@ -20,126 +30,45 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     if "similar_set_matches" not in st.session_state:
         st.session_state.similar_set_matches = None
 
-    # ======================================================
-    # Search by Department
-    # ======================================================
-    st.markdown("### Search by Department")
-
-    dept_input = st.text_input("Enter Department Name").upper().strip()
-
-    if dept_input:
-        dept_result = df[
-            df["Department"].str.contains(dept_input, case=False, na=False)
-        ]
-
-        if not dept_result.empty:
-            st.write("Available Sets in Department:")
-            st.dataframe(dept_result[["SetName", "Floor"]])
-        else:
-            st.warning("No sets found for this department")
-
-    st.markdown("---")
-
-    # ======================================================
-    # Search by Set Name + Voice
-    # ======================================================
+    # -------------------------
+    # Search by Set Name
+    # -------------------------
     st.markdown("### Search by Set Name")
 
     col1, col2 = st.columns([4, 1])
 
-    # 🔹 Text Input
     with col1:
         name_input = st.text_input("Enter Set Name", key="set_text")
 
-    # 🔹 Mic Button
     with col2:
-        voice = mic_recorder(
+        audio = mic_recorder(
             start_prompt="🎤",
             stop_prompt="⏹",
-            just_once=True,
             key="set_mic"
         )
 
-    # 🔹 Autofill Text Input Properly
-    if voice is not None and isinstance(voice, dict):
-        if "text" in voice and voice["text"] is not None:
-            st.session_state["set_text"] = voice["text"].upper().strip()
-            st.rerun()
+    # 🔥 Convert audio → text using Whisper
+    if audio is not None:
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
+            tmpfile.write(audio["bytes"])
+            tmp_path = tmpfile.name
+
+        result = model.transcribe(tmp_path)
+        spoken_text = result["text"].strip().upper()
+
+        st.session_state["set_text"] = spoken_text
+        st.rerun()
 
     name_input = st.session_state.get("set_text", "").upper().strip()
 
-    # ======================================================
-    # Search Button
-    # ======================================================
     if st.button("Search Set"):
-
-        st.session_state.confirmed_set = None
-        st.session_state.similar_set_matches = None
 
         exact = df[df["SetName"] == name_input]
 
         if not exact.empty:
-            st.session_state.confirmed_set = exact.iloc[0].to_dict()
-
+            st.success("Set Found")
         else:
-            all_names = df["SetName"].tolist()
-            matches = difflib.get_close_matches(
-                name_input,
-                all_names,
-                n=5,
-                cutoff=0.4
-            )
-
-            if matches:
-                st.session_state.similar_set_matches = matches
-            else:
-                st.error("No similar set found")
-
-    # ======================================================
-    # Similar dropdown
-    # ======================================================
-    if st.session_state.similar_set_matches:
-
-        selected = st.selectbox(
-            "Select Correct Set",
-            st.session_state.similar_set_matches,
-            key="selected_set_option"
-        )
-
-        if st.button("Confirm Set"):
-
-            row = df[df["SetName"] == selected].iloc[0]
-            st.session_state.confirmed_set = row.to_dict()
-            st.session_state.similar_set_matches = None
-
-    # ======================================================
-    # Confirmed Set & Issue
-    # ======================================================
-    if st.session_state.confirmed_set:
-
-        data = st.session_state.confirmed_set
-
-        st.success(
-            f"{data['SetName']} ➜ Department: {data['Department']} | Floor: {data['Floor']}"
-        )
-
-        if st.button("Issue Set"):
-
-            ist = pytz.timezone("Asia/Kolkata")
-            current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
-
-            new_entry = {
-                "DateTime": current_time,
-                "Technician": logged_user,
-                "Floor": data["Floor"],
-                "ItemName": data["SetName"],
-                "Department": data["Department"]
-            }
-
-            log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
-            log_df.to_csv(LOG_FILE, index=False)
-
-            st.success("Set Issued Successfully")
-            st.session_state.confirmed_set = None
+            st.error("No Set Found")
 
     return log_df
