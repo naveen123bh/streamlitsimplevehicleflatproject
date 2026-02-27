@@ -47,23 +47,30 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
 
     col1, col2 = st.columns([4, 1])
 
+    # 🔹 Text Input
     with col1:
         name_input = st.text_input("Enter Set Name", key="set_text")
 
+    # 🔹 Mic Button
     with col2:
         voice = mic_recorder(
             start_prompt="🎤",
             stop_prompt="⏹",
+            just_once=True,
             key="set_mic"
         )
 
-    # ✅ Voice Autofill Properly
-    if voice and voice.get("text"):
-        st.session_state["set_text"] = voice["text"].upper().strip()
-        st.rerun()
+    # 🔹 Autofill Text Input Properly
+    if voice is not None and isinstance(voice, dict):
+        if "text" in voice and voice["text"] is not None:
+            st.session_state["set_text"] = voice["text"].upper().strip()
+            st.rerun()
 
     name_input = st.session_state.get("set_text", "").upper().strip()
 
+    # ======================================================
+    # Search Button
+    # ======================================================
     if st.button("Search Set"):
 
         st.session_state.confirmed_set = None
