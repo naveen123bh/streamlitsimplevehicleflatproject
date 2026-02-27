@@ -10,7 +10,7 @@ def plasma_section():
     Plasma / Instrument Recognition with Search + Confirm + Paginated Inventory
     """
 
-    # Load CSV
+    # Load CSv
     df = pd.read_csv("plasma.csv", engine="python", on_bad_lines="skip")
     df.columns = ["ItemName", "ImageFile"]
     df = df.apply(lambda x: x.astype(str).str.upper().str.strip())
