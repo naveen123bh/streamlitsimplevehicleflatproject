@@ -57,12 +57,12 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
             key="set_mic"
         )
 
-    # Voice text auto-fill
+    # ✅ Voice Autofill Properly
     if voice and voice.get("text"):
-        st.session_state.set_text = voice["text"].upper().strip()
-        name_input = st.session_state.set_text
+        st.session_state["set_text"] = voice["text"].upper().strip()
+        st.rerun()
 
-    name_input = name_input.upper().strip()
+    name_input = st.session_state.get("set_text", "").upper().strip()
 
     if st.button("Search Set"):
 
