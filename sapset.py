@@ -3,7 +3,6 @@ import streamlit as st
 import difflib
 from datetime import datetime
 import pytz
-from streamlit_mic_recorder import mic_recorder
 
 
 def search_and_issue_sets(log_df, LOG_FILE, logged_user):
@@ -20,27 +19,12 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     if "similar_set_matches" not in st.session_state:
         st.session_state.similar_set_matches = None
 
-    # ==========================
+    # ======================================================
     # Search by Department
-    # ==========================
+    # ======================================================
     st.markdown("### Search by Department")
 
-    dept_input = st.text_input("Enter Department Name", key="dept_text")
-
-    st.write("🎤 Speak Department Name")
-    voice_dept = mic_recorder(
-        start_prompt="Start Recording",
-        stop_prompt="Stop Recording",
-        key="dept_mic"
-    )
-
-    if voice_dept and isinstance(voice_dept, dict):
-        spoken_text = voice_dept.get("text")
-        if spoken_text:
-            dept_input = spoken_text
-            st.session_state.dept_text = spoken_text
-
-    dept_input = dept_input.upper().strip()
+    dept_input = st.text_input("Enter Department Name").upper().strip()
 
     if dept_input:
         dept_result = df[
@@ -55,25 +39,45 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
 
     st.markdown("---")
 
-    # ==========================
+    # ======================================================
     # Search by Set Name
-    # ==========================
+    # ======================================================
     st.markdown("### Search by Set Name")
 
     name_input = st.text_input("Enter Set Name", key="set_text")
 
-    st.write("🎤 Speak Set Name")
-    voice_set = mic_recorder(
-        start_prompt="Start Recording",
-        stop_prompt="Stop Recording",
-        key="set_mic"
-    )
+    # 🎤 Voice Button Added (No extra library needed)
+    st.markdown("""
+    <button onclick="startDictation()">🎤 Speak</button>
 
-    if voice_set and isinstance(voice_set, dict):
-        spoken_text = voice_set.get("text")
-        if spoken_text:
-            name_input = spoken_text
-            st.session_state.set_text = spoken_text
+    <script>
+    function startDictation() {
+
+        if (window.hasOwnProperty('webkitSpeechRecognition')) {
+
+            var recognition = new webkitSpeechRecognition();
+
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.lang = "en-US";
+
+            recognition.start();
+
+            recognition.onresult = function(e) {
+                document.querySelector('input[aria-label="Enter Set Name"]').value
+                    = e.results[0][0].transcript;
+                recognition.stop();
+            };
+
+            recognition.onerror = function(e) {
+                recognition.stop();
+            }
+
+        }
+    }
+    </script>
+    """, unsafe_allow_html=True)
 
     name_input = name_input.upper().strip()
 
@@ -101,9 +105,9 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
             else:
                 st.error("No similar set found")
 
-    # ==========================
+    # ======================================================
     # Similar dropdown
-    # ==========================
+    # ======================================================
     if st.session_state.similar_set_matches:
 
         selected = st.selectbox(
@@ -118,9 +122,9 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
             st.session_state.confirmed_set = row.to_dict()
             st.session_state.similar_set_matches = None
 
-    # ==========================
-    # Confirmed & Issue
-    # ==========================
+    # ======================================================
+    # Confirmed Set & Issue
+    # ======================================================
     if st.session_state.confirmed_set:
 
         data = st.session_state.confirmed_set
