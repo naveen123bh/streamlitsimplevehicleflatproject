@@ -1,6 +1,0 @@
-import requests
-
-url = "https://drive.google.com/uc?export=download&id=610cXSgmKlSxIamFO"  # your file id
-r = requests.get(url)
-with open("hospital.jpg", "wb") as f:
-    f.write(r.content)
