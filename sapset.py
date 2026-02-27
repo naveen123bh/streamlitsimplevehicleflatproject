@@ -3,6 +3,7 @@ import streamlit as st
 import difflib
 from datetime import datetime
 import pytz
+from streamlit_mic_recorder import mic_recorder   # ✅ added
 
 
 def search_and_issue_sets(log_df, LOG_FILE, logged_user):
@@ -32,7 +33,21 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     # ======================================================
     st.markdown("### Search by Department")
 
-    dept_input = st.text_input("Enter Department Name").upper().strip()
+    dept_input = st.text_input("Enter Department Name")
+
+    # 🎤 Voice for Department
+    st.write("🎤 Speak Department Name")
+    voice_dept = mic_recorder(
+        start_prompt="Start Recording",
+        stop_prompt="Stop Recording",
+        key="dept_mic"
+    )
+
+    if voice_dept and voice_dept["text"]:
+        dept_input = voice_dept["text"]
+        st.text_input("Enter Department Name", value=dept_input, key="dept_voice_fill")
+
+    dept_input = dept_input.upper().strip()
 
     if dept_input:
         dept_result = df[
@@ -52,7 +67,21 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     # ======================================================
     st.markdown("### Search by Set Name")
 
-    name_input = st.text_input("Enter Set Name").upper().strip()
+    name_input = st.text_input("Enter Set Name")
+
+    # 🎤 Voice for Set Name
+    st.write("🎤 Speak Set Name")
+    voice_set = mic_recorder(
+        start_prompt="Start Recording",
+        stop_prompt="Stop Recording",
+        key="set_mic"
+    )
+
+    if voice_set and voice_set["text"]:
+        name_input = voice_set["text"]
+        st.text_input("Enter Set Name", value=name_input, key="set_voice_fill")
+
+    name_input = name_input.upper().strip()
 
     if st.button("Search Set"):
 
