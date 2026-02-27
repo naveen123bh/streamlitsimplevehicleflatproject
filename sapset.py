@@ -17,6 +17,9 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     if "confirmed_set" not in st.session_state:
         st.session_state.confirmed_set = None
 
+    if "similar_set_matches" not in st.session_state:
+        st.session_state.similar_set_matches = None
+
     # ======================================================
     # Search by Department
     # ======================================================
@@ -38,11 +41,11 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     st.markdown("---")
 
     # ======================================================
-    # Live Search by Set Name (Voice Enabled)
+    # Search by Set Name (Voice Enabled)
     # ======================================================
     st.markdown("### Search by Set Name")
 
-    name_input = st.text_input("Enter Set Name", key="set_text").upper().strip()
+    name_input = st.text_input("Enter Set Name", key="set_text")
 
     # 🎤 Voice Button
     components.html("""
@@ -79,28 +82,51 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     </button>
     """, height=80)
 
-    # ================= LIVE FILTER =================
-    if name_input:
+    name_input = name_input.upper().strip()
 
-        filtered = df[df["SetName"].str.contains(name_input, case=False, na=False)]
+    # ======================================================
+    # Search Button
+    # ======================================================
+    if st.button("Search Set"):
 
-        if not filtered.empty:
+        st.session_state.confirmed_set = None
+        st.session_state.similar_set_matches = None
 
-            selected_set = st.selectbox(
-                "Select Set",
-                filtered["SetName"].unique(),
-                key="live_select"
-            )
+        exact = df[df["SetName"] == name_input]
 
-            row = df[df["SetName"] == selected_set].iloc[0]
-            st.session_state.confirmed_set = row.to_dict()
+        if not exact.empty:
+            st.session_state.confirmed_set = exact.iloc[0].to_dict()
 
         else:
-            st.warning("No matching set found")
-            st.session_state.confirmed_set = None
+            all_names = df["SetName"].tolist()
+            matches = difflib.get_close_matches(
+                name_input,
+                all_names,
+                n=5,
+                cutoff=0.4
+            )
 
-    else:
-        st.session_state.confirmed_set = None
+            if matches:
+                st.session_state.similar_set_matches = matches
+            else:
+                st.error("No similar set found")
+
+    # ======================================================
+    # Similar dropdown
+    # ======================================================
+    if st.session_state.similar_set_matches:
+
+        selected = st.selectbox(
+            "Select Correct Set",
+            st.session_state.similar_set_matches,
+            key="selected_set_option"
+        )
+
+        if st.button("Confirm Set"):
+
+            row = df[df["SetName"] == selected].iloc[0]
+            st.session_state.confirmed_set = row.to_dict()
+            st.session_state.similar_set_matches = None
 
     # ======================================================
     # Confirmed Set & Issue
