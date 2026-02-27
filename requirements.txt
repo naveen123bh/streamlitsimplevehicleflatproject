@@ -14,4 +14,4 @@ torchvision
 tqdm
 open_clip_torch
 requests
-streamlit-mic-recorder
+streamlit-mic-recorder==0.0.4
