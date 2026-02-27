@@ -1,1 +1,16 @@
-item_name,image_url,embedding
+ItemName,ImageFile
+MICROSCOPE CAP,microscope_cap.jpg
+METAL TROCAR,metal_trocar.jpg
+SKIN STAPLER,skin_stapler.jpg
+ARTHOSCOPY TAP,arthoscopy_tap.jpg
+TROCAR CANNULA,trocar_cannula.jpg
+ETHICON BATTERY,ethicon_battery.jpg
+TEMPERATURE PROBE,temperature_probe.jpg
+WHITE INSTRUMENT,white_instrument.jpg
+GREY INSTRUMENT,grey_instrument.jpg
+MAKER SET,maker_set.jpg
+QUAZI BIPOLAR FORCEP SET,quazi_bipolar_forcep_set.jpg
+CROCODILE CABLE,crocodile_cable.jpg
+BASKET,basket.jpg
+ACCESS SHEATH,access_sheath.jpg
+BIPOLAR CHORD,bipolar_chord.jpg
