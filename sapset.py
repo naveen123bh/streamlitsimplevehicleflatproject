@@ -3,17 +3,7 @@ import streamlit as st
 import difflib
 from datetime import datetime
 import pytz
-from streamlit_mic_recorder import mic_recorder
-import tempfile
-import whisper
-
-
-# Load Whisper onc
-@st.cache_resource
-def load_model():
-    return whisper.load_model("base")
-
-model = load_model()
+import streamlit.components.v1 as components
 
 
 def search_and_issue_sets(log_df, LOG_FILE, logged_user):
@@ -30,45 +20,142 @@ def search_and_issue_sets(log_df, LOG_FILE, logged_user):
     if "similar_set_matches" not in st.session_state:
         st.session_state.similar_set_matches = None
 
-    # -------------------------
-    # Search by Set Name
-    # -------------------------
+    # ======================================================
+    # Search by Department
+    # ======================================================
+    st.markdown("### Search by Department")
+
+    dept_input = st.text_input("Enter Department Name").upper().strip()
+
+    if dept_input:
+        dept_result = df[
+            df["Department"].str.contains(dept_input, case=False, na=False)
+        ]
+
+        if not dept_result.empty:
+            st.write("Available Sets in Department:")
+            st.dataframe(dept_result[["SetName", "Floor"]])
+        else:
+            st.warning("No sets found for this department")
+
+    st.markdown("---")
+
+    # ======================================================
+    # Search by Set Name (Voice Enabled)
+    # ======================================================
     st.markdown("### Search by Set Name")
 
-    col1, col2 = st.columns([4, 1])
+    name_input = st.text_input("Enter Set Name", key="set_text")
 
-    with col1:
-        name_input = st.text_input("Enter Set Name", key="set_text")
+    # 🎤 Voice Button (Browser Speech Recognition)
+    components.html("""
+    <script>
+    function startDictation() {
+        if ('webkitSpeechRecognition' in window) {
 
-    with col2:
-        audio = mic_recorder(
-            start_prompt="🎤",
-            stop_prompt="⏹",
-            key="set_mic"
-        )
+            var recognition = new webkitSpeechRecognition();
+            recognition.lang = "en-US";
+            recognition.start();
 
-    # 🔥 Convert audio → text using Whisper
-    if audio is not None:
+            recognition.onresult = function(event) {
+                const text = event.results[0][0].transcript.toUpperCase();
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
-            tmpfile.write(audio["bytes"])
-            tmp_path = tmpfile.name
+                const inputs = window.parent.document.querySelectorAll('input');
 
-        result = model.transcribe(tmp_path)
-        spoken_text = result["text"].strip().upper()
+                inputs.forEach(input => {
+                    if (input.placeholder === "Enter Set Name") {
+                        input.value = text;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                });
+            };
 
-        st.session_state["set_text"] = spoken_text
-        st.rerun()
+        } else {
+            alert("Speech Recognition not supported in this browser.");
+        }
+    }
+    </script>
 
-    name_input = st.session_state.get("set_text", "").upper().strip()
+    <button onclick="startDictation()" 
+    style="padding:8px 16px;font-size:16px;cursor:pointer;">
+    🎤 Speak
+    </button>
+    """, height=80)
 
+    name_input = name_input.upper().strip()
+
+    # ======================================================
+    # Search Button
+    # ======================================================
     if st.button("Search Set"):
+
+        st.session_state.confirmed_set = None
+        st.session_state.similar_set_matches = None
 
         exact = df[df["SetName"] == name_input]
 
         if not exact.empty:
-            st.success("Set Found")
+            st.session_state.confirmed_set = exact.iloc[0].to_dict()
+
         else:
-            st.error("No Set Found")
+            all_names = df["SetName"].tolist()
+            matches = difflib.get_close_matches(
+                name_input,
+                all_names,
+                n=5,
+                cutoff=0.4
+            )
+
+            if matches:
+                st.session_state.similar_set_matches = matches
+            else:
+                st.error("No similar set found")
+
+    # ======================================================
+    # Similar dropdown
+    # ======================================================
+    if st.session_state.similar_set_matches:
+
+        selected = st.selectbox(
+            "Select Correct Set",
+            st.session_state.similar_set_matches,
+            key="selected_set_option"
+        )
+
+        if st.button("Confirm Set"):
+
+            row = df[df["SetName"] == selected].iloc[0]
+            st.session_state.confirmed_set = row.to_dict()
+            st.session_state.similar_set_matches = None
+
+    # ======================================================
+    # Confirmed Set & Issue
+    # ======================================================
+    if st.session_state.confirmed_set:
+
+        data = st.session_state.confirmed_set
+
+        st.success(
+            f"{data['SetName']} ➜ Department: {data['Department']} | Floor: {data['Floor']}"
+        )
+
+        if st.button("Issue Set"):
+
+            ist = pytz.timezone("Asia/Kolkata")
+            current_time = datetime.now(ist).strftime("%d-%m-%Y %H:%M:%S")
+
+            new_entry = {
+                "DateTime": current_time,
+                "Technician": logged_user,
+                "Floor": data["Floor"],
+                "ItemName": data["SetName"],
+                "Department": data["Department"]
+            }
+
+            log_df = pd.concat([log_df, pd.DataFrame([new_entry])], ignore_index=True)
+            log_df.to_csv(LOG_FILE, index=False)
+
+            st.success("Set Issued Successfully")
+            st.session_state.confirmed_set = None
 
     return log_df
