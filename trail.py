@@ -218,7 +218,7 @@ if option == "Separate Pack":
 elif option == "Set":
     log_df = search_and_issue_sets(log_df, LOG_FILE, st.session_state.logged_in_user)
 
-elif option == "Plasma Query":
+elif option == "inventory saperate pack":
     st.markdown("## Plasma / Instrument Section")
     from plasma import plasma_section  # ← call new plasma.py
     plasma_section()
