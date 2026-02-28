@@ -14,8 +14,11 @@ def plasma_section():
         st.error(f"{IMAGE_FOLDER} folder not found!")
         return
 
-    # Get all jpg files
-    image_files = [f for f in os.listdir(IMAGE_FOLDER) if f.lower().endswith(".jpg")]
+    # Get all image files (jpg, jpeg, png - case insensitive)
+    image_files = [
+        f for f in os.listdir(IMAGE_FOLDER)
+        if f.lower().endswith((".jpg", ".jpeg", ".png"))
+    ]
 
     if not image_files:
         st.warning("No images found in plasma_images folder!")
@@ -24,13 +27,13 @@ def plasma_section():
     # Create dataframe from image names
     data = []
     for img in image_files:
-        item_name = os.path.splitext(img)[0]  # remove .jpg
+        item_name = os.path.splitext(img)[0]  # remove extension
         item_name = item_name.replace("_", " ").upper().strip()
         data.append([item_name, img])
 
     df = pd.DataFrame(data, columns=["ItemName", "ImageFile"])
 
-    st.subheader("Plasma /autoclave Instrument Section")
+    st.subheader("Plasma / Autoclave Instrument Section")
 
     # -----------------------------
     # Search by Name
@@ -76,7 +79,9 @@ def plasma_section():
         st.markdown("### Inventory (Paginated)")
         ITEMS_PER_PAGE = 10
         total_items = len(df)
-        total_pages = (total_items // ITEMS_PER_PAGE) + (1 if total_items % ITEMS_PER_PAGE != 0 else 0)
+        total_pages = (total_items // ITEMS_PER_PAGE) + (
+            1 if total_items % ITEMS_PER_PAGE != 0 else 0
+        )
 
         if "inventory_page" not in st.session_state:
             st.session_state.inventory_page = 1
@@ -95,7 +100,7 @@ def plasma_section():
 
         for _, row in page_items.iterrows():
             st.markdown(f"**{row['ItemName']}**")
-            img_path = os.path.join(IMAGE_FOLDER, row['ImageFile'])
+            img_path = os.path.join(IMAGE_FOLDER, row["ImageFile"])
             if os.path.exists(img_path):
                 st.image(img_path, width=150)
             else:
