@@ -134,9 +134,9 @@ if st.session_state.logged_in_user is None:
 
     st.stop()
 
-# -----------------------------
+# ----------------------------
 # AFTER LOGIN
-# -----------------------------
+# ----------------------------
 ist = pytz.timezone("Asia/Kolkata")
 now = datetime.now(ist)
 current_hour = now.hour
