@@ -6,20 +6,31 @@ import os
 
 def plasma_section():
     # ----------------------------
-    # Load plasma CSV
+    # Load Images directly from folder (No CSV dependency)
     # ----------------------------
-    PLASMA_CSV = "plasma.csv"
     IMAGE_FOLDER = "plasma_images"
 
-    if not os.path.exists(PLASMA_CSV):
-        st.error(f"{PLASMA_CSV} not found!")
+    if not os.path.exists(IMAGE_FOLDER):
+        st.error(f"{IMAGE_FOLDER} folder not found!")
         return
 
-    df = pd.read_csv(PLASMA_CSV, engine="python", on_bad_lines="skip")
-    df.columns = ["ItemName", "ImageFile"]
-    df["ItemName"] = df["ItemName"].str.upper().str.strip()
+    # Get all jpg files
+    image_files = [f for f in os.listdir(IMAGE_FOLDER) if f.lower().endswith(".jpg")]
 
-    st.subheader("Plasma /autocoave Instrument Section")
+    if not image_files:
+        st.warning("No images found in plasma_images folder!")
+        return
+
+    # Create dataframe from image names
+    data = []
+    for img in image_files:
+        item_name = os.path.splitext(img)[0]  # remove .jpg
+        item_name = item_name.replace("_", " ").upper().strip()
+        data.append([item_name, img])
+
+    df = pd.DataFrame(data, columns=["ItemName", "ImageFile"])
+
+    st.subheader("Plasma /autoclave Instrument Section")
 
     # -----------------------------
     # Search by Name
@@ -58,16 +69,15 @@ def plasma_section():
     if "show_inventory" not in st.session_state:
         st.session_state.show_inventory = False
 
-    if st.button("View Full  Inventory"):
+    if st.button("View Full Inventory"):
         st.session_state.show_inventory = True
 
     if st.session_state.show_inventory:
-        st.markdown("###  Inventory (Paginated)")
+        st.markdown("### Inventory (Paginated)")
         ITEMS_PER_PAGE = 10
         total_items = len(df)
         total_pages = (total_items // ITEMS_PER_PAGE) + (1 if total_items % ITEMS_PER_PAGE != 0 else 0)
 
-        # Use session state to store current page
         if "inventory_page" not in st.session_state:
             st.session_state.inventory_page = 1
 
