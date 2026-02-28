@@ -1,4 +1,3 @@
-# app.py
 # ✅ Full updated Streamlit app for KDAH + Instrument Recognition
 # programmed by naveen123
 
@@ -8,6 +7,7 @@ import base64
 import streamlit as st
 import pandas as pd
 import difflib
+import sqlite3
 from datetime import datetime
 import pytz
 from technician import TECHNICIAN_NAMES
@@ -100,21 +100,38 @@ if st.session_state.logged_in_user is None:
         else:
             st.warning("Enter correct name")
 
-    # Feedback Section
+    # -----------------------------
+    # Feedback Section (Updated - SQLite Permanent Save)
+    # -----------------------------
     st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
     feedback_input = st.text_area("Any suggestion or idea to improve this app?")
+
     if st.button("Submit Suggestion"):
         if feedback_input.strip() != "":
-            FEEDBACK_FILE = "cssd_suggestions.csv"
-            import csv
-            with open(FEEDBACK_FILE, "a", newline="") as f:
-                writer = csv.writer(f)
-                writer.writerow([datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                 st.session_state.login_selected_name or "Unknown",
-                                 feedback_input])
+            conn = sqlite3.connect("cssd_suggestions.db")
+            c = conn.cursor()
+
+            c.execute("""
+                CREATE TABLE IF NOT EXISTS suggestions (
+                    DateTime TEXT,
+                    Technician TEXT,
+                    Feedback TEXT
+                )
+            """)
+
+            c.execute("INSERT INTO suggestions VALUES (?, ?, ?)", (
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                st.session_state.login_selected_name or "Unknown",
+                feedback_input
+            ))
+
+            conn.commit()
+            conn.close()
+
             st.success("Thank you! Your suggestion has been recorded.")
         else:
             st.warning("Please type something to submit.")
+
     st.stop()
 
 # -----------------------------
@@ -141,114 +158,7 @@ st.markdown(
     f"</div>", unsafe_allow_html=True
 )
 
-st.markdown("""
-<style>
-div.stButton > button {
-    background-color: #28a745 !important;
-    color: white !important;
-    font-size: 22px !important;
-    font-weight: bold !important;
-    padding: 0.7em 1.5em !important;
-    border-radius: 8px !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
 if st.button("Logout"):
     for key in defaults.keys():
         st.session_state[key] = None
-    st.rerun()
-
-# -----------------------------
-# OPTION SELECT PAGE
-# -----------------------------
-if st.session_state.query_option is None:
-    st.markdown("<h2 style='color:#FF5733; font-weight:bold;'>Select Option</h2>", unsafe_allow_html=True)
-    st.markdown("""
-    <style>
-    div[role="radiogroup"] > label {
-        font-size: 26px !important;
-        font-weight: bold !important;
-        color: black !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    choice = st.radio(
-        "",
-        [
-            "Separate Pack",
-            "Set",
-            "Plasma Query",
-            "ETO Query",
-            "Autoclave Query",
-            "5th Floor Handover",
-            "3rd Floor Handover",
-            "Set Identification"
-        ]
-    )
-    if st.button("Continue", type="primary"):
-        st.session_state.query_option = choice
-        st.rerun()
-    st.stop()
-
-option = st.session_state.query_option
-if st.button("⬅ Back"):
-    st.session_state.query_option = None
-    st.rerun()
-
-# -----------------------------
-# ISSUE LOG
-# -----------------------------
-LOG_FILE = "issue_log.csv"
-if os.path.exists(LOG_FILE):
-    log_df = pd.read_csv(LOG_FILE, engine="python", on_bad_lines="skip")
-    if "SisterName" not in log_df.columns:
-        log_df["SisterName"] = ""
-else:
-    log_df = pd.DataFrame(columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"])
-
-# -----------------------------
-# FEATURE SECTIONS
-# -----------------------------
-if option == "Separate Pack":
-    from sap import separate_pack_section
-    log_df = separate_pack_section(log_df, LOG_FILE, st.session_state.logged_in_user)
-
-elif option == "Set":
-    log_df = search_and_issue_sets(log_df, LOG_FILE, st.session_state.logged_in_user)
-
-elif option == "Plasma Query":
-    st.markdown("## Plasma / Instrument Recognition")
-    from embeddings import InstrumentRecognizer  # new embeddings.py
-    recognizer = InstrumentRecognizer("plasma.csv")  # your CSV with item_name & image_url
-
-    uploaded_file = st.file_uploader("Upload instrument image", type=["jpg","png","jpeg"])
-    if uploaded_file is not None:
-        from PIL import Image
-        img = Image.open(uploaded_file).convert("RGB")  # ← convert UploadedFile to PIL Image
-        st.image(img, width=250)
-        try:
-            results = recognizer.recognize(img, top_k=1)  # ← pass PIL Image
-            if not results.empty:
-                top_file = results.iloc[0]["item_name"]
-                sim = results.iloc[0]["similarity"]
-                st.success(f"Best match: {top_file} (Similarity: {sim:.2f})")
-            else:
-                st.warning("No match found.")
-        except Exception as e:
-            st.error(f"Recognition failed: {e}")
-
-# ----------------------------
-# ISSUE HISTORY
-# ----------------------------
-st.subheader("Issue History")
-if not log_df.empty:
-    st.dataframe(log_df)
-else:
-    st.write("No issues recorded")
-
-if st.button("Clear Log History"):
-    pd.DataFrame(columns=["DateTime", "Technician", "SisterName", "Floor", "ItemName", "Department"]).to_csv(LOG_FILE, index=False)
-    st.success("Log Cleared Successfully")
     st.rerun()
