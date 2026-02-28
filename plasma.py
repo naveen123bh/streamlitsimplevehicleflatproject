@@ -19,7 +19,7 @@ def plasma_section():
     df.columns = ["ItemName", "ImageFile"]
     df["ItemName"] = df["ItemName"].str.upper().str.strip()
 
-    st.subheader("Plasma / Instrument Section")
+    st.subheader("Plasma /autocoave Instrument Section")
 
     # -----------------------------
     # Search by Name
@@ -58,7 +58,7 @@ def plasma_section():
     if "show_inventory" not in st.session_state:
         st.session_state.show_inventory = False
 
-    if st.button("View Full Plasma Inventory"):
+    if st.button("View Full  Inventory"):
         st.session_state.show_inventory = True
 
     if st.session_state.show_inventory:
