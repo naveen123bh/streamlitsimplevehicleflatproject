@@ -179,7 +179,7 @@ if st.session_state.query_option is None:
         [
             "Separate Pack",
             "Set",
-            "Plasma Query",
+            "inventory saperate pack",
             "ETO Query",
             "Autoclave Query",
             "5th Floor saperate pack",
