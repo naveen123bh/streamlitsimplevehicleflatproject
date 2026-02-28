@@ -62,7 +62,7 @@ def plasma_section():
         st.session_state.show_inventory = True
 
     if st.session_state.show_inventory:
-        st.markdown("### Plasma Inventory (Paginated)")
+        st.markdown("###  Inventory (Paginated)")
         ITEMS_PER_PAGE = 10
         total_items = len(df)
         total_pages = (total_items // ITEMS_PER_PAGE) + (1 if total_items % ITEMS_PER_PAGE != 0 else 0)
