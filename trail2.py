@@ -7,7 +7,7 @@ import base64
 import streamlit as st
 import pandas as pd
 import difflib
-import csv
+import urllib.parse
 from datetime import datetime
 import pytz
 from technician import TECHNICIAN_NAMES
@@ -52,34 +52,6 @@ if st.session_state.logged_in_user is None:
     st.markdown("<h4 style='color:#444;'>Quote of the Moment</h4>", unsafe_allow_html=True)
     st.info(get_random_quote())
 
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    mp3_files = [os.path.join(current_dir, f) for f in os.listdir(current_dir) if f.lower().endswith(".mp3")]
-
-    if mp3_files:
-        random_song = random.choice(mp3_files)
-        with open(random_song, "rb") as f:
-            audio_bytes = f.read()
-        b64 = base64.b64encode(audio_bytes).decode()
-        audio_html = f"""
-        <audio>
-            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-        </audio>
-        """
-        st.markdown(audio_html, unsafe_allow_html=True)
-
-    st.markdown("""
-    <style>
-    div.stButton > button[kind="primary"] {
-        background-color: #28a745;
-        color: white;
-        font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em 1.2em;
-        border-radius: 8px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     name_input = st.text_input("Technician Name")
 
     if name_input:
@@ -101,34 +73,28 @@ if st.session_state.logged_in_user is None:
             st.warning("Enter correct name")
 
     # -----------------------------
-    # Feedback Section (Save to CSV in same folder)
+    # Feedback Section (Send to WhatsApp)
     # -----------------------------
     st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
     feedback_input = st.text_area("Any suggestion or idea to improve this app?")
 
-    if st.button("Submit Suggestion"):
+    if st.button("Send via WhatsApp"):
         if feedback_input.strip() != "":
-            FEEDBACK_FILE = "cssd_suggestions.csv"
-            file_exists = os.path.isfile(FEEDBACK_FILE)
+            
+            phone_number = "917247889502"
 
-            with open(FEEDBACK_FILE, "a", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
+            message = f"""
+New Suggestion:
+Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+Technician: {st.session_state.login_selected_name or "Unknown"}
+Suggestion: {feedback_input}
+            """
 
-                if not file_exists:
-                    writer.writerow(["DateTime", "Technician", "Feedback"])
+            encoded_message = urllib.parse.quote(message)
+            whatsapp_url = f"https://wa.me/{phone_number}?text={encoded_message}"
 
-                writer.writerow([
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    st.session_state.login_selected_name or "Unknown",
-                    feedback_input
-                ])
-
-            st.success("Suggestion saved successfully.")
+            st.markdown(f"[Click Here to Send Suggestion on WhatsApp]({whatsapp_url})")
         else:
             st.warning("Please type something to submit.")
 
     st.stop()
-
-# -----------------------------
-# AFTER LOGIN (rest of your original code continues unchanged)
-# -----------------------------
