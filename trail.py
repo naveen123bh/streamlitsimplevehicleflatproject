@@ -182,8 +182,8 @@ if st.session_state.query_option is None:
             "Plasma Query",
             "ETO Query",
             "Autoclave Query",
-            "5th Floor Handover",
-            "3rd Floor Handover",
+            "5th Floor saperate pack",
+            "3rd Floor saperate pack",
             "Set Identification"
         ]
     )
