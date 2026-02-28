@@ -219,25 +219,9 @@ elif option == "Set":
     log_df = search_and_issue_sets(log_df, LOG_FILE, st.session_state.logged_in_user)
 
 elif option == "Plasma Query":
-    st.markdown("## Plasma / Instrument Recognition")
-    from embeddings import InstrumentRecognizer  # new embeddings.py
-    recognizer = InstrumentRecognizer("plasma.csv")  # your CSV with item_name & image_url
-
-    uploaded_file = st.file_uploader("Upload instrument image", type=["jpg","png","jpeg"])
-    if uploaded_file is not None:
-        from PIL import Image
-        img = Image.open(uploaded_file).convert("RGB")  # ← convert UploadedFile to PIL Image
-        st.image(img, width=250)
-        try:
-            results = recognizer.recognize(img, top_k=1)  # ← pass PIL Image
-            if not results.empty:
-                top_file = results.iloc[0]["item_name"]
-                sim = results.iloc[0]["similarity"]
-                st.success(f"Best match: {top_file} (Similarity: {sim:.2f})")
-            else:
-                st.warning("No match found.")
-        except Exception as e:
-            st.error(f"Recognition failed: {e}")
+    st.markdown("## Plasma / Instrument Section")
+    from plasma import plasma_section  # ← call new plasma.py
+    plasma_section()
 
 # -----------------------------
 # ISSUE HISTORY
