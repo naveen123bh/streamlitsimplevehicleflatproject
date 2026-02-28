@@ -5,9 +5,9 @@ import difflib
 import os
 
 def plasma_section():
-    # -----------------------------
+    # ----------------------------
     # Load plasma CSV
-    # -----------------------------
+    # ----------------------------
     PLASMA_CSV = "plasma.csv"
     IMAGE_FOLDER = "plasma_images"
 
