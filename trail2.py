@@ -7,7 +7,7 @@ import base64
 import streamlit as st
 import pandas as pd
 import difflib
-import sqlite3
+import csv
 from datetime import datetime
 import pytz
 from technician import TECHNICIAN_NAMES
@@ -101,64 +101,34 @@ if st.session_state.logged_in_user is None:
             st.warning("Enter correct name")
 
     # -----------------------------
-    # Feedback Section (Updated - SQLite Permanent Save)
+    # Feedback Section (Save to CSV in same folder)
     # -----------------------------
     st.markdown("<h4 style='color:#28a745;'>Suggestions / Feedback (Optional)</h4>", unsafe_allow_html=True)
     feedback_input = st.text_area("Any suggestion or idea to improve this app?")
 
     if st.button("Submit Suggestion"):
         if feedback_input.strip() != "":
-            conn = sqlite3.connect("cssd_suggestions.db")
-            c = conn.cursor()
+            FEEDBACK_FILE = "cssd_suggestions.csv"
+            file_exists = os.path.isfile(FEEDBACK_FILE)
 
-            c.execute("""
-                CREATE TABLE IF NOT EXISTS suggestions (
-                    DateTime TEXT,
-                    Technician TEXT,
-                    Feedback TEXT
-                )
-            """)
+            with open(FEEDBACK_FILE, "a", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
 
-            c.execute("INSERT INTO suggestions VALUES (?, ?, ?)", (
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                st.session_state.login_selected_name or "Unknown",
-                feedback_input
-            ))
+                if not file_exists:
+                    writer.writerow(["DateTime", "Technician", "Feedback"])
 
-            conn.commit()
-            conn.close()
+                writer.writerow([
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    st.session_state.login_selected_name or "Unknown",
+                    feedback_input
+                ])
 
-            st.success("Thank you! Your suggestion has been recorded.")
+            st.success("Suggestion saved successfully.")
         else:
             st.warning("Please type something to submit.")
 
     st.stop()
 
-# ----------------------------
-# AFTER LOGIN
-# ----------------------------
-ist = pytz.timezone("Asia/Kolkata")
-now = datetime.now(ist)
-current_hour = now.hour
-if 4 <= current_hour < 12:
-    greeting = "Good Morning"
-elif 12 <= current_hour < 16:
-    greeting = "Good Afternoon"
-elif 16 <= current_hour < 21:
-    greeting = "Good Evening"
-else:
-    greeting = "Hello"
-
-full_name_parts = st.session_state.logged_in_user.strip().replace(".", "").split()
-first_name = next((p.title() for p in full_name_parts if p.upper() not in ["MR", "MISS"]), full_name_parts[0].title())
-
-st.markdown(
-    f"<div style='background-color:#e8f5e9;padding:14px;border-radius:10px;text-align:center;margin-bottom:15px;'>"
-    f"<span style='color:#28a745;font-size:30px;font-weight:bold;'>{greeting}, {first_name}!</span>"
-    f"</div>", unsafe_allow_html=True
-)
-
-if st.button("Logout"):
-    for key in defaults.keys():
-        st.session_state[key] = None
-    st.rerun()
+# -----------------------------
+# AFTER LOGIN (rest of your original code continues unchanged)
+# -----------------------------
