@@ -10,7 +10,7 @@ import pandas as pd
 import difflib
 from datetime import datetime
 import pytz
-from technician import TECHNICIAN_NAMES
+from technicia import TECHNICIAN_NAMES
 from sapset import search_and_issue_sets
 from quotes import get_random_quote
 
